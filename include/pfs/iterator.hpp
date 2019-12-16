@@ -17,7 +17,7 @@ using forward_iterator_tag = std::forward_iterator_tag;
 using bidirectional_iterator_tag = std::bidirectional_iterator_tag;
 using random_access_iterator_tag = std::random_access_iterator_tag;
 
-template <typename Category, typename T, typename Distance = ptrdiff_t,
+template <typename Category, typename T, typename Distance = std::ptrdiff_t,
     typename Pointer = T *, typename Reference = T &>
 struct iterator
 {
@@ -43,7 +43,7 @@ struct iterator_traits <T *>
 {
     using iterator_category = std::random_access_iterator_tag;
     using value_type = T;
-    using difference_type = ptrdiff_t;
+    using difference_type = std::ptrdiff_t;
     using pointer = T *;
     using reference = T &;
 };
@@ -53,7 +53,7 @@ struct iterator_traits<T const *>
 {
     typedef std::random_access_iterator_tag iterator_category;
     typedef T         value_type;
-    typedef ptrdiff_t difference_type;
+    typedef std::ptrdiff_t difference_type;
     typedef const T * pointer;
     typedef const T & reference;
 };
@@ -63,7 +63,7 @@ template <typename Category
         , typename T
         , typename Pointer
         , typename Reference
-        , typename Distance = ptrdiff_t>
+        , typename Distance = std::ptrdiff_t>
 struct iterator_facade;
 
 template <typename Derived
