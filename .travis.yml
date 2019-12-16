@@ -1,0 +1,59 @@
+language: cpp
+dist: xenial
+sudo: required
+group: edge
+
+matrix:
+  include:
+
+  - os: linux
+    compiler: gcc
+    env:
+      - COMPILER=g++-5
+      - CXX_STANDARD=11
+    addons:
+      apt:
+        sources: ['ubuntu-toolchain-r-test']
+        packages: ['g++-5', 'ninja-build']
+
+  - os: linux
+    compiler: gcc
+    env:
+      - COMPILER=g++-5
+      - CXX_STANDARD=14
+    addons:
+      apt:
+        sources: ['ubuntu-toolchain-r-test']
+        packages: ['g++-5', 'ninja-build']
+
+  - os: linux
+    compiler: gcc
+    env:
+      - COMPILER=g++-5
+      - CXX_STANDARD=17
+    addons:
+      apt:
+        sources: ['ubuntu-toolchain-r-test']
+        packages: ['g++-5', 'ninja-build']
+
+    # Coveralls (TODO)
+  #- os: linux
+    #compiler: gcc
+    #addons:
+      #apt:
+        #sources: ['ubuntu-toolchain-r-test']
+        #packages: ['g++-5', 'ninja-build']
+
+    #before_script:
+      #- pip install --user cpp-coveralls
+    #after_success:
+      #- coveralls --build-root build/tests --include include --gcov 'gcov-5' --gcov-options '\-lp'
+    #env:
+      #- COMPILER=g++-5
+      #- CXX_STANDARD=11
+      #- CMAKE_OPTIONS=-Dpfs_json_COVERAGE=ON
+
+script: ./build_and_test.sh
+
+notifications:
+  email: false
