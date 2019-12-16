@@ -15,52 +15,52 @@ struct E
     int x;
 };
 
-struct random_access_iterator : public pfs::iterator_facade<
+class random_access_iterator : public pfs::iterator_facade<
           pfs::random_access_iterator_tag
         , random_access_iterator
         , E, E *, E &>
 {
+private:
     E * _p;
 
+public:
     random_access_iterator (E * p)
         : _p(p)
     {}
 
-    static reference ref (random_access_iterator & it)
+    reference ref ()
     {
-        return *it._p;
+        return *_p;
     }
 
-    static pointer ptr (random_access_iterator & it)
+    pointer ptr ()
     {
-        return it._p;
+        return _p;
     }
 
-    static void increment (random_access_iterator & it, difference_type n)
+    void increment (difference_type n)
     {
-        it._p += n;
+        _p += n;
     }
 
-    static int compare (random_access_iterator const & it1
-            , random_access_iterator const & it2)
+    int compare (random_access_iterator const & rhs) const
     {
-        return it1._p - it2._p;
+        return _p - rhs._p;
     }
 
-    static void decrement (random_access_iterator & it, difference_type n)
+    void decrement (difference_type n)
     {
-        it._p -= n;
+        _p -= n;
     }
 
-    static reference subscript (random_access_iterator & it, difference_type n)
+    reference subscript (difference_type n)
     {
-        return *(it._p + n);
+        return *(_p + n);
     }
 
-    static difference_type diff (random_access_iterator const & lhs
-            , random_access_iterator const & rhs)
+    difference_type diff (random_access_iterator const & rhs) const
     {
-        return lhs._p - rhs._p;
+        return _p - rhs._p;
     }
 };
 

@@ -26,29 +26,29 @@ struct bidirectional_iterator : public pfs::iterator_facade<
         : _p(p)
     {}
 
-    static reference ref (bidirectional_iterator & it)
+    reference ref ()
     {
-        return *it._p;
+        return *_p;
     }
 
-    static pointer ptr (bidirectional_iterator & it)
+    pointer ptr ()
     {
-        return it._p;
+        return _p;
     }
 
-    static void increment (bidirectional_iterator & it, difference_type)
+    void increment (difference_type)
     {
-        ++it._p;
+        ++_p;
     }
 
-    static bool equals (bidirectional_iterator const & it1, bidirectional_iterator const & it2)
+    bool equals (bidirectional_iterator const & rhs) const
     {
-        return it1._p == it2._p;
+        return _p == rhs._p;
     }
 
-    static void decrement (bidirectional_iterator & it, difference_type)
+    void decrement (difference_type)
     {
-        --it._p;
+        --_p;
     }
 };
 

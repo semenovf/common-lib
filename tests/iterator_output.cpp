@@ -30,10 +30,10 @@ struct output_iterator : public pfs::iterator_facade<
         : _p(p)
     {}
 
-    static reference ref (output_iterator & it)
+    reference ref ()
     {
-        reference r = it._p->x;
-        it._p++;
+        reference r = _p->x;
+        _p++;
         return r;
     }
 };

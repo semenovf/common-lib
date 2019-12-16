@@ -22,32 +22,28 @@ struct forward_iterator : public pfs::iterator_facade<
 {
     C * _p;
 
-//    forward_iterator (input_iterator const & rhs)
-//        : _p(rhs._p)
-//    {}
-
     forward_iterator (C * p)
         : _p(p)
     {}
 
-    static reference ref (forward_iterator & it)
+    reference ref ()
     {
-        return *it._p;
+        return *_p;
     }
 
-    static pointer ptr (forward_iterator & it)
+    pointer ptr ()
     {
-        return it._p;
+        return _p;
     }
 
-    static void increment (forward_iterator & it, difference_type)
+    void increment (difference_type)
     {
-        ++it._p;
+        ++_p;
     }
 
-    static bool equals (forward_iterator const & it1, forward_iterator const & it2)
+    bool equals (forward_iterator const & rhs) const
     {
-        return it1._p == it2._p;
+        return _p == rhs._p;
     }
 };
 

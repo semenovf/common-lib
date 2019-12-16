@@ -30,24 +30,24 @@ struct input_iterator : public pfs::iterator_facade<
         : _p(p)
     {}
 
-    static reference ref (input_iterator & it)
+    reference ref ()
     {
-        return *it._p;
+        return *_p;
     }
 
-    static pointer ptr (input_iterator & it)
+    pointer ptr () const
     {
-        return it._p;
+        return _p;
     }
 
-    static void increment (input_iterator & it, difference_type)
+    void increment (difference_type)
     {
-        ++it._p;
+        ++_p;
     }
 
-    static bool equals (input_iterator const & it1, input_iterator const & it2)
+    bool equals (input_iterator const & rhs) const
     {
-        return it1._p == it2._p;
+        return _p == rhs._p;
     }
 };
 
