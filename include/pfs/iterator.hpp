@@ -199,12 +199,13 @@ template <typename Derived
         , typename Pointer
         , typename Reference
         , typename Distance>
-struct iterator_facade<random_access_iterator_tag, Derived, T, Pointer, Reference, Distance>
+class iterator_facade<random_access_iterator_tag, Derived, T, Pointer, Reference, Distance>
         : public iterator_facade<bidirectional_iterator_tag, Derived, T, Pointer, Reference, Distance>
 {
-    typedef random_access_iterator_tag iterator_category;
-    typedef Distance     difference_type;
-    typedef Reference    reference;
+public:
+    using iterator_category = random_access_iterator_tag;
+    using difference_type = Distance;
+    using reference = Reference;
 
     bool equals (Derived const & rhs) const
     {
@@ -273,141 +274,74 @@ struct iterator_facade<random_access_iterator_tag, Derived, T, Pointer, Referenc
     }
 };
 
-// template <typename InputIt>
-// inline typename pfs::iterator_traits<InputIt>::difference_type
-// distance (InputIt begin, InputIt end)
-// {
-//     return std::distance(begin, end);
-// }
-//
-// template <typename InputIt>
-// inline void
-// advance (InputIt & it, typename pfs::iterator_traits<InputIt>::difference_type n)
-// {
-//     return std::advance(it, n);
-// }
-
-#if __cplusplus < 201103L
-
-// template <typename Iterator>
-// struct reverse_iterator : public std::reverse_iterator<Iterator>
-// {
-//     typedef std::reverse_iterator<Iterator> base_class;
-//
-//     reverse_iterator () : base_class() {}
-//
-//     explicit reverse_iterator (Iterator x)
-//         : base_class(x)
-//     {}
-//
-//     template <typename U>
-//     reverse_iterator (reverse_iterator<U> const & other)
-//         : base_class(other)
-//     {}
-// };
-
-//
-// C++98 (GCC) implementation need `const_reference` type defined in Container
-// for `back_insert_iterator & operator=(typename _Container::const_reference __value)`.
-// But pfs::string has no such typedef, so error occurred.
-// So replicate this struct.
-//
-// template <typename Container>
-// class back_insert_iterator : public std::iterator<std::output_iterator_tag, void, void, void, void>
-// {
-// protected:
-//     Container * _container;
-//
-// public:
-//     typedef Container container_type;
-//
-//     explicit back_insert_iterator (Container & x)
-//         : _container(pfs::addressof(x))
-//     {}
-//
-//     back_insert_iterator &
-//             operator = (const typename Container::value_type & value)
-//     {
-//         _container->push_back(value);
-//         return *this;
-//     }
-//
-//     back_insert_iterator & operator * ()
-//     {
-//         return *this;
-//     }
-//
-//     back_insert_iterator & operator ++ ()
-//     {
-//         return *this;
-//     }
-//
-//     back_insert_iterator operator ++ (int)
-//     {
-//         return *this;
-//     }
-// };
-//
-// template <typename Container>
-// inline back_insert_iterator<Container>
-// back_inserter (Container & c)
-// {
-//     return back_insert_iterator<Container>(c);
-// }
-
-#endif
-
-template <typename OStream>
-struct ostream_iterator
+template <typename T>
+class pointer_proxy_iterator : public pfs::iterator_facade<
+          pfs::random_access_iterator_tag
+        , pointer_proxy_iterator<T>
+        , T, T *, T &>
 {
-    typedef typename OStream::char_type char_type;
+    using base_class = pfs::iterator_facade<
+            pfs::random_access_iterator_tag
+            , pointer_proxy_iterator<T>
+            , T, T *, T &>;
 
-    ostream_iterator (OStream & os)
-        : _pos(& os)
-    {}
-
-    ostream_iterator & operator = (char_type const & value)
-    {
-        *_pos << value;
-        return *this;
-    }
-
-    ostream_iterator & operator * ()
-    {
-        return *this;
-    }
-
-    ostream_iterator & operator ++ ()
-    {
-        return *this;
-    }
-
-    ostream_iterator const & operator ++ (int)
-    {
-        return *this;
-    }
+public:
+    using difference_type = typename base_class::difference_type;
+    using pointer = typename base_class::pointer;
+    using reference = typename base_class::reference;
 
 private:
-    OStream * _pos;
-};
+    T * _p;
 
-
-template <typename CharT, typename Traits = std::char_traits<CharT> >
-class istreambuf_iterator : public std::istreambuf_iterator<CharT, Traits>
-{
-    typedef std::istreambuf_iterator<CharT, Traits> base_class;
 public:
-    constexpr istreambuf_iterator () noexcept
-        : base_class()
+    pointer_proxy_iterator (T * p)
+        : _p(p)
     {}
 
-    istreambuf_iterator (std::basic_istream<CharT,Traits> & is) noexcept
-        : base_class(is)
+    pointer_proxy_iterator (pointer_proxy_iterator const & it)
+        : _p(it._p)
     {}
 
-    istreambuf_iterator (std::basic_streambuf<CharT,Traits> * is) noexcept
-        : base_class(is)
-    {}
+    pointer_proxy_iterator & operator = (pointer_proxy_iterator const & it)
+    {
+        _p = it._p;
+        return *this;
+    }
+
+    int compare (pointer_proxy_iterator const & rhs) const
+    {
+        return _p - rhs._p;
+    }
+
+    reference ref ()
+    {
+        return *_p;
+    }
+
+    pointer ptr ()
+    {
+        return _p;
+    }
+
+    void increment (difference_type n)
+    {
+        _p += n;
+    }
+
+    void decrement (difference_type n)
+    {
+        _p -= n;
+    }
+
+    reference subscript (difference_type n)
+    {
+        return *(_p + n);
+    }
+
+    difference_type diff (pointer_proxy_iterator const & rhs) const
+    {
+        return _p - rhs._p;
+    }
 };
 
 template <typename ForwardIt>
