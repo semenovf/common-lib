@@ -16,7 +16,8 @@ set(TEST_NAMES iterator_bidirectional
     iterator_input
     iterator_output
     iterator_random_access
-    pointer_proxy_iterator)
+    pointer_proxy_iterator
+    variant)
 
 foreach (name ${TEST_NAMES})
     add_executable(${name} ${name}.cpp)

@@ -275,13 +275,13 @@ public:
 };
 
 template <typename T>
-class pointer_proxy_iterator : public pfs::iterator_facade<
-          pfs::random_access_iterator_tag
+class pointer_proxy_iterator : public iterator_facade<
+          random_access_iterator_tag
         , pointer_proxy_iterator<T>
         , T, T *, T &>
 {
-    using base_class = pfs::iterator_facade<
-            pfs::random_access_iterator_tag
+    using base_class = iterator_facade<
+              random_access_iterator_tag
             , pointer_proxy_iterator<T>
             , T, T *, T &>;
 
