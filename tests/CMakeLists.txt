@@ -11,7 +11,9 @@ if (ENABLE_COVERAGE)
     set(CMAKE_C_FLAGS "-g -O0 --coverage")
 endif()
 
-set(TEST_NAMES filesystem
+set(TEST_NAMES
+    dynamic_library
+    filesystem
     iterator_bidirectional
     iterator_forward
     iterator_input
@@ -25,4 +27,11 @@ foreach (name ${TEST_NAMES})
     add_executable(${name} ${name}.cpp)
     add_test(NAME ${name} COMMAND ${name})
 endforeach()
+
+if (UNIX)
+    target_link_libraries(dynamic_library dl)
+endif()
+
+# Helper library for test `dynamic_library`
+add_library(shared_object SHARED shared_object.c)
 
