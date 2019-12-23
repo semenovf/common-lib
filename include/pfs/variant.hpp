@@ -7,7 +7,6 @@
 //      2019.12.17 Initial version
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
-// #include <type_traits>
 
 #if __cplusplus < 201703L
 #   include "3rdparty/variant.hpp"
