@@ -105,24 +105,6 @@ public:
     using symbol_type = void *;
 #endif
 
-// private:
-//     static bool file_exists (fs::path const & p) {
-// #if defined(_WIN32) || defined(_WIN64)
-// #   error "Need to implement for Windows"
-// #else
-//         struct stat statbuf;
-//
-//         if (stat(p.c_str(), & statbuf) != 0) {
-//             if (errno == ENOENT)
-//                 return false;
-//             else
-//                 throw std::system_error(errno, std::generic_category(), "stat()");
-//         }
-//
-//         return static_cast<bool>(S_ISREG(statbuf.st_mode));
-// #endif
-//     }
-
 public:
     dynamic_library ()
         : _handle(0)

@@ -25,7 +25,7 @@ for h in $HEADERS ; do
         exit 1
     fi
 
-    target=$target_dir/$h
+    target=$TARGET_ROOT_DIR/$h
     copy_options="--parents"
 
     if [ -f $target ]; then
