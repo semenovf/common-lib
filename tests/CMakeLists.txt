@@ -11,6 +11,8 @@ if (ENABLE_COVERAGE)
     set(CMAKE_C_FLAGS "-g -O0 --coverage")
 endif()
 
+include(${CMAKE_SOURCE_DIR}/cmake/cxx_filesystem.cmake)
+
 set(TEST_NAMES
     dynamic_library
     filesystem
@@ -27,6 +29,11 @@ foreach (name ${TEST_NAMES})
     add_executable(${name} ${name}.cpp)
     add_test(NAME ${name} COMMAND ${name})
 endforeach()
+
+if (TARGET std::filesystem)
+    target_link_libraries(dynamic_library std::filesystem)
+    target_link_libraries(filesystem std::filesystem)
+endif()
 
 if (UNIX)
     target_link_libraries(dynamic_library dl)

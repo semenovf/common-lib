@@ -6,7 +6,15 @@
 // Changelog:
 //      2019.12.23 Initial version
 ////////////////////////////////////////////////////////////////////////////////
+#ifndef HAVE_STD_FILESYSTEM
+
 #if defined(__cplusplus) && __cplusplus >= 201703L && defined(__has_include) && __has_include(<filesystem>)
+#   define HAVE_STD_FILESYSTEM 1
+#endif
+
+#endif // HAVE_STD_FILESYSTEM
+
+#if HAVE_STD_FILESYSTEM
 #   include <filesystem>
 namespace pfs {
     namespace filesystem = std::filesystem;
