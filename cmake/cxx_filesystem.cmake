@@ -5,6 +5,7 @@
 ################################################################################
 include(CMakePushCheckState)
 include(CheckIncludeFileCXX)
+include(CheckCXXSourceCompiles)
 
 cmake_push_check_state()
 
