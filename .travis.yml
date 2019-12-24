@@ -36,6 +36,36 @@ matrix:
         sources: ['ubuntu-toolchain-r-test']
         packages: ['g++-5', 'ninja-build']
 
+  - os: linux
+    compiler: gcc
+    env:
+      - COMPILER=g++-6
+      - CXX_STANDARD=17
+    addons:
+      apt:
+        sources: ['ubuntu-toolchain-r-test']
+        packages: ['g++-6', 'ninja-build']
+
+  - os: linux
+    compiler: gcc
+    env:
+      - COMPILER=g++-7
+      - CXX_STANDARD=17
+    addons:
+      apt:
+        sources: ['ubuntu-toolchain-r-test']
+        packages: ['g++-7', 'ninja-build']
+
+  - os: linux
+    compiler: gcc
+    env:
+      - COMPILER=g++-8
+      - CXX_STANDARD=17
+    addons:
+      apt:
+        sources: ['ubuntu-toolchain-r-test']
+        packages: ['g++-8', 'ninja-build']
+
     # Coveralls (TODO)
   #- os: linux
     #compiler: gcc
