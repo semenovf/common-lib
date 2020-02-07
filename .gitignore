@@ -1,32 +1,53 @@
-# Prerequisites
-*.d
+!.gitignore
 
-# Compiled Object files
+.settings/
+.build*/
+build*/
+.kdev4/
+.idea/
+.project
+.cproject
+doxygen/
+nbproject/
+src/tmp/
+
+.coveralls.yml
+#Makefile
+#Makefile.*
+#makefile
+#makefile.*
+*.kdev4
+*.make
+*.mk
+*.exe
+*.err
+*.lk*
+*.sym
+*.swp
+~*
+*~
+*.bak
+#*.map
+*.sdf
 *.slo
 *.lo
+*.pdb
+*.idb
 *.o
 *.obj
-
-# Precompiled Headers
-*.gch
-*.pch
-
-# Compiled Dynamic libraries
 *.so
-*.dylib
 *.dll
-
-# Fortran module files
-*.mod
-*.smod
-
-# Compiled Static libraries
+*.so.*
+*.dylib
+*.lib
 *.lai
 *.la
 *.a
-*.lib
-
-# Executables
 *.exe
 *.out
 *.app
+*.log
+moc_*.cpp
+qrc_*.cpp
+.sconsign.dblite
+Doxyget.err
