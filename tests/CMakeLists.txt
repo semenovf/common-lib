@@ -23,10 +23,25 @@ set(TEST_NAMES
     iterator_random_access
     pointer_proxy_iterator
     safeformat
-    variant)
+    variant
+    utf8_decode)
 
+set(utf8_decode_SOURCES
+    unicode/utf8/cyrillic.c
+    unicode/utf8/gothic.c
+    unicode/utf8/greek.c
+    unicode/utf8/mideng.c
+    unicode/utf8/midger.c
+    unicode/utf8/multilang.c
+    unicode/utf8/rune.c
+    unicode/utf8/vietnamese.c)
+    
 foreach (name ${TEST_NAMES})
-    add_executable(${name} ${name}.cpp)
+    if (${name}_SOURCES)
+        add_executable(${name} ${name}.cpp ${${name}_SOURCES})
+    else ()
+        add_executable(${name} ${name}.cpp)
+    endif()
     add_test(NAME ${name} COMMAND ${name})
 endforeach()
 
@@ -41,4 +56,3 @@ endif()
 
 # Helper library for test `dynamic_library`
 add_library(shared_object SHARED shared_object.c)
-
