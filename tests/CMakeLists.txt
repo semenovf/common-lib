@@ -11,6 +11,9 @@ if (ENABLE_COVERAGE)
     set(CMAKE_C_FLAGS "-g -O0 --coverage")
 endif()
 
+# Copy test files to build folder
+file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/unicode/utf8/data DESTINATION unicode/utf8)
+
 include(${CMAKE_SOURCE_DIR}/cmake/cxx_filesystem.cmake)
 
 set(TEST_NAMES
@@ -24,9 +27,10 @@ set(TEST_NAMES
     pointer_proxy_iterator
     safeformat
     variant
-    utf8_decode)
+    utf8_decode
+    utf8_encode)
 
-set(utf8_decode_SOURCES
+set(utf8_resource_SOURCES
     unicode/utf8/cyrillic.c
     unicode/utf8/gothic.c
     unicode/utf8/greek.c
@@ -35,7 +39,11 @@ set(utf8_decode_SOURCES
     unicode/utf8/multilang.c
     unicode/utf8/rune.c
     unicode/utf8/vietnamese.c)
-    
+
+set(utf8_decode_SOURCES ${utf8_resource_SOURCES})
+
+set(utf8_encode_SOURCES ${utf8_resource_SOURCES})
+
 foreach (name ${TEST_NAMES})
     if (${name}_SOURCES)
         add_executable(${name} ${name}.cpp ${${name}_SOURCES})

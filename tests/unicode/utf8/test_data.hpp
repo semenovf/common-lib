@@ -19,20 +19,21 @@ extern unsigned int  vietnamese_txt_len;
 
 struct test_data {
     char const *    name;
+    char const *    filename;
     unsigned char * text;
     unsigned int    len;
     unsigned int    nchars;
 };
 
 static test_data data[] = {
-      { "cyrillic"  , cyrillic_txt  , cyrillic_txt_len   ,   66 }
-    , { "gothic"    , gothic_txt    , gothic_txt_len     ,   83 }
-    , { "greek"     , greek_txt     , greek_txt_len      ,  204 }
-    , { "mideng"    , mideng_txt    , mideng_txt_len     ,  272 }
-    , { "midger"    , midger_txt    , midger_txt_len     ,  353 }
-    , { "multilang" , multilang_txt , multilang_txt_len  , 9175 }
-    , { "rune"      , rune_txt      , rune_txt_len       ,  145 }
-    , { "vietnamese", vietnamese_txt, vietnamese_txt_len ,   43 }
+      { "cyrillic"  , "unicode/utf8/data/cyrillic.txt"  , cyrillic_txt  , cyrillic_txt_len   ,   66 }
+    , { "gothic"    , "unicode/utf8/data/gothic.txt"    , gothic_txt    , gothic_txt_len     ,   83 }
+    , { "greek"     , "unicode/utf8/data/greek.txt"     , greek_txt     , greek_txt_len      ,  204 }
+    , { "mideng"    , "unicode/utf8/data/mideng.txt"    , mideng_txt    , mideng_txt_len     ,  272 }
+    , { "midger"    , "unicode/utf8/data/midger.txt"    , midger_txt    , midger_txt_len     ,  353 }
+    , { "multilang" , "unicode/utf8/data/multilang.txt" , multilang_txt , multilang_txt_len  , 9175 }
+    , { "rune"      , "unicode/utf8/data/rune.txt"      , rune_txt      , rune_txt_len       ,  145 }
+    , { "vietnamese", "unicode/utf8/data/vietnamese.txt", vietnamese_txt, vietnamese_txt_len ,   43 }
 };
 
 template <typename Iterator>
