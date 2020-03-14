@@ -10,7 +10,7 @@
 #include "doctest.h"
 #include "pfs/compare.hpp"
 
-class A : public pfs::compare_op<A>, public pfs::compare_op<A, int>
+class A : public pfs::compare_operations
 {
 public:
     int x {0};
@@ -19,18 +19,38 @@ public:
     A () {}
     explicit A (int x) : x(x) {}
 
-    int compare (A const & rhs) const
+    friend bool operator == (A const & a, A const & b)
     {
-        return x - rhs.x;
+        return a.x == b.x;
     }
 
-    int compare (int rhs) const
+    friend bool operator < (A const & a, A const & b)
     {
-        return x - rhs;
+        return a.x < b.x;
+    }
+
+    friend bool operator == (A const & a, int b)
+    {
+        return a.x == b;
+    }
+
+    friend bool operator == (int a, A const & b)
+    {
+        return a == b.x;
+    }
+
+    friend bool operator < (A const & a, int b)
+    {
+        return a.x < b;
+    }
+
+    friend bool operator < (int a, A const & b)
+    {
+        return a < b.x;
     }
 };
 
-class B : public pfs::compare_op<B>, public pfs::compare_op<B, A>
+class B : public pfs::compare_operations
 {
 public:
     int x {0};
@@ -39,14 +59,34 @@ public:
     B () {}
     explicit B (int x) : x(x) {}
 
-    int compare (B const & rhs) const
+    friend bool operator == (B const & a, B const & b)
     {
-        return x - rhs.x;
+        return a.x == b.x;
     }
 
-    int compare (A const & rhs) const
+    friend bool operator < (B const & a, B const & b)
     {
-        return x - rhs.x;
+        return a.x < b.x;
+    }
+
+    friend bool operator == (B const & a, A const & b)
+    {
+        return a.x == b.x;
+    }
+
+    friend bool operator < (B const & a, A const & b)
+    {
+        return a.x < b.x;
+    }
+
+    friend bool operator == (A const & a, B const & b)
+    {
+        return a == b.x;
+    }
+
+    friend bool operator < (A const & a, B const & b)
+    {
+        return a < b.x;
     }
 };
 
@@ -122,7 +162,7 @@ TEST_CASE("Compare with scalars") {
 
 TEST_CASE("Compare difference types") {
     B a1 {-1};
-    A a2 {0};
+    B a2 {0};
     A a3 {1};
 
     CHECK(a1 == a1);
