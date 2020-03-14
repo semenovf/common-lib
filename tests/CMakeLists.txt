@@ -17,6 +17,7 @@ file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/unicode/utf8/data DESTINATION unicode/utf8
 include(${CMAKE_SOURCE_DIR}/cmake/cxx_filesystem.cmake)
 
 set(TEST_NAMES
+    compare_op
     dynamic_library
     filesystem
     iterator_bidirectional
