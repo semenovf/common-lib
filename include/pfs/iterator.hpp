@@ -291,9 +291,12 @@ public:
     using reference = typename base_class::reference;
 
 private:
-    T * _p;
+    T * _p {nullptr};
 
 public:
+    pointer_proxy_iterator ()
+    {}
+
     pointer_proxy_iterator (T * p)
         : _p(p)
     {}
@@ -319,6 +322,16 @@ public:
     }
 
     pointer ptr ()
+    {
+        return _p;
+    }
+
+    const reference ref () const
+    {
+        return *_p;
+    }
+
+    const pointer ptr () const
     {
         return _p;
     }
