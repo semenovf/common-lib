@@ -26,6 +26,7 @@ set(TEST_NAMES
     iterator_output
     iterator_random_access
     pointer_proxy_iterator
+    rational
     safeformat
     variant
     utf8_decode
