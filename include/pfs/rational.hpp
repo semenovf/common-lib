@@ -74,14 +74,17 @@ public:
 
     template <intmax_t Num, intmax_t Denom>
     rational (std::ratio<Num, Denom> ratio)
-        : _num(sign_of(ratio.num) * sign_of(ratio.den) * std::abs(ratio.num))
-        , _den(std::abs(ratio.den))
     {
-        if (!(Num <= std::numeric_limits<int_type>::max()))
+        if (!(Num <= std::numeric_limits<int_type>::max()
+                && Num >= std::numeric_limits<int_type>::min()))
             throw std::overflow_error("numinator overflow");
 
-        if (!(Num > std::numeric_limits<int_type>::min()))
+        if (!(Denom <= std::numeric_limits<int_type>::max()
+                && Denom >= std::numeric_limits<int_type>::min()))
             throw std::overflow_error("denominator overflow");
+
+        _num = sign_of(ratio.num) * sign_of(ratio.den) * std::abs(ratio.num);
+        _den = std::abs(ratio.den);
     }
 
     rational (rational const & rhs) = default;

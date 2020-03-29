@@ -11,9 +11,6 @@
 #include "pfs/rational.hpp"
 #include <algorithm>
 #include <string>
-// #include <utility>
-// #include <iostream>
-// #include <pfs/test.hpp>
 
 using rational = pfs::rational<int>;
 
@@ -325,4 +322,12 @@ TEST_CASE("Ceil") {
     CHECK(ceil(rational( 3, 2)) ==  2);
     CHECK(ceil(rational( 4, 2)) ==  2);
     CHECK(ceil(rational( 5, 2)) ==  3);
+}
+
+TEST_CASE("Exceptions") {
+    CHECK_THROWS(rational(1, 0));
+    CHECK_THROWS(pfs::rational<signed char>(std::ratio<1000, 1000>{}));
+    CHECK_THROWS(rational(0, 1).invert());
+    CHECK_THROWS((rational(1) /= rational(0, 1)));
+    CHECK_THROWS((rational(1) /= 0));
 }
