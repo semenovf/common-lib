@@ -67,6 +67,7 @@
 1. [UTF-8, UTF-16, UTF-32 & BOM](http://unicode.org/faq/utf_bom.html)
 2. [RFC-2781. UTF-16, an encoding of ISO 10646](https://www.ietf.org/rfc/rfc2781.txt)
 3. [UTF-8 Everywhere](http://utf8everywhere.org/)
+4. [Awesome Unicode](https://github.com/Wisdom/Awesome-Unicode) ([Перевод](https://habr.com/ru/post/485148/))
 
 ### Compilers
 
