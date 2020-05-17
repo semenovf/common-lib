@@ -16,6 +16,7 @@
 ### Templates
 
 1. [Partial Specialization and Tags](https://vector-of-bool.github.io/2017/08/12/partial-specializations.html)
+2. [Variadic templates in C++](https://eli.thegreenplace.net/2014/variadic-templates-in-c/)
 
 ### Idioms
 

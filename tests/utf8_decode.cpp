@@ -63,7 +63,7 @@ bool decode_files ()
         msg << "Open file `" << data[i].filename << "` failure\n";
         REQUIRE_MESSAGE(ifs.is_open(), msg.str());
 
-        std::istreambuf_iterator first(ifs);
+        std::istreambuf_iterator<char> first(ifs);
         std::istreambuf_iterator<char> last;
 
         size_t count = 0;
