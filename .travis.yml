@@ -64,7 +64,7 @@ matrix:
     addons:
       apt:
         sources: ['ubuntu-toolchain-r-test']
-        packages: ['g++-8', 'ninja-build']
+        packages: ['g++-8', 'ninja-build', 'libstdc++-8-dev']
 
     # Coveralls (TODO)
   #- os: linux

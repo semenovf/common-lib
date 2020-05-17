@@ -9,7 +9,7 @@ include(CheckCXXSourceCompiles)
 
 cmake_push_check_state()
 
-set(CMAKE_CXX_STANDARD 17)
+# set(CMAKE_CXX_STANDARD 17)
 check_include_file_cxx("filesystem" _HAVE_STD_FILESYSTEM_HEADER)
 
 if (_HAVE_STD_FILESYSTEM_HEADER)

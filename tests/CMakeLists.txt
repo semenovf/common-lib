@@ -14,8 +14,6 @@ endif()
 # Copy test files to build folder
 file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/unicode/utf8/data DESTINATION unicode/utf8)
 
-include(${CMAKE_SOURCE_DIR}/cmake/cxx_filesystem.cmake)
-
 set(TEST_NAMES
     compare_op
     dynamic_library
@@ -43,7 +41,6 @@ set(utf8_resource_SOURCES
     unicode/utf8/vietnamese.c)
 
 set(utf8_decode_SOURCES ${utf8_resource_SOURCES})
-
 set(utf8_encode_SOURCES ${utf8_resource_SOURCES})
 
 foreach (name ${TEST_NAMES})
@@ -52,16 +49,13 @@ foreach (name ${TEST_NAMES})
     else ()
         add_executable(${name} ${name}.cpp)
     endif()
+
+    target_link_libraries(${name} PRIVATE pfs-common)
     add_test(NAME ${name} COMMAND ${name})
 endforeach()
 
-if (TARGET std::filesystem)
-    target_link_libraries(dynamic_library std::filesystem)
-    target_link_libraries(filesystem std::filesystem)
-endif()
-
 if (UNIX)
-    target_link_libraries(dynamic_library dl)
+    target_link_libraries(dynamic_library PRIVATE dl)
 endif()
 
 # Helper library for test `dynamic_library`
