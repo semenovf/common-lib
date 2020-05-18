@@ -4,15 +4,14 @@
 
 # pfs::common (Portable Foundation Structures)
 
-namespace pfs {\
-    1. `dynamic_library` class\
-    2. `filesystem` classes\
-    3. `fmt`\
-    4. `iterator` classes\
-    5. `numeric` functions\
-    6. `rational` class\
-    7. `variant` class and functions\
-    8. `static_unique_pointer_cast` function\
-    9. `unicode`\
-} // namespace pfs\
-
+namespace pfs {<br/>
+    1. `dynamic_library` class<br/>
+    2. `filesystem` classes<br/>
+    3. `fmt`<br/>
+    4. `iterator` classes<br/>
+    5. `numeric` functions<br/>
+    6. `rational` class<br/>
+    7. `variant` class and functions<br/>
+    8. `static_unique_pointer_cast` function<br/>
+    9. `unicode`<br/>
+} // namespace pfs<br/>
