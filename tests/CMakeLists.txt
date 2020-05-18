@@ -50,7 +50,7 @@ foreach (name ${TEST_NAMES})
         add_executable(${name} ${name}.cpp)
     endif()
 
-    target_link_libraries(${name} PRIVATE pfs-common)
+    target_link_libraries(${name} PRIVATE pfs::common)
     add_test(NAME ${name} COMMAND ${name})
 endforeach()
 

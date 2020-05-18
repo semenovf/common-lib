@@ -5,14 +5,15 @@ option(pfs_common_BUILD_TESTS "Build tests" OFF)
 
 include(${CMAKE_SOURCE_DIR}/cmake/cxx_filesystem.cmake)
 
-add_library(pfs-common INTERFACE)
+add_library(${PROJECT_NAME} INTERFACE)
+add_library(pfs::common ALIAS ${PROJECT_NAME})
+target_include_directories(${PROJECT_NAME} INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
 
 if (TARGET std::filesystem)
-    target_link_libraries(pfs-common INTERFACE std::filesystem)
+    target_link_libraries(${PROJECT_NAME} INTERFACE std::filesystem)
 endif()
 
 if (pfs_common_BUILD_TESTS)
     enable_testing()
-    include_directories(${CMAKE_CURRENT_LIST_DIR}/include)
     add_subdirectory(tests)
 endif()

@@ -13,6 +13,7 @@ set(CMAKE_CXX_STANDARD 17)
 check_include_file_cxx("filesystem" _HAVE_STD_FILESYSTEM_HEADER)
 
 if (_HAVE_STD_FILESYSTEM_HEADER)
+    message(STATUS "C++ filesystem: use standard header")
     add_library(std::filesystem INTERFACE IMPORTED)
     target_compile_definitions(std::filesystem INTERFACE HAVE_STD_FILESYSTEM)
 
@@ -29,7 +30,6 @@ if (_HAVE_STD_FILESYSTEM_HEADER)
     check_cxx_source_compiles("${_check_cxx_code}" _NO_STD_FILESYSTEM_LINK_REQUIRED)
 
     if (NOT _NO_STD_FILESYSTEM_LINK_REQUIRED)
-
         set(CMAKE_REQUIRED_LIBRARIES -lstdc++fs)
         check_cxx_source_compiles("${code}" _STD_FILESYSTEM_REQUIRED)
 
@@ -40,12 +40,18 @@ if (_HAVE_STD_FILESYSTEM_HEADER)
             if (NOT _STD_FILESYSTEM_REQUIRED)
                 message(FATAL_ERROR "Unable to select std::filesystem's library")
             else()
+                message(STATUS "C++ filesystem: use CLang library")
                 target_link_libraries(std::filesystem INTERFACE -lc++fs)
             endif() # NOT _STD_FILESYSTEM_REQUIRED
         else()
+            message(STATUS "C++ filesystem: use GNU library")
             target_link_libraries(std::filesystem INTERFACE -lstdc++fs)
         endif() # NOT _STD_FILESYSTEM_REQUIRED
+    else()
+        message(STATUS "C++ filesystem: use built in standard library")
     endif() # NOT _NO_STD_FILESYSTEM_LINK_REQUIRED
+else()
+    message(STATUS "C++ filesystem: use internal (third party)")
 endif()
 
 cmake_pop_check_state()
