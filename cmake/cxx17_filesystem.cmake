@@ -1,7 +1,11 @@
 ################################################################################
-# Check <filesystem>
+# Copyright (c) 2020 Vladislav Trifochkin
+#
+# This file is part of [pfs-common](https://github.com/semenovf/pfs-common) library.
 #
 # Inspired from https://github.com/vector-of-bool/CMakeCM/blob/master/modules/FindFilesystem.cmake
+#
+# Checks std::filesystem
 ################################################################################
 include(CMakePushCheckState)
 include(CheckIncludeFileCXX)
@@ -48,7 +52,7 @@ if (_HAVE_STD_FILESYSTEM_HEADER)
             target_link_libraries(std::filesystem INTERFACE -lstdc++fs)
         endif() # NOT _STD_FILESYSTEM_REQUIRED
     else()
-        message(STATUS "C++ filesystem: use built in standard library")
+        message(STATUS "C++ filesystem: use built in library")
     endif() # NOT _NO_STD_FILESYSTEM_LINK_REQUIRED
 else()
     message(STATUS "C++ filesystem: use internal (third party)")

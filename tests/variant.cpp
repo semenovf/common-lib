@@ -19,152 +19,152 @@ TEST_CASE("Variant Constructors") {
 
     // Default constructor
     {
-        pfs::variant<int, std::string> v;
-        CHECK(0 == pfs::get<0>(v));
+        std::variant<int, std::string> v;
+        CHECK(0 == std::get<0>(v));
 
-        constexpr pfs::variant<int> cv;
-        static_assert(0 == pfs::get<0>(cv), "");
+        constexpr std::variant<int> cv;
+        static_assert(0 == std::get<0>(cv), "");
     }
 
     // Copy constructor
     {
         // `v`
-        pfs::variant<int, std::string> v("hello");
-        CHECK("hello" == pfs::get<std::string>(v));
+        std::variant<int, std::string> v("hello");
+        CHECK("hello" == std::get<std::string>(v));
 
         // `w`
-        pfs::variant<int, std::string> w(v);
-        CHECK("hello" == pfs::get<std::string>(w));
+        std::variant<int, std::string> w(v);
+        CHECK("hello" == std::get<std::string>(w));
 
         // Check `v`
-        CHECK("hello" == pfs::get<std::string>(v));
+        CHECK("hello" == std::get<std::string>(v));
 
         // `cv`
-        constexpr pfs::variant<int, const char *> cv(42);
-        static_assert(42 == pfs::get<int>(cv), "");
+        constexpr std::variant<int, const char *> cv(42);
+        static_assert(42 == std::get<int>(cv), "");
 
         // `cw`
         // C++17: constexpr is not usable as variant's copy constructor is defaulted.
         // But in MPARK implementation it is not defaulted.
-        /*constexpr*/ pfs::variant<int, const char *> cw(cv);
-        /*static_assert*/CHECK(42 == pfs::get<int>(cw));
+        /*constexpr*/ std::variant<int, const char *> cw(cv);
+        /*static_assert*/CHECK(42 == std::get<int>(cw));
     }
 
     // Forwarding constructors
     // Direct
     {
-        pfs::variant<int, std::string> v(42);
-        CHECK(42 == pfs::get<int>(v));
+        std::variant<int, std::string> v(42);
+        CHECK(42 == std::get<int>(v));
 
-        constexpr pfs::variant<int, const char *> cv(42);
-        static_assert(42 == pfs::get<int>(cv), "");
+        constexpr std::variant<int, const char *> cv(42);
+        static_assert(42 == std::get<int>(cv), "");
     }
 
     // DirectConversion
     {
-        pfs::variant<int, std::string> v("42");
-        CHECK("42" == pfs::get<std::string>(v));
+        std::variant<int, std::string> v("42");
+        CHECK("42" == std::get<std::string>(v));
 
-        constexpr pfs::variant<int, const char *> cv(1.1);
-        static_assert(1 == pfs::get<int>(cv), "");
+        constexpr std::variant<int, const char *> cv(1.1);
+        static_assert(1 == std::get<int>(cv), "");
     }
 
     // CopyInitialization
     {
-        pfs::variant<int, std::string> v = 42;
-        CHECK(42 == pfs::get<int>(v));
+        std::variant<int, std::string> v = 42;
+        CHECK(42 == std::get<int>(v));
 
-        constexpr pfs::variant<int, const char *> cv = 42;
-        static_assert(42 == pfs::get<int>(cv), "");
+        constexpr std::variant<int, const char *> cv = 42;
+        static_assert(42 == std::get<int>(cv), "");
     }
 
     // CopyInitializationConversion
     {
-        pfs::variant<int, std::string> v = "42";
-        CHECK("42" == pfs::get<std::string>(v));
+        std::variant<int, std::string> v = "42";
+        CHECK("42" == std::get<std::string>(v));
 
-        constexpr pfs::variant<int, const char *> cv = 1.1;
-        static_assert(1 == pfs::get<int>(cv), "");
+        constexpr std::variant<int, const char *> cv = 1.1;
+        static_assert(1 == std::get<int>(cv), "");
     }
 
     // In-place constructors
 
     // IndexDirect
     {
-        pfs::variant<int, std::string> v(pfs::in_place_index_t<0>(), 42);
-        CHECK(42 == pfs::get<0>(v));
+        std::variant<int, std::string> v(std::in_place_index_t<0>(), 42);
+        CHECK(42 == std::get<0>(v));
 
-        constexpr pfs::variant<int, const char *> cv(pfs::in_place_index_t<0>{},42);
-        static_assert(42 == pfs::get<0>(cv), "");
+        constexpr std::variant<int, const char *> cv(std::in_place_index_t<0>{},42);
+        static_assert(42 == std::get<0>(cv), "");
     }
 
     // IndexDirectDuplicate
     {
-        pfs::variant<int, int> v(pfs::in_place_index_t<0>(), 42);
-        CHECK(42 == pfs::get<0>(v));
+        std::variant<int, int> v(std::in_place_index_t<0>(), 42);
+        CHECK(42 == std::get<0>(v));
 
-        constexpr pfs::variant<int, int> cv(pfs::in_place_index_t<0>{}, 42);
-        static_assert(42 == pfs::get<0>(cv), "");
+        constexpr std::variant<int, int> cv(std::in_place_index_t<0>{}, 42);
+        static_assert(42 == std::get<0>(cv), "");
     }
 
     // IndexConversion
     {
-        pfs::variant<int, std::string> v(pfs::in_place_index_t<1>(), "42");
-        CHECK("42" == pfs::get<1>(v));
+        std::variant<int, std::string> v(std::in_place_index_t<1>(), "42");
+        CHECK("42" == std::get<1>(v));
 
-        constexpr pfs::variant<int, const char *> cv(pfs::in_place_index_t<0>{}, 1.1);
-        static_assert(1 == pfs::get<0>(cv), "");
+        constexpr std::variant<int, const char *> cv(std::in_place_index_t<0>{}, 1.1);
+        static_assert(1 == std::get<0>(cv), "");
     }
 
     // IndexInitializerList
     {
-        pfs::variant<int, std::string> v(pfs::in_place_index_t<1>(), {'4', '2'});
-        CHECK("42" == pfs::get<1>(v));
+        std::variant<int, std::string> v(std::in_place_index_t<1>(), {'4', '2'});
+        CHECK("42" == std::get<1>(v));
     }
 
     // TypeDirect
     {
-        pfs::variant<int, std::string> v(pfs::in_place_type_t<std::string>(), "42");
-        CHECK("42" == pfs::get<std::string>(v));
+        std::variant<int, std::string> v(std::in_place_type_t<std::string>(), "42");
+        CHECK("42" == std::get<std::string>(v));
 
-        constexpr pfs::variant<int, const char *> cv(
-        pfs::in_place_type_t<int>{}, 42);
-        static_assert(42 == pfs::get<int>(cv), "");
+        constexpr std::variant<int, const char *> cv(
+        std::in_place_type_t<int>{}, 42);
+        static_assert(42 == std::get<int>(cv), "");
     }
 
     // TypeConversion
     {
-        pfs::variant<int, std::string> v(pfs::in_place_type_t<int>(), 42.5);
-        CHECK(42 == pfs::get<int>(v));
+        std::variant<int, std::string> v(std::in_place_type_t<int>(), 42.5);
+        CHECK(42 == std::get<int>(v));
 
-        constexpr pfs::variant<int, const char *> cv(
-        pfs::in_place_type_t<int>{}, 42.5);
-        static_assert(42 == pfs::get<int>(cv), "");
+        constexpr std::variant<int, const char *> cv(
+        std::in_place_type_t<int>{}, 42.5);
+        static_assert(42 == std::get<int>(cv), "");
     }
 
     // TypeInitializerList
     {
-        pfs::variant<int, std::string> v(pfs::in_place_type_t<std::string>(), {'4', '2'});
-        CHECK("42" == pfs::get<std::string>(v));
+        std::variant<int, std::string> v(std::in_place_type_t<std::string>(), {'4', '2'});
+        CHECK("42" == std::get<std::string>(v));
     }
 
     // Move Constructor
     {
         // `v`
-        pfs::variant<int, std::string> v("hello");
-        CHECK("hello" == pfs::get<std::string>(v));
+        std::variant<int, std::string> v("hello");
+        CHECK("hello" == std::get<std::string>(v));
         // `w`
-        pfs::variant<int, std::string> w(std::move(v));
-        CHECK("hello" == pfs::get<std::string>(w));
+        std::variant<int, std::string> w(std::move(v));
+        CHECK("hello" == std::get<std::string>(w));
         // Check `v`
-        CHECK(pfs::get<std::string>(v).empty());
+        CHECK(std::get<std::string>(v).empty());
 
         // `cv`
-        constexpr pfs::variant<int, const char *> cv(42);
-        static_assert(42 == pfs::get<int>(cv), "");
+        constexpr std::variant<int, const char *> cv(42);
+        static_assert(42 == std::get<int>(cv), "");
         // `cw`
-        /*constexpr*/ pfs::variant<int, const char *> cw(std::move(cv));
-        /*static_assert*/CHECK(42 == pfs::get<int>(cw));
+        /*constexpr*/ std::variant<int, const char *> cw(std::move(cv));
+        /*static_assert*/CHECK(42 == std::get<int>(cw));
     }
 }
 
@@ -191,7 +191,7 @@ TEST_CASE("Variant Assignments") {
         };
 
         // `v`, `w`.
-        pfs::variant<Obj, int> v, w;
+        std::variant<Obj, int> v, w;
         // copy assignment.
         v = w;
     }
@@ -215,7 +215,7 @@ TEST_CASE("Variant Assignments") {
         };
 
         // `v`, `w`.
-        pfs::variant<Obj, int> v(42), w;
+        std::variant<Obj, int> v(42), w;
         // copy assignment.
         v = w;
     }
@@ -226,69 +226,69 @@ TEST_CASE("Variant Assignments") {
 
     // SameType
     {
-        pfs::variant<int, std::string> v(101);
-        CHECK(101 == pfs::get<int>(v));
+        std::variant<int, std::string> v(101);
+        CHECK(101 == std::get<int>(v));
         v = 202;
-        CHECK(202 == pfs::get<int>(v));
+        CHECK(202 == std::get<int>(v));
     }
 
     // SameTypeFwd
     {
-        pfs::variant<int, std::string> v(1.1);
-        CHECK(1 == pfs::get<int>(v));
+        std::variant<int, std::string> v(1.1);
+        CHECK(1 == std::get<int>(v));
         v = 2.2;
-        CHECK(2 == pfs::get<int>(v));
+        CHECK(2 == std::get<int>(v));
     }
 
     // DiffType
     {
-        pfs::variant<int, std::string> v(42);
-        CHECK(42 == pfs::get<int>(v));
+        std::variant<int, std::string> v(42);
+        CHECK(42 == std::get<int>(v));
         v = "42";
-        CHECK("42" == pfs::get<std::string>(v));
+        CHECK("42" == std::get<std::string>(v));
     }
 
     // DiffTypeFwd
     {
-        pfs::variant<int, std::string> v(42);
-        CHECK(42 == pfs::get<int>(v));
+        std::variant<int, std::string> v(42);
+        CHECK(42 == std::get<int>(v));
         v = "42";
-        CHECK("42" == pfs::get<std::string>(v));
+        CHECK("42" == std::get<std::string>(v));
     }
 
     // ExactMatch
     {
-        pfs::variant<const char *, std::string> v;
+        std::variant<const char *, std::string> v;
         v = std::string("hello");
-        CHECK("hello" == pfs::get<std::string>(v));
+        CHECK("hello" == std::get<std::string>(v));
     }
 
     // BetterMatch
     {
-        pfs::variant<int, double> v;
+        std::variant<int, double> v;
         // `char` -> `int` is better than `char` -> `double`
         v = 'x';
-        CHECK(static_cast<int>('x') == pfs::get<int>(v));
+        CHECK(static_cast<int>('x') == std::get<int>(v));
     }
 
     // NoMatch
     {
         struct x {};
-        static_assert(!std::is_assignable<pfs::variant<int, std::string>, x> {},
+        static_assert(!std::is_assignable<std::variant<int, std::string>, x> {},
                       "variant<int, std::string> v; v = x;");
     }
 
     // Ambiguous
     {
-        static_assert(!std::is_assignable<pfs::variant<short, long>, int> {},
+        static_assert(!std::is_assignable<std::variant<short, long>, int> {},
                       "variant<short, long> v; v = 42;");
     }
 
     // SameTypeOptimization
     {
-        pfs::variant<int, std::string> v("hello world!");
+        std::variant<int, std::string> v("hello world!");
         // Check `v`.
-        std::string const & x = pfs::get<std::string>(v);
+        std::string const & x = std::get<std::string>(v);
         CHECK("hello world!" == x);
 
         // Save the "hello world!"'s capacity.
@@ -298,7 +298,7 @@ TEST_CASE("Variant Assignments") {
         v = "hello";
 
         // Check `v`.
-        std::string const & y = pfs::get<std::string>(v);
+        std::string const & y = std::get<std::string>(v);
 
         CHECK("hello" == y);
 
@@ -327,7 +327,7 @@ TEST_CASE("Variant Assignments") {
         };
 
         // `v`, `w`.
-        pfs::variant<Obj, int> v, w;
+        std::variant<Obj, int> v, w;
         // move assignment.
         v = std::move(w);
     }
@@ -347,7 +347,7 @@ TEST_CASE("Variant Assignments") {
             }
         };
         // `v`, `w`.
-        pfs::variant<Obj, int> v(42), w;
+        std::variant<Obj, int> v(42), w;
         // move assignment.
         v = std::move(w);
     }
@@ -369,7 +369,7 @@ TEST_CASE("Variant Destructor") {
     bool dtor_called = false;
 
     {
-        pfs::variant<Obj> v(pfs::in_place_type_t<Obj>(), dtor_called);
+        std::variant<Obj> v(std::in_place_type_t<Obj>(), dtor_called);
     }
 
     CHECK(dtor_called);
@@ -382,78 +382,78 @@ TEST_CASE("Variant Get") {
 
     // HoldsAlternative
     {
-        pfs::variant<int, std::string> v(42);
-//         CHECK(pfs::holds_alternative<0>(v));
-//         CHECK(!pfs::holds_alternative<1>(v));
-        CHECK(pfs::holds_alternative<int>(v));
-        CHECK(!pfs::holds_alternative<std::string>(v));
+        std::variant<int, std::string> v(42);
+//         CHECK(std::holds_alternative<0>(v));
+//         CHECK(!std::holds_alternative<1>(v));
+        CHECK(std::holds_alternative<int>(v));
+        CHECK(!std::holds_alternative<std::string>(v));
 
-        constexpr pfs::variant<int, const char *> cv(42);
-//         static_assert(pfs::holds_alternative<0>(cv), "");
-//         static_assert(!pfs::holds_alternative<1>(cv), "");
-        static_assert(pfs::holds_alternative<int>(cv), "");
-        static_assert(!pfs::holds_alternative<const char *>(cv), "");
+        constexpr std::variant<int, const char *> cv(42);
+//         static_assert(std::holds_alternative<0>(cv), "");
+//         static_assert(!std::holds_alternative<1>(cv), "");
+        static_assert(std::holds_alternative<int>(cv), "");
+        static_assert(!std::holds_alternative<const char *>(cv), "");
     }
 
 
     // MutVarMutType
     {
-        pfs::variant<int> v(42);
-        CHECK(42 == pfs::get<int>(v));
+        std::variant<int> v(42);
+        CHECK(42 == std::get<int>(v));
     }
 
     // MutVarConstType
     {
-        pfs::variant<int const> v(42);
-        CHECK(42 == pfs::get<int const>(v));
+        std::variant<int const> v(42);
+        CHECK(42 == std::get<int const>(v));
     }
 
     // ConstVarMutType
     {
-        pfs::variant<int> const v(42);
-        CHECK(42 == pfs::get<int>(v));
+        std::variant<int> const v(42);
+        CHECK(42 == std::get<int>(v));
 
-        constexpr pfs::variant<int> cv(42);
-        static_assert(42 == pfs::get<int>(cv), "");
+        constexpr std::variant<int> cv(42);
+        static_assert(42 == std::get<int>(cv), "");
     }
 
     // ConstVarConstType
     {
-        const pfs::variant<const int> v(42);
-        CHECK(42 == pfs::get<const int>(v));
+        const std::variant<const int> v(42);
+        CHECK(42 == std::get<const int>(v));
 
-        constexpr pfs::variant<const int> cv(42);
-        static_assert(42 == pfs::get<const int>(cv), "");
+        constexpr std::variant<const int> cv(42);
+        static_assert(42 == std::get<const int>(cv), "");
     }
 
     // MutVarMutType
     {
-        pfs::variant<int> v(42);
-        CHECK(42 == *pfs::get_if<int>(& v));
+        std::variant<int> v(42);
+        CHECK(42 == *std::get_if<int>(& v));
     }
 
     // MutVarConstType
     {
-        pfs::variant<const int> v(42);
-        CHECK(42 == *pfs::get_if<const int>(& v));
+        std::variant<const int> v(42);
+        CHECK(42 == *std::get_if<const int>(& v));
     }
 
     // ConstVarMutType
     {
-        const pfs::variant<int> v(42);
-        CHECK(42 == *pfs::get_if<int>(&v));
+        const std::variant<int> v(42);
+        CHECK(42 == *std::get_if<int>(&v));
 
-        static constexpr pfs::variant<int> cv(42);
-        static_assert(42 == *pfs::get_if<int>(& cv), "");
+        static constexpr std::variant<int> cv(42);
+        static_assert(42 == *std::get_if<int>(& cv), "");
     }
 
     // ConstVarConstType
     {
-        const pfs::variant<const int> v(42);
-        CHECK(42 == *pfs::get_if<const int>(& v));
+        const std::variant<const int> v(42);
+        CHECK(42 == *std::get_if<const int>(& v));
 
-        static constexpr pfs::variant<const int> cv(42);
-        static_assert(42 == *pfs::get_if<const int>(& cv), "");
+        static constexpr std::variant<const int> cv(42);
+        static_assert(42 == *std::get_if<const int>(& cv), "");
     }
 }
 
@@ -464,59 +464,59 @@ TEST_CASE("Variant Modifiers") {
 
     // IndexDirect
     {
-        pfs::variant<int, std::string> v;
+        std::variant<int, std::string> v;
         v.emplace<1>("42");
-        CHECK("42" == pfs::get<1>(v));
+        CHECK("42" == std::get<1>(v));
     }
 
     // IndexDirectDuplicate
     {
-        pfs::variant<int, int> v;
+        std::variant<int, int> v;
         v.emplace<1>(42);
-        CHECK(42 == pfs::get<1>(v));
+        CHECK(42 == std::get<1>(v));
     }
 
     // IndexConversion
     {
-        pfs::variant<int, std::string> v;
+        std::variant<int, std::string> v;
         v.emplace<1>("42");
-        CHECK("42" == pfs::get<1>(v));
+        CHECK("42" == std::get<1>(v));
     }
 
     // IndexConversionDuplicate
     {
-        pfs::variant<int, int> v;
+        std::variant<int, int> v;
         v.emplace<1>(1.1);
-        CHECK(1 == pfs::get<1>(v));
+        CHECK(1 == std::get<1>(v));
     }
 
     // IndexInitializerList
     {
-        pfs::variant<int, std::string> v;
+        std::variant<int, std::string> v;
         v.emplace<1>({'4', '2'});
-        CHECK("42" == pfs::get<1>(v));
+        CHECK("42" == std::get<1>(v));
     }
 
     // TypeDirect
     {
-        pfs::variant<int, std::string> v;
+        std::variant<int, std::string> v;
         v.emplace<std::string>("42");
-        CHECK("42" == pfs::get<std::string>(v));
+        CHECK("42" == std::get<std::string>(v));
     }
 
     // TypeConversion
     {
-        pfs::variant<int, std::string> v;
+        std::variant<int, std::string> v;
         v.emplace<int>(1.1);
-        CHECK(1 == pfs::get<int>(v));
+        CHECK(1 == std::get<int>(v));
     }
 
     // TypeInitializerList
     {
 #if __cplusplus >= 201103L
-        pfs::variant<int, std::string> v;
+        std::variant<int, std::string> v;
         v.emplace<std::string>({'4', '2'});
-        CHECK("42" == pfs::get<std::string>(v));
+        CHECK("42" == std::get<std::string>(v));
 #endif
     }
 }
@@ -528,7 +528,7 @@ TEST_CASE("Variant Comparisons") {
 
     // SameTypeSameValue
     {
-        pfs::variant<int, std::string> v(0), w(0);
+        std::variant<int, std::string> v(0), w(0);
         // `v` op `w`
         CHECK(v == w);
         CHECK_FALSE(v != w);
@@ -545,7 +545,7 @@ TEST_CASE("Variant Comparisons") {
         CHECK(w >= v);
 
 #if __cplusplus >= 201103L && (!defined(__GNUC__) || __GNUC__ >= 5)
-        constexpr pfs::variant<int, const char *> cv(0), cw(0);
+        constexpr std::variant<int, const char *> cv(0), cw(0);
         // `cv` op `cw`
         static_assert(cv == cw, "");   // g++ error (prior to version 5): non-constant condition for static assertion
         static_assert(!(cv != cw), "");
@@ -565,7 +565,7 @@ TEST_CASE("Variant Comparisons") {
 
     // SameTypeDiffValue
     {
-        pfs::variant<int, std::string> v(0), w(1);
+        std::variant<int, std::string> v(0), w(1);
         // `v` op `w`
         CHECK_FALSE(v == w);
         CHECK(v != w);
@@ -582,7 +582,7 @@ TEST_CASE("Variant Comparisons") {
         CHECK(w >= v);
 
 #if __cplusplus >= 201103L && (!defined(__GNUC__) || __GNUC__ >= 5)
-        constexpr pfs::variant<int, const char *> cv(0), cw(1);
+        constexpr std::variant<int, const char *> cv(0), cw(1);
         // `cv` op `cw`
         static_assert(!(cv == cw), "");
         static_assert(cv != cw, "");
@@ -602,7 +602,7 @@ TEST_CASE("Variant Comparisons") {
 
     // DiffTypeSameValue
     {
-        pfs::variant<int, unsigned int> v(0), w(0u);
+        std::variant<int, unsigned int> v(0), w(0u);
         // `v` op `w`
         CHECK_FALSE(v == w);
         CHECK(v != w);
@@ -619,7 +619,7 @@ TEST_CASE("Variant Comparisons") {
         CHECK(w >= v);
 
 #if __cplusplus >= 201103L && (!defined(__GNUC__) || __GNUC__ >= 5)
-        constexpr pfs::variant<int, unsigned int> cv(0), cw(0u);
+        constexpr std::variant<int, unsigned int> cv(0), cw(0u);
         // `cv` op `cw`
         static_assert(!(cv == cw), "");
         static_assert(cv != cw, "");
@@ -639,7 +639,7 @@ TEST_CASE("Variant Comparisons") {
 
     // DiffTypeDiffValue
     {
-        pfs::variant<int, unsigned int> v(0), w(1u);
+        std::variant<int, unsigned int> v(0), w(1u);
         // `v` op `w`
         CHECK_FALSE(v == w);
         CHECK(v != w);
@@ -656,7 +656,7 @@ TEST_CASE("Variant Comparisons") {
         CHECK(w >= v);
 
 #if __cplusplus >= 201103L && (!defined(__GNUC__) || __GNUC__ >= 5)
-        constexpr pfs::variant<int, unsigned int> cv(0), cw(1u);
+        constexpr std::variant<int, unsigned int> cv(0), cw(1u);
         // `cv` op `cw`
         static_assert(!(cv == cw), "");
         static_assert(cv != cw, "");
@@ -726,36 +726,36 @@ struct W
 TEST_CASE("Variant Swap") {
     // Same
     {
-        pfs::variant<int, std::string> v("hello");
-        pfs::variant<int, std::string> w("world");
+        std::variant<int, std::string> v("hello");
+        std::variant<int, std::string> w("world");
         // Check `v`.
-        CHECK("hello" == pfs::get<std::string>(v));
+        CHECK("hello" == std::get<std::string>(v));
         // Check `w`.
-        CHECK("world" == pfs::get<std::string>(w));
+        CHECK("world" == std::get<std::string>(w));
         // Swap.
         using std::swap;
         swap(v, w);
         // Check `v`.
-        CHECK("world" == pfs::get<std::string>(v));
+        CHECK("world" == std::get<std::string>(v));
         // Check `w`.
-        CHECK("hello" == pfs::get<std::string>(w));
+        CHECK("hello" == std::get<std::string>(w));
     }
 
     // Different
     {
-        pfs::variant<int, std::string> v(42);
-        pfs::variant<int, std::string> w("hello");
+        std::variant<int, std::string> v(42);
+        std::variant<int, std::string> w("hello");
         // Check `v`.
-        CHECK(42 == pfs::get<int>(v));
+        CHECK(42 == std::get<int>(v));
         // Check `w`.
-        CHECK("hello" == pfs::get<std::string>(w));
+        CHECK("hello" == std::get<std::string>(w));
         // Swap.
         using std::swap;
         swap(v, w);
         // Check `v`.
-        CHECK("hello" == pfs::get<std::string>(v));
+        CHECK("hello" == std::get<std::string>(v));
         // Check `w`.
-        CHECK(42 == pfs::get<int>(w));
+        CHECK(42 == std::get<int>(w));
     }
 
     // DtorsSame
@@ -763,7 +763,7 @@ TEST_CASE("Variant Swap") {
         size_t v_count = 0;
         size_t w_count = 0;
         {
-            pfs::variant<swap1::Obj> v(&v_count), w(&w_count);
+            std::variant<swap1::Obj> v(&v_count), w(&w_count);
             // Calls `std::swap(Obj &lhs, Obj &rhs)`, with which we perform:
             // ```
             // {
@@ -786,7 +786,7 @@ TEST_CASE("Variant Swap") {
         size_t v_count = 0;
         size_t w_count = 0;
         {
-            pfs::variant<swap2::Obj> v(& v_count), w(& w_count);
+            std::variant<swap2::Obj> v(& v_count), w(& w_count);
             using std::swap;
             swap(v, w);
             // Calls `swap2::swap(Obj &lhs, Obj &rhs)`, with which doesn't call any destructors.
@@ -802,8 +802,8 @@ TEST_CASE("Variant Swap") {
         size_t v_count = 0;
         size_t w_count = 0;
         {
-            pfs::variant<swap3::V, swap3::W> v(pfs::in_place_type_t<swap3::V>(), & v_count);
-            pfs::variant<swap3::V, swap3::W> w(pfs::in_place_type_t<swap3::W>(), & w_count);
+            std::variant<swap3::V, swap3::W> v(std::in_place_type_t<swap3::V>(), & v_count);
+            std::variant<swap3::V, swap3::W> w(std::in_place_type_t<swap3::W>(), & w_count);
             using std::swap;
             swap(v, w);
             CHECK(1u == v_count);
@@ -842,72 +842,72 @@ TEST_CASE("Variant Visit") {
 
     // MutVarMutType
     {
-        pfs::variant<int> v(42);
+        std::variant<int> v(42);
         // Check `v`.
-        CHECK(42 == pfs::get<int>(v));
+        CHECK(42 == std::get<int>(v));
         // Check qualifier.
-        CHECK(LRef == pfs::visit(get_qual(), v));
-        CHECK(RRef == pfs::visit(get_qual(), std::move(v)));
+        CHECK(LRef == std::visit(get_qual(), v));
+        CHECK(RRef == std::visit(get_qual(), std::move(v)));
     }
 
     // MutVarConstType
     {
-        pfs::variant<const int> v(42);
-        CHECK(42 == pfs::get<const int>(v));
+        std::variant<const int> v(42);
+        CHECK(42 == std::get<const int>(v));
         // Check qualifier.
-        CHECK(ConstLRef == pfs::visit(get_qual(), v));
-        CHECK(ConstRRef == pfs::visit(get_qual(), std::move(v)));
+        CHECK(ConstLRef == std::visit(get_qual(), v));
+        CHECK(ConstRRef == std::visit(get_qual(), std::move(v)));
     }
 
     // ConstVarMutType
     {
-        const pfs::variant<int> v(42);
-        CHECK(42 == pfs::get<int>(v));
+        const std::variant<int> v(42);
+        CHECK(42 == std::get<int>(v));
         // Check qualifier.
-        CHECK(ConstLRef == pfs::visit(get_qual(), v));
-        CHECK(ConstRRef == pfs::visit(get_qual(), std::move(v)));
+        CHECK(ConstLRef == std::visit(get_qual(), v));
+        CHECK(ConstRRef == std::visit(get_qual(), std::move(v)));
     }
 
     // ConstVarConstType
     {
-        const pfs::variant<const int> v(42);
-        CHECK(42 == pfs::get<const int>(v));
+        const std::variant<const int> v(42);
+        CHECK(42 == std::get<const int>(v));
         // Check qualifier.
-        CHECK(ConstLRef == pfs::visit(get_qual(), v));
-        CHECK(ConstRRef == pfs::visit(get_qual(), std::move(v)));
+        CHECK(ConstLRef == std::visit(get_qual(), v));
+        CHECK(ConstRRef == std::visit(get_qual(), std::move(v)));
     }
 
     // Zero
     {
-        CHECK("" == pfs::visit(concat{}));
+        CHECK("" == std::visit(concat{}));
     }
 
     // Double
     {
-        pfs::variant<int, std::string> v("hello"), w("world!");
-        CHECK("helloworld!" == pfs::visit(concat {}, v, w));
+        std::variant<int, std::string> v("hello"), w("world!");
+        CHECK("helloworld!" == std::visit(concat {}, v, w));
     }
 
     // Quintuple
     {
-        pfs::variant<int, std::string> v(101), w("+"), x(202), y("="), z(303);
-        CHECK("101+202=303" == pfs::visit(concat {}, v, w, x, y, z));
+        std::variant<int, std::string> v(101), w("+"), x(202), y("="), z(303);
+        CHECK("101+202=303" == std::visit(concat {}, v, w, x, y, z));
     }
 
     // Double
     {
-        pfs::variant<int, std::string> v("hello");
-        pfs::variant<double, const char *> w("world!");
-        CHECK("helloworld!" == pfs::visit(concat{}, v, w));
+        std::variant<int, std::string> v("hello");
+        std::variant<double, const char *> w("world!");
+        CHECK("helloworld!" == std::visit(concat{}, v, w));
     }
 
     // Quintuple)
     {
-        pfs::variant<int, double> v(101);
-        pfs::variant<const char *> w("+");
-        pfs::variant<bool, std::string, int> x(202);
-        pfs::variant<char, std::string, const char *> y('=');
-        pfs::variant<long, short> z(303L);
-        CHECK("101+202=303" == pfs::visit(concat {}, v, w, x, y, z));
+        std::variant<int, double> v(101);
+        std::variant<const char *> w("+");
+        std::variant<bool, std::string, int> x(202);
+        std::variant<char, std::string, const char *> y('=');
+        std::variant<long, short> z(303L);
+        CHECK("101+202=303" == std::visit(concat {}, v, w, x, y, z));
     }
 }

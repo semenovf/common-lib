@@ -1,15 +1,29 @@
 ////////////////////////////////////////////////////////////////////////////////
-// Copyright (c) 2019 Vladislav Trifochkin
+// Copyright (c) 2019, 2020 Vladislav Trifochkin
 //
 // This file is part of [pfs-common](https://github.com/semenovf/pfs-common) library.
 //
 // Changelog:
 //      2019.12.17 Initial version
+//      2020.06.11 Pre-C++17 implementation replaced with stx::variant
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
 
+#pragma once
+#if !defined(PFS_NO_STD_VARIANT)
+#   include <variant>
+#else
+#   ifndef STX_NAMESPACE_NAME
+#       define STX_NAMESPACE_NAME std
+#   endif
+#   include "3rdparty/stx/variant.hpp"
+#endif
+
+
+#if __DEPRECATED__
+
 #if __cplusplus < 201703L
-#   include "3rdparty/variant.hpp"
+#   include "3rdparty/mpark/variant.hpp"
 #else
 #   include <variant>
 #endif
@@ -144,3 +158,4 @@ inline constexpr auto visit (Visitor && visitor, Variants &&... vars)
 }
 
 } // namespace pfs
+#endif // __DEPRECATED__

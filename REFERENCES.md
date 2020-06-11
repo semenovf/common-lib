@@ -50,6 +50,7 @@
 ### STL
 
 1. [STL & Generic Programming: Writing Your Own Iterators](http://www.drdobbs.com/stl-generic-programming-writing-your-ow/184401417)
+2. [Collected C++17 Headers for C++11/14 (any, optional, string_view, variant)](https://github.com/tcbrindle/cpp17_headers)
 
 ### Exceptions, error handling
 
