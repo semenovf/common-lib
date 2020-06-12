@@ -9,9 +9,15 @@
 #pragma once
 #if !defined(PFS_NO_STD_OPTIONAL)
 #   include <optional>
+
+#   define PFS_HAVE_STD_OPTIONAL 1
 #else
 #   ifndef STX_NAMESPACE_NAME
 #       define STX_NAMESPACE_NAME std
 #   endif
 #   include "3rdparty/stx/optional.hpp"
+
+#   ifdef STX_HAVE_STD_OPTIONAL
+#       define PFS_HAVE_STD_OPTIONAL 1
+#   endif
 #endif

@@ -9,7 +9,6 @@
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
 
-#pragma once
 #if !defined(PFS_NO_STD_VARIANT)
 #   include <variant>
 #else
@@ -17,104 +16,91 @@
 #       define STX_NAMESPACE_NAME std
 #   endif
 #   include "3rdparty/stx/variant.hpp"
-#endif
-
 
 #if __DEPRECATED__
-
-#if __cplusplus < 201703L
 #   include "3rdparty/mpark/variant.hpp"
-#else
-#   include <variant>
-#endif
 
-namespace pfs {
+namespace std {
 
-#if __cplusplus < 201703L
-    namespace impl_variant_ns = mpark;
-#else
-    namespace impl_variant_ns = std;
-#endif
+constexpr std::size_t variant_npos = mpark::variant_npos;
 
-constexpr std::size_t variant_npos = impl_variant_ns::variant_npos;
-
-using in_place_t = impl_variant_ns::in_place_t;
+using in_place_t = mpark::in_place_t;
 
 template <std::size_t I>
-using in_place_index_t = impl_variant_ns::in_place_index_t<I>;
+using in_place_index_t = mpark::in_place_index_t<I>;
 
 template <typename T>
-using in_place_type_t = impl_variant_ns::in_place_type_t<T>;
+using in_place_type_t = mpark::in_place_type_t<T>;
 
 template <typename ...Types>
-using variant = impl_variant_ns::variant<Types...>;
+using variant = mpark::variant<Types...>;
 
 template <size_t I, typename T>
-using variant_alternative_t = impl_variant_ns::variant_alternative_t<I, T>;
+using variant_alternative_t = mpark::variant_alternative_t<I, T>;
 
 template <typename T, typename... Types>
 inline constexpr bool holds_alternative (variant<Types...> const & v) noexcept
 {
-    return impl_variant_ns::holds_alternative<T, Types...>(v);
+    return mpark::holds_alternative<T, Types...>(v);
 }
 
 template <std::size_t I, typename... Types>
 inline constexpr variant_alternative_t<I, variant<Types...>> & get (variant<Types...> & v)
 {
-    return impl_variant_ns::get<I, Types...>(v);
+    return mpark::get<I, Types...>(v);
 }
 
 template <std::size_t I, typename... Types>
 inline constexpr variant_alternative_t<I, variant<Types...>> && get (variant<Types...> && v)
 {
-    return impl_variant_ns::get<I, Types...>(std::forward<variant<Types...>>(v));
+    return mpark::get<I, Types...>(std::forward<variant<Types...>>(v));
 }
 
 template <std::size_t I, typename... Types>
 inline constexpr variant_alternative_t<I, variant<Types...>> const & get (variant<Types...> const & v)
 {
-    return impl_variant_ns::get<I, Types...>(v);
+    return mpark::get<I, Types...>(v);
 }
 
 template <std::size_t I, typename... Types>
 inline constexpr variant_alternative_t<I, variant<Types...>> const && get (variant<Types...> const && v)
 {
-    return impl_variant_ns::get<I, Types...>(std::forward<variant<Types...>>(v));
+    return mpark::get<I, Types...>(std::forward<variant<Types...>>(v));
 }
 
 template <typename T, typename... Types>
 constexpr T & get (variant<Types...>& v)
 {
-    return impl_variant_ns::get<T, Types...>(v);
+    return mpark::get<T, Types...>(v);
 }
 
 template <typename T, typename... Types>
 constexpr T && get (variant<Types...> && v)
 {
-    return impl_variant_ns::get<T, Types...>(std::forward<variant<Types...>>(v));
+    return mpark::get<T, Types...>(std::forward<variant<Types...>>(v));
 }
 
 template <typename T, typename... Types>
 constexpr T const & get (variant<Types...> const & v)
 {
-    return impl_variant_ns::get<T, Types...>(v);
+    return mpark::get<T, Types...>(v);
 }
 
 template <typename T, typename... Types>
 constexpr const T && get (variant<Types...> const && v)
 {
-    return impl_variant_ns::get<T, Types...>(std::forward<variant<Types...>>(v));
+    return mpark::get<T, Types...>(std::forward<variant<Types...>>(v));
 }
 
 #if __cplusplus < 201703L
 
 template <typename T>
-using add_pointer_t = typename impl_variant_ns::lib::add_pointer_t<T>;
+using add_pointer_t = typename mpark::lib::add_pointer_t<T>;
 
 #else
 
 template <typename T>
-using add_pointer_t = typename impl_variant_ns::add_pointer_t<T>;
+using add_pointer_t = typename mpark::add_pointer_t<T>;
 
 #endif
 
@@ -122,26 +108,26 @@ template <std::size_t I, typename... Types>
 inline constexpr add_pointer_t<variant_alternative_t<I, variant<Types...>>>
     get_if (variant<Types...> * pv) noexcept
 {
-    return impl_variant_ns::get_if<I, Types...>(pv);
+    return mpark::get_if<I, Types...>(pv);
 }
 
 template <std::size_t I, typename... Types>
 inline constexpr add_pointer_t<const variant_alternative_t<I, variant<Types...>>>
     get_if (variant<Types...> const * pv) noexcept
 {
-    return impl_variant_ns::get_if<I, Types...>(pv);
+    return mpark::get_if<I, Types...>(pv);
 }
 
 template <typename T, typename... Types>
 inline constexpr add_pointer_t<T> get_if (variant<Types...> * pv) noexcept
 {
-    return impl_variant_ns::get_if<T, Types...>(pv);
+    return mpark::get_if<T, Types...>(pv);
 }
 
 template <typename T, typename... Types>
 inline constexpr add_pointer_t<const T> get_if (variant<Types...> const * pv) noexcept
 {
-    return impl_variant_ns::get_if<T, Types...>(pv);
+    return mpark::get_if<T, Types...>(pv);
 }
 
 template <typename Visitor, typename ...Variants>
@@ -149,13 +135,15 @@ template <typename Visitor, typename ...Variants>
 inline constexpr decltype(auto) visit (Visitor && visitor, Variants &&... vars)
 #else
 inline constexpr auto visit (Visitor && visitor, Variants &&... vars)
-    -> decltype(impl_variant_ns::visit<Visitor, Variants...>(std::forward<Visitor>(visitor)
+    -> decltype(mpark::visit<Visitor, Variants...>(std::forward<Visitor>(visitor)
             , std::forward<Variants>(vars)...))
 #endif
 {
-    return impl_variant_ns::visit<Visitor, Variants...>(std::forward<Visitor>(visitor)
+    return mpark::visit<Visitor, Variants...>(std::forward<Visitor>(visitor)
             , std::forward<Variants>(vars)...);
 }
 
-} // namespace pfs
+} // namespace std
 #endif // __DEPRECATED__
+
+#endif // !PFS_NO_STD_VARIANT

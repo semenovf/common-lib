@@ -1,5 +1,5 @@
 ////////////////////////////////////////////////////////////////////////////////
-// Copyright (c) 2019 Vladislav Trifochkin
+// Copyright (c) 2020 Vladislav Trifochkin
 //
 // This file is part of [pfs-common](https://github.com/semenovf/pfs-common) library.
 //
@@ -13,16 +13,13 @@
 #include <string>
 #include <utility>
 
-TEST_CASE("Any basic") {
+TEST_CASE("basic") {
     std::any a{3};
     CHECK(a.type() == typeid(int));
     CHECK(std::any_cast<int>(a) == 3);
 
     a = 3.0f;
     CHECK(a.type() == typeid(float));
-
-    bool exception_caught = false;
-
     CHECK_THROWS_AS(std::any_cast<int>(a), std::bad_any_cast);
 }
 
@@ -63,9 +60,7 @@ struct regression1_type
     regression1_type& operator=(regression1_type&&) { return *this; }
 };
 
-TEST_CASE("Any complete") {
-// #define CHECK(x) ((x)? (void)(0) : (void(fprintf(stdout, "Failed at %d:%s: %s\n", __LINE__, __FILE__, #x)), std::exit(EXIT_FAILURE)))
-
+TEST_CASE("complete") {
     using std::any;
     using std::any_cast;
     using std::bad_any_cast;

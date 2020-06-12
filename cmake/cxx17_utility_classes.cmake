@@ -78,7 +78,7 @@ if (__have_std_variant_header)
     # Try to compile a simple program without any linker flags
     check_cxx_source_compiles("${_check_cxx_code}" __std_variant_compiled)
 
-    if (NOT __std_variant_compiled)
+    if (__std_variant_compiled)
         set(__have_std_variant TRUE)
     endif()
 endif()

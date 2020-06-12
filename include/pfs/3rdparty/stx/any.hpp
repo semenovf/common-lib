@@ -154,10 +154,22 @@ public:
         }
     }
 
+    // C++17 standard requirement
+    void reset ()
+    {
+        clear();
+    }
+
     /// Returns true if *this has no contained object, otherwise false.
     bool empty() const noexcept
     {
         return this->vtable == nullptr;
+    }
+
+    // C++17 standard requirement
+    bool has_value () const noexcept
+    {
+        return !empty();
     }
 
     /// If *this has a contained object of type T, typeid(T); otherwise typeid(void).
