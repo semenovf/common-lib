@@ -5,7 +5,7 @@
 //
 // Changelog:
 //      2019.12.17 Initial version (inspired from https://github.com/mpark/variant)
-//      2020.06.12 Added tests inspired from https://github.com/tcbrindle/cpp17_headers)
+//      2020.06.12 Added tests (inspired from https://github.com/tcbrindle/cpp17_headers)
 ////////////////////////////////////////////////////////////////////////////////
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include "doctest.h"

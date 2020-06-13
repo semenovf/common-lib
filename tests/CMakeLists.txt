@@ -28,6 +28,7 @@ set(TEST_NAMES
     pointer_proxy_iterator
     rational
     safeformat
+    string_view
     variant
     utf8_decode
     utf8_encode)

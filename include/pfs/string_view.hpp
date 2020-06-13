@@ -14,4 +14,13 @@
 #       define STX_NAMESPACE_NAME std
 #   endif
 #   include "3rdparty/stx/string_view.hpp"
+
+namespace std {
+
+// Avoid `undefined reference to `std::basic_string_view<char, std::char_traits<char> >::npos`
+template <typename CharT, typename Traits>
+constexpr typename basic_string_view<CharT, Traits>::size_type
+basic_string_view<CharT, Traits>::npos;
+
+}
 #endif
