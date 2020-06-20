@@ -30,6 +30,7 @@
 ### std::iterator
 
 1. [Iterators are also part of the C++ zero cost abstractions](https://blog.galowicz.de/2017/07/02/order2_iterator/)
+2. [An iterator_facade in C++20](https://vector-of-bool.github.io/2020/06/13/cpp20-iter-facade.html)
 
 ### Smart pointer (std::shared_ptr, std::unique_ptr)
 
@@ -201,3 +202,10 @@
 1. [tcmalloc](https://github.com/gperftools/gperftools)
 2. [jemalloc](http://jemalloc.net)
 3. [mimalloc](https://github.com/microsoft/mimalloc)
+
+### Calendar
+1. [Julian day](http://en.wikipedia.org/wiki/Julian_day)
+2. [The Julian Period](http://www.tondering.dk/claus/cal/julperiod.php)
+3. [Julian Day Numbers](http://www.hermetic.ch/cal_stud/jdn.htm)
+4. [Julian Day Calculator](http://www.csgnetwork.com/juliandaydate.html)
+5. [Calendar generator printing a full calendar for any year source code](https://www.cprogramming.com/snippets/source-code/calandar-generator-printing-a-full-calendar-for-any-year)
