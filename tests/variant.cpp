@@ -2020,105 +2020,105 @@ TEST_CASE("if_emplace_throws_variant_is_valueless")
 #ifndef __MINGW32__
 TEST_CASE("properties")
 {
-    static_assert(!std::is_default_constructible<variant<>>::value);
-    static_assert(std::is_copy_constructible<variant<>>::value);  // or should this be false?
-    static_assert(std::is_copy_constructible<variant<int>>::value);
-    static_assert(!std::is_copy_constructible<variant<std::mutex,int>>::value);
-    static_assert(!std::is_move_constructible<variant<std::mutex,int>>::value);
-    static_assert( std::is_nothrow_move_constructible<variant<std::string>>::value);
-    static_assert(!std::is_move_assignable<variant<std::mutex,int>>::value);
-    static_assert(!std::is_copy_assignable<variant<std::mutex,int>>::value);
-    static_assert(std::is_move_assignable<variant<std::string,int>>::value);
-    static_assert(std::is_copy_assignable<variant<std::string,int>>::value);
-    static_assert(std::is_nothrow_move_assignable<variant<std::string,int>>::value);
-    static_assert(std::is_move_assignable<variant<ThrowingCopy,int>>::value);
-    static_assert(!std::is_nothrow_move_assignable<variant<ThrowingCopy,int>>::value);
-    static_assert(!noexcept(variant<ThrowingCopy,int>().swap(std::declval<variant<ThrowingCopy,int>&>())));
-    static_assert(noexcept(variant<int,double>().swap(std::declval<variant<int,double>&>())));
+    static_assert(!std::is_default_constructible<variant<>>::value, "");
+    static_assert(std::is_copy_constructible<variant<>>::value, "");  // or should this be false?
+    static_assert(std::is_copy_constructible<variant<int>>::value, "");
+    static_assert(!std::is_copy_constructible<variant<std::mutex,int>>::value, "");
+    static_assert(!std::is_move_constructible<variant<std::mutex,int>>::value, "");
+    static_assert( std::is_nothrow_move_constructible<variant<std::string>>::value, "");
+    static_assert(!std::is_move_assignable<variant<std::mutex,int>>::value, "");
+    static_assert(!std::is_copy_assignable<variant<std::mutex,int>>::value, "");
+    static_assert(std::is_move_assignable<variant<std::string,int>>::value, "");
+    static_assert(std::is_copy_assignable<variant<std::string,int>>::value, "");
+    static_assert(std::is_nothrow_move_assignable<variant<std::string,int>>::value, "");
+    static_assert(std::is_move_assignable<variant<ThrowingCopy,int>>::value, "");
+    static_assert(!std::is_nothrow_move_assignable<variant<ThrowingCopy,int>>::value, "");
+    static_assert(!noexcept(variant<ThrowingCopy,int>().swap(std::declval<variant<ThrowingCopy,int>&>())), "");
+    static_assert(noexcept(variant<int,double>().swap(std::declval<variant<int,double>&>())), "");
 }
 #endif
 
 TEST_CASE("variant_of_references") {
     static int i=42;
     constexpr variant<int&> vi(i);
-    static_assert(&std::get<0>(vi)==&i);
+    static_assert(&std::get<0>(vi)==&i, "");
     constexpr variant<std::string&,int&> vi2(i);
-    static_assert(&std::get<1>(vi2)==&i);
+    static_assert(&std::get<1>(vi2)==&i, "");
     constexpr variant<const int&> vi3(i);
-    static_assert(&std::get<0>(vi3)==&i);
+    static_assert(&std::get<0>(vi3)==&i, "");
 }
 
 TEST_CASE("variant_size")
 {
-    static_assert(std::variant_size<variant<int>>::value==1);
-    static_assert(std::variant_size<variant<int,double>>::value==2);
-    static_assert(std::variant_size<variant<std::string,int,double>>::value==3);
-    static_assert(std::variant_size<variant<int,double,int&,const std::string>>::value==4);
-    static_assert(std::variant_size<const variant<int>>::value==1);
-    static_assert(std::variant_size<const variant<int,double>>::value==2);
-    static_assert(std::variant_size<const variant<std::string,int,double>>::value==3);
-    static_assert(std::variant_size<const variant<int,double,int&,const std::string>>::value==4);
-    static_assert(std::variant_size<volatile variant<int>>::value==1);
-    static_assert(std::variant_size<volatile variant<int,double>>::value==2);
-    static_assert(std::variant_size<volatile variant<std::string,int,double>>::value==3);
-    static_assert(std::variant_size<volatile variant<int,double,int&,const std::string>>::value==4);
-    static_assert(std::variant_size<volatile const variant<int>>::value==1);
-    static_assert(std::variant_size<volatile const variant<int,double>>::value==2);
-    static_assert(std::variant_size<volatile const variant<std::string,int,double>>::value==3);
-    static_assert(std::variant_size<volatile const variant<int,double,int&,const std::string>>::value==4);
+    static_assert(std::variant_size<variant<int>>::value==1, "");
+    static_assert(std::variant_size<variant<int,double>>::value==2, "");
+    static_assert(std::variant_size<variant<std::string,int,double>>::value==3, "");
+    static_assert(std::variant_size<variant<int,double,int&,const std::string>>::value==4, "");
+    static_assert(std::variant_size<const variant<int>>::value==1, "");
+    static_assert(std::variant_size<const variant<int,double>>::value==2, "");
+    static_assert(std::variant_size<const variant<std::string,int,double>>::value==3, "");
+    static_assert(std::variant_size<const variant<int,double,int&,const std::string>>::value==4, "");
+    static_assert(std::variant_size<volatile variant<int>>::value==1, "");
+    static_assert(std::variant_size<volatile variant<int,double>>::value==2, "");
+    static_assert(std::variant_size<volatile variant<std::string,int,double>>::value==3, "");
+    static_assert(std::variant_size<volatile variant<int,double,int&,const std::string>>::value==4, "");
+    static_assert(std::variant_size<volatile const variant<int>>::value==1, "");
+    static_assert(std::variant_size<volatile const variant<int,double>>::value==2, "");
+    static_assert(std::variant_size<volatile const variant<std::string,int,double>>::value==3, "");
+    static_assert(std::variant_size<volatile const variant<int,double,int&,const std::string>>::value==4, "");
 }
 
 TEST_CASE("variant_alternative")
 {
-    static_assert(std::is_same<std::variant_alternative<0,variant<int>>::type,int>::value);
-    static_assert(std::is_same<std::variant_alternative<0,variant<int,std::string>>::type,int>::value);
-    static_assert(std::is_same<std::variant_alternative<1,variant<int,std::string>>::type,std::string>::value);
-    static_assert(std::is_same<std::variant_alternative<0,variant<const int>>::type,const int>::value);
-    static_assert(std::is_same<std::variant_alternative<0,variant<int&,std::string>>::type,int&>::value);
-    static_assert(std::is_same<std::variant_alternative<2,variant<int,std::string,const double&>>::type,const double&>::value);
-    static_assert(std::is_same<std::variant_alternative_t<0,variant<int,std::string,const double&>>,int>::value);
+    static_assert(std::is_same<std::variant_alternative<0,variant<int>>::type,int>::value, "");
+    static_assert(std::is_same<std::variant_alternative<0,variant<int,std::string>>::type,int>::value, "");
+    static_assert(std::is_same<std::variant_alternative<1,variant<int,std::string>>::type,std::string>::value, "");
+    static_assert(std::is_same<std::variant_alternative<0,variant<const int>>::type,const int>::value, "");
+    static_assert(std::is_same<std::variant_alternative<0,variant<int&,std::string>>::type,int&>::value, "");
+    static_assert(std::is_same<std::variant_alternative<2,variant<int,std::string,const double&>>::type,const double&>::value, "");
+    static_assert(std::is_same<std::variant_alternative_t<0,variant<int,std::string,const double&>>,int>::value, "");
 
-    static_assert(std::is_same<std::variant_alternative<0,const variant<int>>::type,const int>::value);
-    static_assert(std::is_same<std::variant_alternative<0,const variant<int,std::string>>::type,const int>::value);
-    static_assert(std::is_same<std::variant_alternative<1,const variant<int,std::string>>::type,const std::string>::value);
-    static_assert(std::is_same<std::variant_alternative<0,const variant<const int>>::type,const int>::value);
-    static_assert(std::is_same<std::variant_alternative<0,const variant<int&,std::string>>::type,int&>::value);
-    static_assert(std::is_same<std::variant_alternative<2,const variant<int,std::string,const double&>>::type,const double&>::value);
-    static_assert(std::is_same<std::variant_alternative_t<0,const variant<int,std::string,const double&>>,const int>::value);
+    static_assert(std::is_same<std::variant_alternative<0,const variant<int>>::type,const int>::value, "");
+    static_assert(std::is_same<std::variant_alternative<0,const variant<int,std::string>>::type,const int>::value, "");
+    static_assert(std::is_same<std::variant_alternative<1,const variant<int,std::string>>::type,const std::string>::value, "");
+    static_assert(std::is_same<std::variant_alternative<0,const variant<const int>>::type,const int>::value, "");
+    static_assert(std::is_same<std::variant_alternative<0,const variant<int&,std::string>>::type,int&>::value, "");
+    static_assert(std::is_same<std::variant_alternative<2,const variant<int,std::string,const double&>>::type,const double&>::value, "");
+    static_assert(std::is_same<std::variant_alternative_t<0,const variant<int,std::string,const double&>>,const int>::value, "");
 
-    static_assert(std::is_same<std::variant_alternative<0,volatile const variant<int>>::type,volatile const int>::value);
-    static_assert(std::is_same<std::variant_alternative<0,volatile const variant<int,std::string>>::type,volatile const int>::value);
-    static_assert(std::is_same<std::variant_alternative<1,volatile const variant<int,std::string>>::type,volatile const std::string>::value);
-    static_assert(std::is_same<std::variant_alternative<0,volatile const variant<const int>>::type,volatile const int>::value);
-    static_assert(std::is_same<std::variant_alternative<0,volatile const variant<int&,std::string>>::type,int&>::value);
-    static_assert(std::is_same<std::variant_alternative<2,volatile const variant<int,std::string,const double&>>::type,const double&>::value);
-    static_assert(std::is_same<std::variant_alternative_t<0,volatile const variant<int,std::string,const double&>>,volatile const int>::value);
+    static_assert(std::is_same<std::variant_alternative<0,volatile const variant<int>>::type,volatile const int>::value, "");
+    static_assert(std::is_same<std::variant_alternative<0,volatile const variant<int,std::string>>::type,volatile const int>::value, "");
+    static_assert(std::is_same<std::variant_alternative<1,volatile const variant<int,std::string>>::type,volatile const std::string>::value, "");
+    static_assert(std::is_same<std::variant_alternative<0,volatile const variant<const int>>::type,volatile const int>::value, "");
+    static_assert(std::is_same<std::variant_alternative<0,volatile const variant<int&,std::string>>::type,int&>::value, "");
+    static_assert(std::is_same<std::variant_alternative<2,volatile const variant<int,std::string,const double&>>::type,const double&>::value, "");
+    static_assert(std::is_same<std::variant_alternative_t<0,volatile const variant<int,std::string,const double&>>,volatile const int>::value, "");
 
-    static_assert(std::is_same<std::variant_alternative<0,volatile variant<int>>::type,volatile int>::value);
-    static_assert(std::is_same<std::variant_alternative<0,volatile variant<int,std::string>>::type,volatile int>::value);
-    static_assert(std::is_same<std::variant_alternative<1,volatile variant<int,std::string>>::type,volatile std::string>::value);
-    static_assert(std::is_same<std::variant_alternative<0,volatile variant<const int>>::type,volatile const int>::value);
-    static_assert(std::is_same<std::variant_alternative<0,volatile variant<int&,std::string>>::type,int&>::value);
-    static_assert(std::is_same<std::variant_alternative<2,volatile variant<int,std::string,const double&>>::type,const double&>::value);
-    static_assert(std::is_same<std::variant_alternative_t<0,volatile variant<int,std::string,const double&>>,volatile int>::value);
+    static_assert(std::is_same<std::variant_alternative<0,volatile variant<int>>::type,volatile int>::value, "");
+    static_assert(std::is_same<std::variant_alternative<0,volatile variant<int,std::string>>::type,volatile int>::value, "");
+    static_assert(std::is_same<std::variant_alternative<1,volatile variant<int,std::string>>::type,volatile std::string>::value, "");
+    static_assert(std::is_same<std::variant_alternative<0,volatile variant<const int>>::type,volatile const int>::value, "");
+    static_assert(std::is_same<std::variant_alternative<0,volatile variant<int&,std::string>>::type,int&>::value, "");
+    static_assert(std::is_same<std::variant_alternative<2,volatile variant<int,std::string,const double&>>::type,const double&>::value, "");
+    static_assert(std::is_same<std::variant_alternative_t<0,volatile variant<int,std::string,const double&>>,volatile int>::value, "");
 }
 
 TEST_CASE("void npos")
 {
-    static_assert(std::variant_npos==(size_t)-1);
-    static_assert(std::is_same<decltype(std::variant_npos),const size_t>::value);
+    static_assert(std::variant_npos==(size_t)-1, "");
+    static_assert(std::is_same<decltype(std::variant_npos),const size_t>::value, "");
 }
 
 TEST_CASE("holds_alternative")
 {
     constexpr variant<int> vi(42);
-    static_assert(std::holds_alternative<int>(vi));
+    static_assert(std::holds_alternative<int>(vi), "");
     constexpr variant<int,double> vi2(42);
-    static_assert(std::holds_alternative<int>(vi2));
-    static_assert(!std::holds_alternative<double>(vi2));
+    static_assert(std::holds_alternative<int>(vi2), "");
+    static_assert(!std::holds_alternative<double>(vi2), "");
     constexpr variant<int,double> vi3(4.2);
-    static_assert(!std::holds_alternative<int>(vi3));
-    static_assert(std::holds_alternative<double>(vi3));
+    static_assert(!std::holds_alternative<int>(vi3), "");
+    static_assert(std::holds_alternative<double>(vi3), "");
 
     const variant<int,double,std::string> vi4(42);
     CHECK(std::holds_alternative<int>(vi4));
@@ -2136,35 +2136,35 @@ TEST_CASE("get_with_rvalues")
     int i=42;
 
     // FIXME
-//     static_assert(std::get<0>(variant<int>(42)) == 42);
-    static_assert(std::is_same<decltype(std::get<0>(variant<int>(42))),int&&>::value);
+//     static_assert(std::get<0>(variant<int>(42)) == 42, "");
+    static_assert(std::is_same<decltype(std::get<0>(variant<int>(42))),int&&>::value, "");
 
     // FIXME
-//     static_assert(std::get<int>(variant<int>(42))==42);
-    static_assert(std::is_same<decltype(std::get<int>(variant<int>(42))),int&&>::value);
+//     static_assert(std::get<int>(variant<int>(42))==42, "");
+    static_assert(std::is_same<decltype(std::get<int>(variant<int>(42))),int&&>::value, "");
 
     // FIXME
-//     static_assert(std::get<1>(variant<double,int,char>(42))==42);
+//     static_assert(std::get<1>(variant<double,int,char>(42))==42, "");
 
-    static_assert(std::is_same<decltype(std::get<1>(variant<double,int,char>(42))),int&&>::value);
+    static_assert(std::is_same<decltype(std::get<1>(variant<double,int,char>(42))),int&&>::value, "");
 
     // FIXME
-//     static_assert(std::get<int>(variant<double,int,char>(42))==42);
-    static_assert(std::is_same<decltype(std::get<int>(variant<double,int,char>(42))),int&&>::value);
+//     static_assert(std::get<int>(variant<double,int,char>(42))==42, "");
+    static_assert(std::is_same<decltype(std::get<int>(variant<double,int,char>(42))),int&&>::value, "");
 
     CHECK(std::get<0>(variant<int&>(i))==42);
-    static_assert(std::is_same<decltype(std::get<0>(variant<int&>(i))),int&>::value);
+    static_assert(std::is_same<decltype(std::get<0>(variant<int&>(i))),int&>::value, "");
     CHECK(&std::get<0>(variant<int&>(i))==&i);
     CHECK(std::get<int&>(variant<int&>(i))==42);
-    static_assert(std::is_same<decltype(std::get<int&>(variant<int&>(i))),int&>::value);
+    static_assert(std::is_same<decltype(std::get<int&>(variant<int&>(i))),int&>::value, "");
     CHECK(&std::get<int&>(variant<int&>(i))==&i);
 
     CHECK(std::get<0>(variant<int&&>(std::move(i)))==42);
-    static_assert(std::is_same<decltype(std::get<0>(variant<int&&>(std::move(i)))),int&&>::value);
+    static_assert(std::is_same<decltype(std::get<0>(variant<int&&>(std::move(i)))),int&&>::value, "");
     int&& ir=std::get<0>(variant<int&&>(std::move(i)));
     CHECK(&ir==&i);
     CHECK(std::get<int&&>(variant<int&&>(std::move(i)))==42);
-    static_assert(std::is_same<decltype(std::get<int&&>(variant<int&&>(std::move(i)))),int&&>::value);
+    static_assert(std::is_same<decltype(std::get<int&&>(variant<int&&>(std::move(i)))),int&&>::value, "");
     int&& ir2=std::get<int&&>(variant<int&&>(std::move(i)));
     CHECK(&ir2==&i);
 
@@ -2189,32 +2189,32 @@ TEST_CASE("get_with_const_rvalues")
 {
     int i=42;
 
-    static_assert(std::get<0>((const variant<int>)(42))==42);
-    static_assert(std::is_same<decltype(std::get<0>((const variant<int>)(42))),const int&&>::value);
-    static_assert(std::get<int>((const variant<int>)(42))==42);
-    static_assert(std::is_same<decltype(std::get<int>((const variant<int>)(42))),const int&&>::value);
+    static_assert(std::get<0>((const variant<int>)(42))==42, "");
+    static_assert(std::is_same<decltype(std::get<0>((const variant<int>)(42))),const int&&>::value, "");
+    static_assert(std::get<int>((const variant<int>)(42))==42, "");
+    static_assert(std::is_same<decltype(std::get<int>((const variant<int>)(42))),const int&&>::value, "");
 
     // FIXME
-//     static_assert(std::get<1>((const variant<double,int,char>)(42))==42);
-    static_assert(std::is_same<decltype(std::get<1>((const variant<double,int,char>)(42))),const int&&>::value);
+//     static_assert(std::get<1>((const variant<double,int,char>)(42))==42, "");
+    static_assert(std::is_same<decltype(std::get<1>((const variant<double,int,char>)(42))),const int&&>::value, "");
 
     // FIXME
-//     static_assert(std::get<int>((const variant<double,int,char>)(42))==42);
-    static_assert(std::is_same<decltype(std::get<int>((const variant<double,int,char>)(42))),const int&&>::value);
+//     static_assert(std::get<int>((const variant<double,int,char>)(42))==42, "");
+    static_assert(std::is_same<decltype(std::get<int>((const variant<double,int,char>)(42))),const int&&>::value, "");
 
     CHECK(std::get<0>((const variant<int&>)(i))==42);
-    static_assert(std::is_same<decltype(std::get<0>((const variant<int&>)(i))),int&>::value);
+    static_assert(std::is_same<decltype(std::get<0>((const variant<int&>)(i))),int&>::value, "");
     CHECK(&std::get<0>((const variant<int&>)(i))==&i);
     CHECK(std::get<int&>((const variant<int&>)(i))==42);
-    static_assert(std::is_same<decltype(std::get<int&>((const variant<int&>)(i))),int&>::value);
+    static_assert(std::is_same<decltype(std::get<int&>((const variant<int&>)(i))),int&>::value, "");
     CHECK(&std::get<int&>((const variant<int&>)(i))==&i);
 
     CHECK(std::get<0>((const variant<int&&>)(std::move(i)))==42);
-    static_assert(std::is_same<decltype(std::get<0>((const variant<int&&>)(std::move(i)))),int&&>::value);
+    static_assert(std::is_same<decltype(std::get<0>((const variant<int&&>)(std::move(i)))),int&&>::value, "");
     int&& ir=std::get<0>((const variant<int&&>)(std::move(i)));
     CHECK(&ir==&i);
     CHECK(std::get<int&&>((const variant<int&&>)(std::move(i)))==42);
-    static_assert(std::is_same<decltype(std::get<int&&>((const variant<int&&>)(std::move(i)))),int&&>::value);
+    static_assert(std::is_same<decltype(std::get<int&&>((const variant<int&&>)(std::move(i)))),int&&>::value, "");
     int&& ir2=std::get<int&&>((const variant<int&&>)(std::move(i)));
     CHECK(&ir2==&i);
 
@@ -2240,19 +2240,19 @@ TEST_CASE("get_if") {
     constexpr variant<double,int,char> cvidc(42);
     constexpr variant<double,int,char> cvidc2(4.2);
 
-    static_assert(std::get_if<0>(cvi)==&std::get<0>(cvi));
-    static_assert(std::get_if<int>(cvi)==&std::get<0>(cvi));
+    static_assert(std::get_if<0>(cvi)==&std::get<0>(cvi), "");
+    static_assert(std::get_if<int>(cvi)==&std::get<0>(cvi), "");
 
-    static_assert(!std::get_if<0>(cvidc));
-    static_assert(std::get_if<1>(cvidc)==&std::get<1>(cvidc));
-    static_assert(!std::get_if<2>(cvidc));
-    static_assert(!std::get_if<double>(cvidc));
-    static_assert(std::get_if<int>(cvidc)==&std::get<1>(cvidc));
-    static_assert(!std::get_if<char>(cvidc));
+    static_assert(!std::get_if<0>(cvidc), "");
+    static_assert(std::get_if<1>(cvidc)==&std::get<1>(cvidc), "");
+    static_assert(!std::get_if<2>(cvidc), "");
+    static_assert(!std::get_if<double>(cvidc), "");
+    static_assert(std::get_if<int>(cvidc)==&std::get<1>(cvidc), "");
+    static_assert(!std::get_if<char>(cvidc), "");
 
-    static_assert(std::get_if<double>(cvidc2)==&std::get<0>(cvidc2));
-    static_assert(!std::get_if<int>(cvidc2));
-    static_assert(!std::get_if<char>(cvidc2));
+    static_assert(std::get_if<double>(cvidc2)==&std::get<0>(cvidc2), "");
+    static_assert(!std::get_if<int>(cvidc2), "");
+    static_assert(!std::get_if<char>(cvidc2), "");
 
     variant<int> vi(42);
     variant<double,int,char> vidc(42);
@@ -2280,18 +2280,18 @@ TEST_CASE("constexpr_comparisons")
     constexpr variant<int,double,char> vd(2.1);
     constexpr variant<int,double,char> vd2(4.2);
 
-    static_assert(vi==vi);
-    static_assert(vi!=vi2);
-    static_assert(vi>vi2);
-    static_assert(vi>=vi2);
-    static_assert(vi2<vi);
-    static_assert(vi2<=vi);
-    static_assert(vd!=vd2);
-    static_assert(vd==vd);
-    static_assert(vd<vd2);
-    static_assert(vd<=vd2);
-    static_assert(vd2>vd);
-    static_assert(vd2>=vd);
+    static_assert(vi==vi, "");
+    static_assert(vi!=vi2, "");
+    static_assert(vi>vi2, "");
+    static_assert(vi>=vi2, "");
+    static_assert(vi2<vi, "");
+    static_assert(vi2<=vi, "");
+    static_assert(vd!=vd2, "");
+    static_assert(vd==vd, "");
+    static_assert(vd<vd2, "");
+    static_assert(vd<=vd2, "");
+    static_assert(vd2>vd, "");
+    static_assert(vd2>=vd, "");
 }
 
 struct Identity
@@ -2315,30 +2315,30 @@ TEST_CASE("constexpr_visit")
     constexpr variant<int,double> vi2(21);
 
     // FIXME
-//     static_assert(std::visit(Identity(),vi)==42);
-//     static_assert(std::visit(Sum(),vi,vi2)==63);
+//     static_assert(std::visit(Identity(),vi)==42, "");
+//     static_assert(std::visit(Sum(),vi,vi2)==63, "");
 }
 
 TEST_CASE("variant_with_no_types")
 {
-    static_assert(sizeof(variant<>)>0);
-    static_assert(!std::is_default_constructible<variant<>>::value);
+    static_assert(sizeof(variant<>)>0, "");
+    static_assert(!std::is_default_constructible<variant<>>::value, "");
 }
 
 TEST_CASE("monostate")
 {
-    static_assert(std::is_trivial<std::monostate>::value);
-    static_assert(std::is_nothrow_move_constructible<std::monostate>::value);
-    static_assert(std::is_nothrow_copy_constructible<std::monostate>::value);
-    static_assert(std::is_nothrow_move_assignable<std::monostate>::value);
-    static_assert(std::is_nothrow_copy_assignable<std::monostate>::value);
+    static_assert(std::is_trivial<std::monostate>::value, "");
+    static_assert(std::is_nothrow_move_constructible<std::monostate>::value, "");
+    static_assert(std::is_nothrow_copy_constructible<std::monostate>::value, "");
+    static_assert(std::is_nothrow_move_assignable<std::monostate>::value, "");
+    static_assert(std::is_nothrow_copy_assignable<std::monostate>::value, "");
     constexpr std::monostate m1{},m2{};
-    static_assert(m1==m2);
-    static_assert(!(m1!=m2));
-    static_assert(m1>=m2);
-    static_assert(m1<=m2);
-    static_assert(!(m1<m2));
-    static_assert(!(m1>m2));
+    static_assert(m1==m2, "");
+    static_assert(!(m1!=m2), "");
+    static_assert(m1>=m2, "");
+    static_assert(m1<=m2, "");
+    static_assert(!(m1<m2), "");
+    static_assert(!(m1>m2), "");
 }
 
 TEST_CASE("hash")
@@ -2347,16 +2347,16 @@ TEST_CASE("hash")
     variant<int,std::string> vi2(vi);
 
     std::hash<variant<int,std::string>> h;
-    static_assert(noexcept(h(vi)));
-    static_assert(std::is_same<decltype(h(vi)),size_t>::value);
+    static_assert(noexcept(h(vi)), "");
+    static_assert(std::is_same<decltype(h(vi)),size_t>::value, "");
 
     // FIXME
 //     CHECK(h{vi} == h{vi2});
 
     std::monostate m{};
     std::hash<std::monostate> hm;
-    static_assert(noexcept(hm(m)));
-    static_assert(std::is_same<decltype(hm(m)),size_t>::value);
+    static_assert(noexcept(hm(m)), "");
+    static_assert(std::is_same<decltype(hm(m)),size_t>::value, "");
 }
 
 unsigned allocate_count=0;
