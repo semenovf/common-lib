@@ -12,7 +12,7 @@
 #include "pfs/filesystem.hpp"
 
 TEST_CASE("Filesystem path") {
-    namespace fs = pfs::filesystem;
+    namespace fs = std::filesystem;
 
 ////////////////////////////////////////////////////////////////////////////////
 // Constructors                                                               //
@@ -407,7 +407,7 @@ TEST_CASE("Filesystem path") {
 // directory_entry
 ////////////////////////////////////////////////////////////////////////////////
 TEST_CASE("Filesystem directory_entry") {
-    namespace fs = pfs::filesystem;
+    namespace fs = std::filesystem;
 
     // Constructors
     {

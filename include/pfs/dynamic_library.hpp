@@ -27,7 +27,7 @@
 
 namespace pfs {
 
-namespace fs = pfs::filesystem;
+namespace fs = std::filesystem;
 
 ////////////////////////////////////////////////////////////////////////////////
 // dynamic_library_errc
