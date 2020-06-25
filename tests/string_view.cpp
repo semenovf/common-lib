@@ -112,7 +112,9 @@ TEST_CASE("basic")
 
 ////////////////////////////////////////////////////////////////////////////////
 
-void ends_with ( const char *arg )
+// NOTE string_view::ends_with since C++20
+#if __cplusplus > 201703L || defined(PFS_NO_STD_STRING_VIEW)
+void ends_with (const char *arg)
 {
     const size_t sz = std::strlen ( arg );
     string_view sr ( arg );
@@ -145,7 +147,10 @@ void ends_with ( const char *arg )
     CHECK(!sr2.ends_with(++ch));
     CHECK(sr2.ends_with(string_view()));
 }
+#endif
 
+// NOTE string_view::starts_with since C++20
+#if __cplusplus > 201703L || defined(PFS_NO_STD_STRING_VIEW)
 void starts_with (char const * arg)
 {
     const size_t sz = std::strlen(arg);
@@ -174,6 +179,7 @@ void starts_with (char const * arg)
         CHECK(sr2.starts_with(string_view()));
     }
 }
+#endif
 
 void reverse (char const * arg)
 {
@@ -448,6 +454,8 @@ constexpr bool operator != (const custom_allocator<T> &, const custom_allocator<
     return false;
 }
 
+// NOTE Experimental feature yet (C++20)
+#if defined(PFS_NO_STD_STRING_VIEW)
 void to_string (char const * arg)
 {
     string_view sr1;
@@ -467,7 +475,8 @@ void to_string (char const * arg)
     std::string str4 = static_cast<std::string>(sr1);
     CHECK(str1 == str4);
 //#endif
-    }
+}
+#endif
 
 void compare (char const * arg)
 {
@@ -512,6 +521,9 @@ const char * test_strings1[] = {
     nullptr
     };
 
+// NOTE string_view::starts_with(), ends_with() since C++20
+// besides to_string() is experimental feature yet (C++20)
+#if defined(PFS_NO_STD_STRING_VIEW)
 TEST_CASE("test_main")
 {
     char const ** p = & test_strings1[0];
@@ -527,6 +539,7 @@ TEST_CASE("test_main")
         p++;
     }
 }
+#endif
 
 ////////////////////////////////////////////////////////////////////////////////
 // Test IO

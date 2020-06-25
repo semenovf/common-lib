@@ -11,12 +11,16 @@
 include(CMakePushCheckState)
 include(CheckIncludeFileCXX)
 include(CheckCXXSourceCompiles)
+include(${CMAKE_CURRENT_LIST_DIR}/check_cxx_standard_flag.cmake)
 
 cmake_push_check_state()
 
 check_include_file_cxx("any" __have_std_any_header)
 check_include_file_cxx("optional" __have_std_optional_header)
 check_include_file_cxx("variant" __have_std_variant_header)
+
+check_cxx_standard_flag(__cxx_standard_flag)
+set(CMAKE_REQUIRED_FLAGS "${CMAKE_REQUIRED_FLAGS} ${__cxx_standard_flag}")
 
 add_library(std::utility_classes INTERFACE IMPORTED)
 
@@ -34,7 +38,7 @@ if (__have_std_any_header)
     ]] __check_cxx_code @ONLY)
 
     # Try to compile a simple program without any linker flags
-    check_cxx_source_compiles("${_check_cxx_code}" __std_any_compiled)
+    check_cxx_source_compiles("${__check_cxx_code}" __std_any_compiled)
 
     if (__std_any_compiled)
         set(__have_std_any TRUE)
@@ -49,13 +53,13 @@ if (__have_std_optional_header)
         #include <optional>
 
         int main () {
-            std::optional<int> = {};
+            std::optional<int> {};
             return 0;
         }
     ]] __check_cxx_code @ONLY)
 
     # Try to compile a simple program without any linker flags
-    check_cxx_source_compiles("${_check_cxx_code}" __std_optional_compiled)
+    check_cxx_source_compiles("${__check_cxx_code}" __std_optional_compiled)
 
     if (__std_optional_compiled)
         set(__have_std_optional TRUE)
@@ -76,7 +80,7 @@ if (__have_std_variant_header)
     ]] __check_cxx_code @ONLY)
 
     # Try to compile a simple program without any linker flags
-    check_cxx_source_compiles("${_check_cxx_code}" __std_variant_compiled)
+    check_cxx_source_compiles("${__check_cxx_code}" __std_variant_compiled)
 
     if (__std_variant_compiled)
         set(__have_std_variant TRUE)

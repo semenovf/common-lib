@@ -5,15 +5,18 @@
 #
 # Checks std::string_view
 ################################################################################
+include(CheckCXXCompilerFlag)
 include(CMakePushCheckState)
 include(CheckIncludeFileCXX)
 include(CheckCXXSourceCompiles)
+include(${CMAKE_CURRENT_LIST_DIR}/check_cxx_standard_flag.cmake)
 
 cmake_push_check_state()
 
 check_include_file_cxx("string_view" __have_std_string_view_header)
 
 add_library(std::string_view INTERFACE IMPORTED)
+set(__have_std_string_view FALSE)
 
 if (__have_std_string_view_header)
     string(CONFIGURE [[
@@ -26,15 +29,18 @@ if (__have_std_string_view_header)
         }
     ]] __check_cxx_code @ONLY)
 
+    check_cxx_standard_flag(__cxx_standard_flag)
+    set(CMAKE_REQUIRED_FLAGS "${CMAKE_REQUIRED_FLAGS} ${__cxx_standard_flag}")
+
     # Try to compile a simple program without any linker flags
-    check_cxx_source_compiles("${_check_cxx_code}" __std_string_view_compiled)
+    check_cxx_source_compiles("${__check_cxx_code}" __std_string_view_compiled)
 
     if (__std_string_view_compiled)
         set(__have_std_string_view TRUE)
     endif()
 endif()
 
-if (NOT __have_std_string_view)
+if (NOT ${__have_std_string_view})
     target_compile_definitions(std::string_view INTERFACE PFS_NO_STD_STRING_VIEW)
 endif()
 

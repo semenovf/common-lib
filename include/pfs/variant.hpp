@@ -15,6 +15,9 @@
 #   ifndef STX_NAMESPACE_NAME
 #       define STX_NAMESPACE_NAME std
 #   endif
+
+#   define STX_NO_STD_VARIANT
+
 #   include "3rdparty/stx/variant.hpp"
 
 #if __DEPRECATED__

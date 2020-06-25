@@ -13,6 +13,9 @@
 #   ifndef STX_NAMESPACE_NAME
 #       define STX_NAMESPACE_NAME std
 #   endif
+
+#   define STX_NO_STD_STRING_VIEW
+
 #   include "3rdparty/stx/string_view.hpp"
 
 namespace std {

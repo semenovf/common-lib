@@ -6,7 +6,10 @@
 cmake_minimum_required (VERSION 3.5)
 project(pfs-common CXX C)
 
-option(pfs_common_BUILD_TESTS "Build tests" OFF)
+option(${PROJECT_NAME}_BUILD_TESTS "Build tests" OFF)
+
+set(CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF) # use -std=c++XX rather than -std=gnu++XX
 
 include(${CMAKE_CURRENT_LIST_DIR}/cmake/cxx17_filesystem.cmake)
 include(${CMAKE_CURRENT_LIST_DIR}/cmake/cxx17_string_view.cmake)
@@ -43,7 +46,7 @@ if (NOT ALL_DEPENDECES_FOUND)
     message(FATAL_ERROR "Some dependences not found")
 endif()
 
-if (pfs_common_BUILD_TESTS)
+if (${PROJECT_NAME}_BUILD_TESTS)
     enable_testing()
     add_subdirectory(tests)
 endif()

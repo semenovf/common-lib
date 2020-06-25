@@ -15,6 +15,9 @@
 #   ifndef STX_NAMESPACE_NAME
 #       define STX_NAMESPACE_NAME std
 #   endif
+
+#   define STX_NO_STD_OPTIONAL
+
 #   include "3rdparty/stx/optional.hpp"
 
 #   ifdef STX_HAVE_STD_OPTIONAL
