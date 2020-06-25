@@ -465,8 +465,6 @@ TEST_CASE("example_guard")
     // FAILS: *c = i;    // ERROR: cannot assign to const int&
 };
 
-// FIXME Get rid from this restriction
-#ifdef PFS_HAVE_STD_OPTIONAL
 // There is no specialization for reference in standard (unlike Boost's implementation)
 TEST_CASE("example_ref")
 {
@@ -477,10 +475,10 @@ TEST_CASE("example_ref")
     optional<std::reference_wrapper<int>> ora;
 
     // optional<int &> orb = i; // contained reference refers to object i
-    optional<std::reference_wrapper<int>> orb = i;
+    optional<std::reference_wrapper<int>> orb = std::ref(i);
 
     //*orb = 3;  // ERROR: use of deleted function `std::reference_wrapper::reference_wrapper(T&&)`
-    ora = j;
+    ora = std::ref(j);
     ora = {j};
     ora = orb;
     ora.emplace(j); // OK: contained reference refers to object j
@@ -508,7 +506,7 @@ T getValue (optional<T> newVal = nullopt, optional<std::reference_wrapper<T>> st
 TEST_CASE("example_optional_arg")
 {
     int iii = 0;
-    iii = getValue<int>(iii, iii);
+    iii = getValue<int>(iii, std::ref(iii));
     iii = getValue<int>(iii);
     iii = getValue<int>();
 
@@ -520,7 +518,6 @@ TEST_CASE("example_optional_arg")
         grd1 = nullopt;           // guard 1 released
     }                             // guard 2 released (in dtor)
 }
-#endif // PFS_HAVE_STD_OPTIONAL
 
 std::tuple<Date, Date, Date> getStartMidEnd ()
 {
@@ -621,12 +618,9 @@ TEST_CASE("example_rationale")
     o.emplace(1);              // emplacement
 
     ////////////////////////////////////
-// FIXME Get rid from this restriction
-#ifdef PFS_HAVE_STD_OPTIONAL
     int isas = 0, i = 9;
-    optional<std::reference_wrapper<int>> asas = i;
+    optional<std::reference_wrapper<int>> asas = std::ref(i);
     assign_norebind(asas, isas);
-#endif
 
     /////////////////////////////////////
     ////optional<std::vector<int>> ov2 = {2, 3};
@@ -826,15 +820,13 @@ TEST_CASE("bad_relops")
     CHECK(oa < b);
     CHECK_FALSE(oa > b);
 
-// FIXME Get rid from this restriction
-#ifdef PFS_HAVE_STD_OPTIONAL
-    optional<std::reference_wrapper<BadRelops>> ra = a, rb = b;
+    optional<std::reference_wrapper<BadRelops>> ra = std::ref(a)
+        , rb = std::ref(b);
     CHECK(ra < rb);
     CHECK_FALSE((ra > rb));
 
-    CHECK(ra < b);
-    CHECK_FALSE(ra > b);
-#endif
+    CHECK(ra < std::ref(b));
+    CHECK_FALSE(ra > std::ref(b));
 }
 
 TEST_CASE("mixed_equality")
@@ -963,35 +955,27 @@ TEST_CASE("optional_ref")
     auto && oj = std::make_optional(std::ref(j));
     (*oj)++;
 
-// FIXME Get rid from this restriction
-#ifdef PFS_HAVE_STD_OPTIONAL
-    CHECK((& oj->get() == & j));
+    CHECK((& *oj == & j));
     CHECK(j == 23);
-#endif
 }
 
-// FIXME Get rid from this restriction
-#ifdef PFS_HAVE_STD_OPTIONAL
 TEST_CASE("optional_ref_const_propagation")
 {
     int i = 9;
-    const optional<std::reference_wrapper<int>> mi = i;
-    int & r = mi->get();
-    optional<std::reference_wrapper<int const>> ci = i;
+    const optional<std::reference_wrapper<int>> mi = std::ref(i);
+    int & r = *mi;
+    optional<std::reference_wrapper<int const>> ci = std::cref(i);
 
     static_assert(std::is_same<decltype(*mi), std::reference_wrapper<int> const &>::value, "WTF");
     static_assert(std::is_same<decltype(*ci), std::reference_wrapper<int const> &>::value, "WTF");
 
     unused(r);
 };
-#endif
 
-// FIXME Get rid from this restriction
-#ifdef PFS_HAVE_STD_OPTIONAL
 TEST_CASE("optional_ref_assign")
 {
     int i = 9;
-    optional<std::reference_wrapper<int>> ori = i;
+    optional<std::reference_wrapper<int>> ori = std::ref(i);
 
     int j = 1;
     ori = optional<std::reference_wrapper<int>>{j};
@@ -1001,7 +985,7 @@ TEST_CASE("optional_ref_assign")
     optional<std::reference_wrapper<int>> orx = ori;
     ori = orx;
 
-    optional<std::reference_wrapper<int>> orj = j;
+    optional<std::reference_wrapper<int>> orj = std::ref(j);
 
     CHECK(ori);
     CHECK(*ori == 1);
@@ -1010,9 +994,8 @@ TEST_CASE("optional_ref_assign")
 
     ++*ori;
     CHECK(*ori == 2);
-    CHECK(ori == 2);
-    CHECK(2 == ori);
-    CHECK(ori != 3);
+    CHECK(2 == *ori);
+    CHECK(*ori != 3);
 
     CHECK(ori == orj);
     CHECK(j == 2);
@@ -1024,25 +1007,22 @@ TEST_CASE("optional_ref_assign")
     CHECK(j == 2);
     CHECK(i == 9);
 }
-#endif
 
-// FIXME Get rid from this restriction
-#ifdef PFS_HAVE_STD_OPTIONAL
 TEST_CASE("optional_ref_swap")
 {
     int i = 0;
     int j = 1;
-    optional<std::reference_wrapper<int>> oi = i;
-    optional<std::reference_wrapper<int>> oj = j;
+    optional<std::reference_wrapper<int>> oi = std::ref(i);
+    optional<std::reference_wrapper<int>> oj = std::ref(j);
 
     CHECK(& oi->get() == & i);
     CHECK(& oj->get() == & j);
 
+    using std::swap;
     swap(oi, oj);
     CHECK(& oi->get() == & j);
     CHECK(& oj->get() == & i);
 };
-#endif
 
 TEST_CASE("optional_initialization")
 {
@@ -1218,44 +1198,42 @@ struct hash_opt_string_ref
     }
 };
 
-// FIXME Get rid from this restriction
-#ifdef PFS_HAVE_STD_OPTIONAL
-TEST_CASE("optional_ref_hashing")
-{
-    using std::string;
-    using int_ref_t = std::reference_wrapper<int>;
-    using string_ref_t = std::reference_wrapper<string>;
-
-    std::hash<int> hi;
-    std::hash<optional<int_ref_t>> hoi;
-    std::hash<string> hs;
-    std::hash<optional<string_ref_t>> hos;
-
-    int i0 = 0;
-    int i1 = 1;
-    CHECK(hi(0) == hoi(optional<int_ref_t>{i0}));
-    CHECK(hi(1) == hoi(optional<int_ref_t>{i1}));
-
-    string s{""};
-    string s0{"0"};
-    string sCAT{"CAT"};
-    CHECK(hs("") == hos(optional<string_ref_t>{s}));
-    CHECK(hs("0") == hos(optional<string_ref_t>{s0}));
-    CHECK(hs("CAT") == hos(optional<string_ref_t>{sCAT}));
-
-    std::unordered_set<optional<string_ref_t>
-        , hash_opt_string_ref
-        , equal_to_opt_string_ref> set;
-
-    CHECK(set.find({sCAT}) == set.end());
-
-    set.insert({s0});
-    CHECK(set.find({sCAT}) == set.end());
-
-    set.insert({sCAT});
-    CHECK(set.find({sCAT}) != set.end());
-};
-#endif
+// FIXME
+// TEST_CASE("optional_ref_hashing")
+// {
+//     using std::string;
+//     using int_ref_t = std::reference_wrapper<int>;
+//     using string_ref_t = std::reference_wrapper<string>;
+//
+//     std::hash<int> hi;
+//     std::hash<optional<int_ref_t>> hoi;
+//     std::hash<string> hs;
+//     std::hash<optional<string_ref_t>> hos;
+//
+//     int i0 = 0;
+//     int i1 = 1;
+//     CHECK(hi(0) == hoi(optional<int_ref_t>{i0}));
+//     CHECK(hi(1) == hoi(optional<int_ref_t>{i1}));
+//
+//     string s{""};
+//     string s0{"0"};
+//     string sCAT{"CAT"};
+//     CHECK(hs("") == hos(optional<string_ref_t>{s}));
+//     CHECK(hs("0") == hos(optional<string_ref_t>{s0}));
+//     CHECK(hs("CAT") == hos(optional<string_ref_t>{sCAT}));
+//
+//     std::unordered_set<optional<string_ref_t>
+//         , hash_opt_string_ref
+//         , equal_to_opt_string_ref> set;
+//
+//     CHECK(set.find({sCAT}) == set.end());
+//
+//     set.insert({s0});
+//     CHECK(set.find({sCAT}) == set.end());
+//
+//     set.insert({sCAT});
+//     CHECK(set.find({sCAT}) != set.end());
+// };
 
 struct Combined
 {
@@ -1291,12 +1269,10 @@ TEST_CASE("arrow_operator")
     CHECK(on->n == 2);
 }
 
-// FIXME Get rid from this restriction
-#ifdef PFS_HAVE_STD_OPTIONAL
 TEST_CASE("arrow_wit_optional_ref")
 {
     Combined c{1, 2};
-    optional<std::reference_wrapper<Combined>> oc = c;
+    optional<std::reference_wrapper<Combined>> oc = std::ref(c);
 
     CHECK(oc);
     CHECK(oc->get().m == 1);
@@ -1326,7 +1302,6 @@ TEST_CASE("arrow_wit_optional_ref")
     CHECK(om->get().m == 1);
     CHECK(om->get().n == 2);
 }
-#endif
 
 TEST_CASE("no_dangling_reference_in_value")
 {
