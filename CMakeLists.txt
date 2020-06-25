@@ -8,24 +8,39 @@ project(pfs-common CXX C)
 
 option(pfs_common_BUILD_TESTS "Build tests" OFF)
 
-include(${CMAKE_SOURCE_DIR}/cmake/cxx17_filesystem.cmake)
-include(${CMAKE_SOURCE_DIR}/cmake/cxx17_string_view.cmake)
-include(${CMAKE_SOURCE_DIR}/cmake/cxx17_utility_classes.cmake)
+include(${CMAKE_CURRENT_LIST_DIR}/cmake/cxx17_filesystem.cmake)
+include(${CMAKE_CURRENT_LIST_DIR}/cmake/cxx17_string_view.cmake)
+include(${CMAKE_CURRENT_LIST_DIR}/cmake/cxx17_utility_classes.cmake)
 
 add_library(${PROJECT_NAME} INTERFACE)
 add_library(pfs::common ALIAS ${PROJECT_NAME})
 target_include_directories(${PROJECT_NAME} INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
 
+set(ALL_DEPENDECES_FOUND ON)
+
 if (TARGET std::filesystem)
     target_link_libraries(${PROJECT_NAME} INTERFACE std::filesystem)
+else()
+    message(SEND_ERROR "std::filesystem target not found")
+    set(ALL_DEPENDECES_FOUND OFF)
 endif()
 
 if (TARGET std::string_view)
     target_link_libraries(${PROJECT_NAME} INTERFACE std::string_view)
+else()
+    message(SEND_ERROR "std::string_view target not found")
+    set(ALL_DEPENDECES_FOUND OFF)
 endif()
 
 if (TARGET std::utility_classes)
     target_link_libraries(${PROJECT_NAME} INTERFACE std::utility_classes)
+else()
+    message(SEND_ERROR "std::utility_classes target not found")
+    set(ALL_DEPENDECES_FOUND OFF)
+endif()
+
+if (NOT ALL_DEPENDECES_FOUND)
+    message(FATAL_ERROR "Some dependences not found")
 endif()
 
 if (pfs_common_BUILD_TESTS)

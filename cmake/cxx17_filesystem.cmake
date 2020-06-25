@@ -15,10 +15,10 @@ cmake_push_check_state()
 
 check_include_file_cxx("filesystem" _HAVE_STD_FILESYSTEM_HEADER)
 
+add_library(std::filesystem INTERFACE IMPORTED)
+
 if (_HAVE_STD_FILESYSTEM_HEADER)
     message(STATUS "C++ filesystem: use standard header")
-    add_library(std::filesystem INTERFACE IMPORTED)
-    target_compile_definitions(std::filesystem INTERFACE HAVE_STD_FILESYSTEM)
 
     string(CONFIGURE [[
         #include <filesystem>
@@ -54,6 +54,7 @@ if (_HAVE_STD_FILESYSTEM_HEADER)
         message(STATUS "C++ filesystem: use built in library")
     endif() # NOT _NO_STD_FILESYSTEM_LINK_REQUIRED
 else()
+    target_compile_definitions(std::filesystem INTERFACE PFS_NO_STD_FILESYSTEM)
     message(STATUS "C++ filesystem: use internal (third party)")
 endif()
 
