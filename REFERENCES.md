@@ -209,3 +209,4 @@
 3. [Julian Day Numbers](http://www.hermetic.ch/cal_stud/jdn.htm)
 4. [Julian Day Calculator](http://www.csgnetwork.com/juliandaydate.html)
 5. [Calendar generator printing a full calendar for any year source code](https://www.cprogramming.com/snippets/source-code/calandar-generator-printing-a-full-calendar-for-any-year)
+6. [Julian Day and Civil Date Calculator](https://core2.gsfc.nasa.gov/time/julian.html)
