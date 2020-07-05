@@ -1922,9 +1922,9 @@ public:
         : __storage(in_place_index_t<_Index>{}, __il, std::forward<_Args>(__args)...)
         , __index(_Index)
     {
-        static_assert(
-              std::is_constructible<typename __indexed_type<_Index, _Types...>::__type, _Args...>::value
-            , "Type must be constructible from args");
+        static_assert(std::is_constructible<typename __indexed_type<_Index, _Types...>::__type
+                , std::initializer_list<_Up> &, _Args &&...>::value
+            , "Type must be constructible from std::initializer_list");
     }
 
     template <typename _Type>

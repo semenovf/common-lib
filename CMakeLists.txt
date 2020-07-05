@@ -8,6 +8,7 @@ project(pfs-common CXX C)
 
 option(${PROJECT_NAME}_BUILD_TESTS "Build tests" OFF)
 
+message(STATUS "C++ compiler: ${CMAKE_CXX_COMPILER}")
 message(STATUS "C++ compiler version: ${CMAKE_CXX_COMPILER_VERSION}")
 
 set(CXX_STANDARD_REQUIRED ON)
