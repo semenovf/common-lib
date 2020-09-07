@@ -5,7 +5,8 @@
 //
 // Changelog:
 //      2019.12.17 Initial version (inspired from https://github.com/mpark/variant)
-//      2020.06.12 Added tests (inspired from https://github.com/tcbrindle/cpp17_headers)
+//      2020.06.12 Added tests (inspired from https://bitbucket.org/anthonyw/variant,
+//                 https://github.com/tcbrindle/cpp17_headers)
 ////////////////////////////////////////////////////////////////////////////////
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include "doctest.h"
@@ -92,6 +93,13 @@ TEST_CASE("Variant Constructors")
         static_assert(1 == std::get<int>(cv), "");
     }
 
+    {
+        // This cause the compiler (g++) error for C++17:
+        // But 3rdparty implementation work properly (C++11)
+        //std::variant<int, std::string> v({'4', '2'});
+        //CHECK("42" == std::get<1>(v));
+    }
+
     // In-place constructors
 
     // IndexDirect
@@ -123,9 +131,8 @@ TEST_CASE("Variant Constructors")
 
     // IndexInitializerList
     {
-    // FIXME
-//         std::variant<int, std::string> v(std::in_place_index_t<1>{}, {'4', '2'});
-//         CHECK("42" == std::get<1>(v));
+        std::variant<int, std::string> v{std::in_place_index_t<1>{}, {'4', '2'}};
+        CHECK("42" == std::get<1>(v));
     }
 
     // TypeDirect

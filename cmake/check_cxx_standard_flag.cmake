@@ -3,7 +3,6 @@
 #
 # This file is part of [pfs-common](https://github.com/semenovf/pfs-common) library.
 #
-# Checks std::string_view
 ################################################################################
 include(CheckCXXCompilerFlag)
 

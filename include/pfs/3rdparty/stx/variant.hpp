@@ -1912,6 +1912,21 @@ public:
                 "Type must be constructible from args");
     }
 
+    template <size_t _Index, typename _Up, typename... _Args
+        , typename = typename std::enable_if<
+            std::is_constructible<typename __indexed_type<_Index, _Types...>::__type
+                , std::initializer_list<_Up> &, _Args &&...>::value>::type>
+    explicit constexpr variant (in_place_index_t<_Index>
+            , std::initializer_list<_Up> __il
+            , _Args &&... __args)
+        : __storage(in_place_index_t<_Index>{}, __il, std::forward<_Args>(__args)...)
+        , __index(_Index)
+    {
+        static_assert(std::is_constructible<typename __indexed_type<_Index, _Types...>::__type
+                , std::initializer_list<_Up> &, _Args &&...>::value
+            , "Type must be constructible from std::initializer_list");
+    }
+
     template <typename _Type>
     constexpr variant(_Type&& __x)
             :
