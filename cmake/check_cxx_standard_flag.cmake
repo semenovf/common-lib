@@ -5,6 +5,7 @@
 #
 # Checks std::string_view
 ################################################################################
+include(CheckCXXCompilerFlag)
 
 function (check_cxx_standard_flag FLAG)
 if (CMAKE_CXX_STANDARD)
