@@ -11,6 +11,9 @@
 #if !defined(PFS_NO_STD_FILESYSTEM)
 #   include <filesystem>
 #else
+#   if defined(_WIN32) || defined(_WIN64)
+#       define GHC_WIN_WSTRING_STRING_TYPE
+#   endif
 #   include "3rdparty/ghc/filesystem.hpp"
 namespace std {
     namespace filesystem = ghc::filesystem;

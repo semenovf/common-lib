@@ -14,6 +14,10 @@ message(STATUS "C++ compiler version: ${CMAKE_CXX_COMPILER_VERSION}")
 set(CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF) # use -std=c++XX rather than -std=gnu++XX
 
+if (MSVC)
+    add_compile_options(-D_UNICODE)
+endif()
+
 include(${CMAKE_CURRENT_LIST_DIR}/cmake/cxx17_filesystem.cmake)
 include(${CMAKE_CURRENT_LIST_DIR}/cmake/cxx17_string_view.cmake)
 include(${CMAKE_CURRENT_LIST_DIR}/cmake/cxx17_utility_classes.cmake)

@@ -10,6 +10,13 @@
 #include "doctest.h"
 #include "pfs/dynamic_library.hpp"
 
+#if defined(_WIN32) || defined(_WIN64)
+// Test dlerror() function implementation for Windows
+TEST_CASE("dlerror") {
+    // TODO
+}
+#endif
+
 TEST_CASE("Dynamic Library basics") {
     pfs::dynamic_library dl;
     typedef int (* dl_test_fn)(void);
@@ -23,8 +30,7 @@ TEST_CASE("Dynamic Library basics") {
     REQUIRE_MESSAGE(rc, "Dynamic library open failed: " << ec.message());
 
     dl_test_fn dltest = pfs::void_func_ptr_cast<dl_test_fn>(
-            dl.resolve("dl_only_for_testing_purpose"
-                    , ec));
+         dl.resolve("dl_only_for_testing_purpose", ec));
 
     REQUIRE_MESSAGE(!ec, "Dynamic library symbol resolve failed: " << ec.message());
     MESSAGE("'dl_only_for_testing_purpose': symbol (function pointer) found");

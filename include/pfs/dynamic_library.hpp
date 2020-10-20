@@ -15,6 +15,7 @@
 #if defined(_WIN32) || defined(_WIN64)
 #   include <windows.h>
 #   include <windef.h>
+#   include <cassert>
 #else
 #   include <dlfcn.h>
 #   include <sys/stat.h>
@@ -42,6 +43,75 @@ enum class dynamic_library_errc
     , symbol_not_found
 };
 
+#if defined(_WIN32) || defined(_WIN64)
+// https://stackoverflow.com/questions/215963/how-do-you-properly-use-widechartomultibyte
+inline std::string utf8_encode (wchar_t const * s, int nwchars)
+{
+    if (!s)
+        return std::string{};
+
+    if (!nwchars)
+        return std::string{};
+
+    int nbytes = WideCharToMultiByte(CP_UTF8, 0, s
+        , nwchars, nullptr, 0, nullptr, nullptr);
+
+    if (nbytes == 0)
+        return std::string{};
+
+    std::string result(nbytes, '\0');
+
+    nbytes = WideCharToMultiByte(CP_UTF8, 0, s
+        , nwchars, & result[0], nbytes, nullptr, nullptr);
+
+    if (nbytes == 0)
+        return std::string{};
+
+    return result;
+}
+
+inline std::string dlerror_win (DWORD error_id)
+{
+    DWORD dwFlags = FORMAT_MESSAGE_ALLOCATE_BUFFER
+        | FORMAT_MESSAGE_FROM_SYSTEM
+        | FORMAT_MESSAGE_IGNORE_INSERTS;
+
+    wchar_t * pbuffer = nullptr;
+    std::string result;
+
+    do {
+        auto nwchars = FormatMessageW(dwFlags, nullptr, error_id, 0
+            , (wchar_t *)& pbuffer, 0, nullptr);
+
+        if (nwchars == 0) {
+            result = std::string{"Internal error: FormatMessageW() failed"};
+            break;
+        }
+
+        result = utf8_encode(pbuffer, (int)nwchars);
+
+        // Remove trailing '\r\n' symbols
+        while (result[result.size()-1] == '\n' || result[result.size() - 1] == '\r')
+            result.resize(result.size() - 1);
+    } while(false);
+
+    if (pbuffer)
+        LocalFree(pbuffer);
+
+    return result;
+}
+
+inline std::string dlerror ()
+{
+    return dlerror_win(GetLastError());
+}
+#else // POSIX
+inline std::string dlerror ()
+{
+    return ::dlerror();
+}
+#endif
+
 class dynamic_library_category : public std::error_category
 {
 public:
@@ -62,13 +132,11 @@ public:
             case static_cast<int>(dynamic_library_errc::file_not_found):
                 return std::string{"shared object (dynamic library) not found"};
 
-            case static_cast<int>(dynamic_library_errc::open_failed):
-                return std::string("failed to open shared object (dynamic library): ")
-                        + dlerror();
+            case static_cast<int>(dynamic_library_errc::open_failed) :
+                return std::string("failed to open shared object (dynamic library)");
 
             case static_cast<int>(dynamic_library_errc::symbol_not_found):
-                return std::string("symbol not found in shared object (dynamic library): ")
-                        + dlerror();
+                return std::string("symbol not found in shared object (dynamic library)");
 
             default: return std::string{"unknown dynamic_library error"};
         }
@@ -84,7 +152,7 @@ public:
 inline std::error_code make_error_code (dynamic_library_errc e)
 {
     return std::error_code(static_cast<int>(e)
-            , dynamic_library_category::category());
+        , dynamic_library_category::category());
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -97,13 +165,17 @@ public:
     using stringlist_type = std::list<string_type>;
 
 #if defined(_WIN32) || defined(_WIN64)
-    //using string_type = std::wstring;
     using native_handle_type = HMODULE;
     using symbol_type = FARPROC;
 #else
     using native_handle_type = void *;
     using symbol_type = void *;
 #endif
+
+private:
+    native_handle_type _handle;
+    fs::path _path;   // contains path to dynamic library
+    std::string _native_error;
 
 public:
     dynamic_library ()
@@ -115,16 +187,7 @@ public:
 
     ~dynamic_library ()
     {
-#if defined(_WIN32) || defined(_WIN64)
-#   error "Need to implement for Windows"
-#else
-        // POSIX implementation
-        if (_handle) {
-            ::dlerror(); /*clear error*/
-            ::dlclose(_handle);
-            _handle = dynamic_library::native_handle_type(0);
-        }
-#endif
+        close();
     }
 
     native_handle_type native_handle () const
@@ -134,10 +197,8 @@ public:
 
     bool open (fs::path const & p, std::error_code & ec)
     {
-#if defined(_WIN32) || defined(_WIN64)
-#   error "Need to implement for Windows"
-#else // POSIX
-        dynamic_library::native_handle_type h(0);
+        native_handle_type h{0};
+        _native_error.clear();
 
         if (p.empty()) {
             ec = make_error_code(dynamic_library_errc::invalid_argument);
@@ -149,6 +210,22 @@ public:
             return false;
         }
 
+#if defined(_WIN32) || defined(_WIN64)
+
+        DWORD dwFlags = 0;
+
+        h = LoadLibraryEx(p.c_str(), NULL, dwFlags);
+
+        if (!h) {
+            ec = pfs::make_error_code(dynamic_library_errc::open_failed);
+            _native_error = dlerror();
+            return false;
+        }
+
+        _handle = h;
+        _path = p;
+
+#else // POSIX
         // clear error
         ::dlerror();
 
@@ -160,6 +237,7 @@ public:
 
         if (!h) {
             ec = pfs::make_error_code(dynamic_library_errc::open_failed);
+            _native_error = dlerror();
             return false;
         }
 
@@ -170,10 +248,37 @@ public:
         return true;
     }
 
+    void close ()
+    {
+        _native_error.clear();
+
+#if defined(_WIN32) || defined(_WIN64)
+        if (_handle != native_handle_type{0}) {
+            FreeLibrary(_handle);
+            _handle = native_handle_type{0};
+        }
+#else // expected POSIX
+        if (_handle != native_handle_type{ 0 }) {
+            ::dlerror(); /*clear error*/
+            ::dlclose(_handle);
+            _handle = native_handle_type{ 0 };
+        }
+#endif
+    }
+
     symbol_type resolve (char const * symbol_name, std::error_code & ec) noexcept
     {
+        _native_error.clear();
+
 #if defined(_WIN32) || defined(_WIN64)
-#   error "Need to implement for Windows"
+        dynamic_library::symbol_type sym = GetProcAddress(_handle, symbol_name);
+
+        if (!sym) {
+            _native_error = dlerror();
+            ec = pfs::make_error_code(dynamic_library_errc::symbol_not_found);
+        }
+
+        return sym;
 #else // POSIX
         // clear error
         ::dlerror();
@@ -181,8 +286,10 @@ public:
         dynamic_library::symbol_type sym = ::dlsym(_handle, symbol_name);
 
         // Failed to resolve symbol
-        if (! sym)
+        if (! sym) {
+            _native_error = dlerror();
             ec = pfs::make_error_code(dynamic_library_errc::symbol_not_found);
+        }
 
         return sym;
 #endif
@@ -194,14 +301,15 @@ public:
         symbol_type sym = resolve(symbol_name, ec);
 
         if (! sym) {
-#if defined(_WIN32) || defined(_WIN64)
-#   error "Need to implement for Windows"
-#else
             throw std::system_error(ec
                 , std::string("dynamic_library::resolve(): ")
-                    + _path.c_str() + ": "
-                    + std::string(::dlerror()));
+#if defined(_WIN32) || defined(_WIN64)
+                //+ _path.c_str() + ": " // FIXME
+#else
+                    + "path: " + _path.c_str() + "; "
 #endif
+                    + "symbol: " + symbol_name + "; "
+                    + "error: " + _native_error);
         }
 
         return sym;
@@ -221,6 +329,8 @@ public:
     {
         string_type result;
 #if defined(_WIN32) || defined(_WIN64)
+        result += name;
+        result += ".dll";
 #else
         result += "lib";
         result += name;
@@ -228,12 +338,7 @@ public:
 #endif
         return result;
     }
-
-private:
-    native_handle_type _handle;
-    fs::path _path;   // contains path to dynamic library
 };
-
 
 //
 // Need to avoid gcc compiler error:
