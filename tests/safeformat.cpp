@@ -59,11 +59,7 @@ bool testCase (char const * fmt1, std::string const & fmt2, T value)
 {
     using string_type = StringType;
 
-#if defined(_WIN32) || defined(_WIN64)
-    using fmt = pfs::safeformat<pfs::safeformat_compat_msc>;
-#else
     using fmt = pfs::safeformat;
-#endif
 
     char buf[5020];
     string_type s = fmt(string_type(fmt1)).arg(value).str();

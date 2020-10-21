@@ -9,3 +9,4 @@
 #pragma once
 #define FMT_HEADER_ONLY 1
 #include "pfs/3rdparty/fmt/format.h"
+#include "pfs/3rdparty/fmt/chrono.h"

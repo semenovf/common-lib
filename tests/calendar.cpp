@@ -41,6 +41,7 @@ TEST_CASE("min/max")
     CHECK(date::min().julian_day()
         == calendar::make_julian_day(std::numeric_limits<int>::min(), 1, 1));
 
+    // FIXME Failed on Windows
     CHECK(date::max().julian_day()
         == calendar::make_julian_day(std::numeric_limits<int>::max(), 12, 31));
 
@@ -157,15 +158,15 @@ TEST_CASE("stringify")
 {
     using std::to_string;
 
-    CHECK(to_string(date{2020, 2, 28}, std::string("%Y-%m-%d")) == std::string("2020-02-28"));
-    CHECK(to_string(date{2020, 2, 29}, std::string("%Y-%m-%d")) == std::string("2020-02-29"));
-    CHECK(to_string(date{2020, 3,  1}, std::string("%Y-%m-%d")) == std::string("2020-03-01"));
-    CHECK(to_string(date{2020, 6, 20}, std::string("%Y-%m-%d")) == std::string("2020-06-20"));
+    CHECK(to_string(date{2020, 2, 28}, std::string("{:%Y-%m-%d}")) == std::string("2020-02-28"));
+    CHECK(to_string(date{2020, 2, 29}, std::string("{:%Y-%m-%d}")) == std::string("2020-02-29"));
+    CHECK(to_string(date{2020, 3,  1}, std::string("{:%Y-%m-%d}")) == std::string("2020-03-01"));
+    CHECK(to_string(date{2020, 6, 20}, std::string("{:%Y-%m-%d}")) == std::string("2020-06-20"));
 
-    CHECK(to_string(date{2013, 11, 28}, std::string("%Y-%m-%d")) == std::string("2013-11-28"));
-    CHECK(to_string(date{   1,  2,  3}, std::string("%Y-%m-%d")) == std::string("1-02-03"));
+    CHECK(to_string(date{2013, 11, 28}, std::string("{:%Y-%m-%d}")) == std::string("2013-11-28"));
+    CHECK(to_string(date{   1,  2,  3}, std::string("{:%Y-%m-%d}")) == std::string("0001-02-03"));
     CHECK(to_string(date{2013, 11, 28}) == std::string("2013-11-28"));
-    CHECK(to_string(date{   1,  2,  3}) == std::string("1-02-03"));
+    CHECK(to_string(date{   1,  2,  3}) == std::string("0001-02-03"));
 }
 
 TEST_CASE("add months")

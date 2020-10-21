@@ -11,6 +11,12 @@
 #include "pfs/fmt.hpp"
 #include "pfs/filesystem.hpp"
 
+#if (defined(_WIN32) || defined(_WIN64)) && defined(_UNICODE)
+#   define _STR(str) L##str
+#else
+#   define _STR(str) str
+#endif
+
 TEST_CASE("Filesystem path") {
     namespace fs = std::filesystem;
 
@@ -23,19 +29,21 @@ TEST_CASE("Filesystem path") {
 
         fs::path p1 = "/usr/lib/sendmail.cf"; // portable format
         fs::path p2 = "C:\\users\\abcdef\\AppData\\Local\\Temp\\"; // native format
-#if defined(_WIN32) || defined(_WIN64)
-        fs::path p3 = L"D:/猫.txt";           // wide string
-#else
-        fs::path p3 = "D:/猫.txt";
-#endif
+//#if defined(_WIN32) || defined(_WIN64)
+        fs::path p3 = _STR("D:/猫.txt");           // wide string
+//#else
+//        fs::path p3 = "D:/猫.txt";
+//#endif
 
-        CHECK(p1 == fs::path::string_type("/usr/lib/sendmail.cf"));
-        CHECK(p2 == fs::path::string_type("C:\\users\\abcdef\\AppData\\Local\\Temp\\"));
-#if defined(_WIN32) || defined(_WIN64)
-        CHECK(p3 == fs::path::string_type(L"D:/猫.txt"));
-#else
-        CHECK(p3 == fs::path::string_type("D:/猫.txt"));
-#endif
+//#if defined(_WIN32) || defined(_WIN64)
+        CHECK(p1 == fs::path::string_type(_STR("/usr/lib/sendmail.cf")));
+        CHECK(p2 == fs::path::string_type(_STR("C:\\users\\abcdef\\AppData\\Local\\Temp\\")));
+        CHECK(p3 == fs::path::string_type(_STR("D:/猫.txt")));
+//#else
+//        CHECK(p1 == fs::path::string_type("/usr/lib/sendmail.cf"));
+//        CHECK(p2 == fs::path::string_type("C:\\users\\abcdef\\AppData\\Local\\Temp\\"));
+//        CHECK(p3 == fs::path::string_type("D:/猫.txt"));
+//#endif
     }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -45,12 +53,12 @@ TEST_CASE("Filesystem path") {
         fs::path p = "C:/users/abcdef/AppData/Local";
         p = p / "Temp"; // move assignment
 
-        CHECK(p == fs::path::string_type("C:/users/abcdef/AppData/Local/Temp"));
+        CHECK(p == fs::path::string_type(_STR("C:/users/abcdef/AppData/Local/Temp")));
 
         wchar_t const * wstr = L"D:/猫.txt";
         p = wstr; // assignment from a source
 
-        CHECK(p == fs::path::string_type("D:/猫.txt"));
+        CHECK(p == fs::path::string_type(_STR("D:/猫.txt")));
     }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -59,7 +67,7 @@ TEST_CASE("Filesystem path") {
     {
         fs::path p1 {"//host"};
         p1 /= "foo";
-        fmt::print("*** [{}] ***\n", p1.c_str());
+        fmt::print(_STR("*** [{}] ***\n"), p1.c_str());
 
         // where "//host" is a root-name
         // FIXME
@@ -69,22 +77,22 @@ TEST_CASE("Filesystem path") {
         // Non-member function
         // FIXME
 //         CHECK(fs::path("//host") / "foo"  == fs::path::string_type("//host/foo")); // appends with separator
-        CHECK(fs::path("//host/") / "foo" == fs::path::string_type("//host/foo")); // appends without separator
+        CHECK(fs::path("//host/") / "foo" == fs::path::string_type(_STR("//host/foo"))); // appends without separator
 
-#if defined(_WIN32) || defined(_WIN64)
-        CHECK((fs::path("foo") /= "C:/bar") == fs::path::string_type("C:/bar"));     // the result is "C:/bar" (replaces)
-        CHECK((fs::path("foo") /= "C:") == fs::path::string_type("C:"));             // the result is "C:"     (replaces)
-        CHECK((fs::path("C:") /= "") == fs::path::string_type("C:"));                // the result is "C:"     (appends, without separator)
-        CHECK((fs::path("C:foo") /= "/bar") == fs::path::string_type("C:/bar"));     // yields "C:/bar"        (removes relative path, then appends)
-        CHECK((fs::path("C:foo") /= "C:bar") == fs::path::string_type("C:foo/bar")); // yields "C:foo/bar"     (appends, omitting p's root-name)
+//#if defined(_WIN32) || defined(_WIN64)
+        CHECK((fs::path("foo") /= "C:/bar") == fs::path::string_type(_STR("C:/bar")));     // the result is "C:/bar" (replaces)
+        CHECK((fs::path("foo") /= "C:") == fs::path::string_type(_STR("C:")));             // the result is "C:"     (replaces)
+        CHECK((fs::path("C:") /= "") == fs::path::string_type(_STR("C:")));                // the result is "C:"     (appends, without separator)
+        CHECK((fs::path("C:foo") /= "/bar") == fs::path::string_type(_STR("C:/bar")));     // yields "C:/bar"        (removes relative path, then appends)
+        CHECK((fs::path("C:foo") /= "C:bar") == fs::path::string_type(_STR("C:foo/bar"))); // yields "C:foo/bar"     (appends, omitting p's root-name)
 
         // Non-member function
-        CHECK(fs::path("foo") / "C:/bar" == fs::path::string_type("C:/bar"));     // the result is "C:/bar" (replaces)
-        CHECK(fs::path("foo") / "C:" == fs::path::string_type("C:"));             // the result is "C:"     (replaces)
-        CHECK(fs::path("C:") / "" == fs::path::string_type("C:"));                // the result is "C:"     (appends, without separator)
-        CHECK(fs::path("C:foo") / "/bar" == fs::path::string_type("C:/bar"));     // yields "C:/bar"        (removes relative path, then appends)
-        CHECK(fs::path("C:foo") / "C:bar" == fs::path::string_type("C:foo/bar")); // yields "C:foo/bar"     (appends, omitting p's root-name)
-#else
+        CHECK(fs::path("foo") / "C:/bar" == fs::path::string_type(_STR("C:/bar")));     // the result is "C:/bar" (replaces)
+        CHECK(fs::path("foo") / "C:" == fs::path::string_type(_STR("C:")));             // the result is "C:"     (replaces)
+        CHECK(fs::path("C:") / "" == fs::path::string_type(_STR("C:")));                // the result is "C:"     (appends, without separator)
+        CHECK(fs::path("C:foo") / "/bar" == fs::path::string_type(_STR("C:/bar")));     // yields "C:/bar"        (removes relative path, then appends)
+        CHECK(fs::path("C:foo") / "C:bar" == fs::path::string_type(_STR("C:foo/bar"))); // yields "C:foo/bar"     (appends, omitting p's root-name)
+//#else
 // FIXME
 //         CHECK((fs::path("foo") /= "") == fs::path::string_type("foo")); // the result is "foo/" (appends) // FIXME for GHC version
 //         CHECK((fs::path("foo") /= "/bar") == fs::path::string_type("foo/bar")); // the result is "/bar" (replaces) // FIXME for GHC version
@@ -93,7 +101,7 @@ TEST_CASE("Filesystem path") {
         // FIXME
 //         CHECK(fs::path("foo") / "" == fs::path::string_type("foo")); // the result is "foo/" (appends) // FIXME for GHC version
 //         CHECK(fs::path("foo") / "/bar" == fs::path::string_type("foo/bar")); // the result is "/bar" (replaces) // FIXME for GHC version
-#endif
+//#endif
     }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -103,11 +111,11 @@ TEST_CASE("Filesystem path") {
         fs::path p; // empty path
         p += "var"; // does not insert a separator
 
-        CHECK(p == fs::path::string_type("var"));
+        CHECK(p == fs::path::string_type(_STR("var")));
 
         p += "lib"; // does not insert a separator
 
-        CHECK(p == fs::path::string_type("varlib"));
+        CHECK(p == fs::path::string_type(_STR("varlib")));
     }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -134,17 +142,17 @@ TEST_CASE("Filesystem path") {
 // Modifiers #3
 ////////////////////////////////////////////////////////////////////////////////
     {
-        CHECK(fs::path("foo/bar").remove_filename() == fs::path::string_type("foo/"));
-        CHECK(fs::path("foo/").remove_filename() == fs::path::string_type("foo/"));
-        CHECK(fs::path("/foo").remove_filename() == fs::path::string_type("/"));
-        CHECK(fs::path("/").remove_filename() == fs::path::string_type("/"));
+        CHECK(fs::path("foo/bar").remove_filename() == fs::path::string_type(_STR("foo/")));
+        CHECK(fs::path("foo/").remove_filename() == fs::path::string_type(_STR("foo/")));
+        CHECK(fs::path("/foo").remove_filename() == fs::path::string_type(_STR("/")));
+        CHECK(fs::path("/").remove_filename() == fs::path::string_type(_STR("/")));
     }
 
 ////////////////////////////////////////////////////////////////////////////////
 // Modifiers #4
 ////////////////////////////////////////////////////////////////////////////////
     {
-        CHECK(fs::path("/foo").replace_filename("bar") == fs::path::string_type("/bar"));
+        CHECK(fs::path("/foo").replace_filename("bar") == fs::path::string_type(_STR("/bar")));
 
         // FIXME
 //         CHECK(fs::path("/").replace_filename("bar") == fs::path::string_type("bar")); // FIXME for GHC version
@@ -156,11 +164,11 @@ TEST_CASE("Filesystem path") {
     {
         fs::path p = "/foo/bar.jpeg";
 
-        CHECK(p == fs::path::string_type("/foo/bar.jpeg"));
+        CHECK(p == fs::path::string_type(_STR("/foo/bar.jpeg")));
 
         p.replace_extension(".jpg");
 
-        CHECK(p == fs::path::string_type("/foo/bar.jpg"));
+        CHECK(p == fs::path::string_type(_STR("/foo/bar.jpg")));
     }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -170,13 +178,13 @@ TEST_CASE("Filesystem path") {
         fs::path p1 = "/foo/bar";
         fs::path p2 = "/foo/baz";
 
-        CHECK(p1 == fs::path::string_type("/foo/bar"));
-        CHECK(p2 == fs::path::string_type("/foo/baz"));
+        CHECK(p1 == fs::path::string_type(_STR("/foo/bar")));
+        CHECK(p2 == fs::path::string_type(_STR("/foo/baz")));
 
         p1.swap(p2);
 
-        CHECK(p1 == fs::path::string_type("/foo/baz"));
-        CHECK(p2 == fs::path::string_type("/foo/bar"));
+        CHECK(p1 == fs::path::string_type(_STR("/foo/baz")));
+        CHECK(p2 == fs::path::string_type(_STR("/foo/bar")));
     }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -235,27 +243,27 @@ TEST_CASE("Filesystem path") {
         // FIXME
 //         CHECK(fs::path("/").filename() == fs::path("/")); // FIXME for GHC version
 
-        CHECK(fs::path("/foo/bar.txt").stem() == fs::path::string_type("bar"));
-        CHECK(fs::path(".hidden").stem() == fs::path::string_type(".hidden"));
+        CHECK(fs::path("/foo/bar.txt").stem() == fs::path::string_type(_STR("bar")));
+        CHECK(fs::path(".hidden").stem() == fs::path::string_type(_STR(".hidden")));
 
         // FIXME
 //         CHECK(fs::path("/foo/.hidden").stem() == fs::path::string_type(".hidden")); // FIXME (for std::experimental::filesystem::path::stem() returns "")
 
-        CHECK(fs::path("/foo/bar.txt").extension() == fs::path::string_type(".txt"));
-        CHECK(fs::path("/foo/bar.").extension() == fs::path::string_type("."));
-        CHECK(fs::path("/foo/bar").extension() == fs::path::string_type(""));
-        CHECK(fs::path("/foo/bar.txt/bar.cc").extension() == fs::path::string_type(".cc"));
-        CHECK(fs::path("/foo/bar.txt/bar.").extension() == fs::path::string_type("."));
-        CHECK(fs::path("/foo/bar.txt/bar").extension() == fs::path::string_type(""));
-        CHECK(fs::path("/foo/.").extension() == fs::path::string_type(""));
+        CHECK(fs::path("/foo/bar.txt").extension() == fs::path::string_type(_STR(".txt")));
+        CHECK(fs::path("/foo/bar.").extension() == fs::path::string_type(_STR(".")));
+        CHECK(fs::path("/foo/bar").extension() == fs::path::string_type(_STR("")));
+        CHECK(fs::path("/foo/bar.txt/bar.cc").extension() == fs::path::string_type(_STR(".cc")));
+        CHECK(fs::path("/foo/bar.txt/bar.").extension() == fs::path::string_type(_STR(".")));
+        CHECK(fs::path("/foo/bar.txt/bar").extension() == fs::path::string_type(_STR("")));
+        CHECK(fs::path("/foo/.").extension() == fs::path::string_type(_STR("")));
 
         // FIXME
 //         CHECK(fs::path("/foo/..").extension() == fs::path::string_type("")); // FIXME for GHC version
-        CHECK(fs::path(".hidden").extension() == fs::path::string_type(""));
+        CHECK(fs::path(".hidden").extension() == fs::path::string_type(_STR("")));
 
         // FIXME
 //         CHECK(fs::path("/foo/.hidden").extension() == fs::path::string_type("")); // FIXME (for std::experimental::filesystem::path::extension() returns ".hidden")
-        CHECK(fs::path("/foo/..bar").extension() == fs::path::string_type(".bar"));
+        CHECK(fs::path("/foo/..bar").extension() == fs::path::string_type(_STR(".bar")));
 
 #if defined(_WIN32) || defined(_WIN64)
         CHECK(fs::path("c:\\path\\to\\file").root_name() == fs::path("c:"));
@@ -265,7 +273,7 @@ TEST_CASE("Filesystem path") {
 
         CHECK(fs::path("c:\\path\\to\\file").parent_path() == fs::path("c:\\path\\to"));
         CHECK(fs::path("c:\\path\\to\\.").parent_path() == fs::path("c:\\path\\to"));
-        CHECK(fs::path("\\").parent_path() == fs::path(""));
+        CHECK(fs::path("\\").parent_path() == fs::path("")); // FIXME for Windows
 #endif
     }
 
@@ -349,7 +357,7 @@ TEST_CASE("Filesystem path") {
         CHECK(*it++ == "AppData");
         CHECK(*it++ == "Local");
         CHECK(*it++ == "Temp");
-        CHECK(*it++ == ".");
+        CHECK(*it++ == "");
         CHECK(it == p.end());
 #else
         fs::path p = "/home/user/abcdef/app_data/Local/Temp/";
@@ -362,10 +370,8 @@ TEST_CASE("Filesystem path") {
         CHECK(*it++ == "app_data");
         CHECK(*it++ == "Local");
         CHECK(*it++ == "Temp");
-
-        // FIXME
-//         CHECK(*it++ == "."); // FIXME for GHC version
-//         CHECK(it == p.end());
+        CHECK(*it++ == "."); // FIXME for GHC version
+        CHECK(it == p.end());
 #endif
     }
 

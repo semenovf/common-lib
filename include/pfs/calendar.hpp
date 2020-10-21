@@ -8,8 +8,9 @@
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
 #include "compare.hpp"
+#include "fmt.hpp"
+#include "integral_cast.hpp"
 #include <array>
-#include <limits>
 #include <locale>
 #include <tuple>
 #include <cassert>
@@ -36,9 +37,11 @@ struct date_info
  * Integer Division (Floor function)
  * http://mathworld.wolfram.com/IntegerDivision.html
  */
-inline int floor_div (int a, int b)
+template <typename IntT1, typename IntT2>
+inline IntT1 floor_div (IntT1 a, IntT2 b)
 {
-    return (a - (a < 0 ? b - 1 : 0)) / b;
+    assert(b);
+    return (a - (a < 0 ? IntT2{b} - 1 : 0)) / IntT2{b};
 }
 
 /**
@@ -92,7 +95,7 @@ inline intmax_t make_julian_day (int year, int month, int day)
 
     // Gregorian calendar: >= 15.10.1582
     if (year > 1582 || (year == 1582 && (month > 10 || (month == 10 && day >= 15)))) {
-        return day + floor_div(153 * m + 2, 5)
+        return static_cast<intmax_t>(day) + floor_div(153 * m + 2, 5)
             + 365 * y
             + floor_div(y, 4)
             - floor_div(y, 100)
@@ -101,7 +104,7 @@ inline intmax_t make_julian_day (int year, int month, int day)
     } else if (year < 1582 || (year == 1582 && (month < 10 || (month == 10 && day <= 4)))) {
         // Julian calendar: <= 4.10.1582
 
-        return day + floor_div(153 * m + 2, 5)
+        return static_cast<intmax_t>(day) + floor_div(153 * m + 2, 5)
             + 365 * y
             + floor_div(y, 4)
             - 32083;
@@ -112,11 +115,8 @@ inline intmax_t make_julian_day (int year, int month, int day)
 
 /**
  * @brief Calculates Gregorian calendar date from Julian Day (JD)
- *
  * @param julian_day JD value.
- *
  * @return Date decomposed into @c struct @c tm fields.
- *
  * @note see http://www.tondering.dk/claus/cal/julperiod.php.
  */
 date_info decompose (intmax_t julian_day)
@@ -139,9 +139,14 @@ date_info decompose (intmax_t julian_day)
     intmax_t m = floor_div(5 * e + 2, 153);
 
     date_info result;
-    result.day_of_month = e - floor_div(153 * m + 2, 5) + 1;
-    result.month = m + 3 - 12 * floor_div(m, 10);
-    result.year = 100 * b + d - 4800 + floor_div(m, 10);
+
+    auto day_of_month = e - floor_div(153 * m + 2, 5) + 1;
+    auto month = m + 3 - 12 * floor_div(m, 10);
+    auto year = 100 * b + d - 4800 + floor_div(m, 10);
+
+    result.day_of_month = integral_cast<decltype(result.day_of_month)>(day_of_month);
+    result.month = integral_cast<decltype(result.month)>(month);
+    result.year = integral_cast<decltype(result.year)>(year);
 
     if (result.year <= 0)
         --result.year;
@@ -151,7 +156,9 @@ date_info decompose (intmax_t julian_day)
         ? (julian_day % 7) + 1
         : ((julian_day + 1) % 7) + 7;
 
-    result.day_of_year = julian_day - make_julian_day(result.year, 1, 1) + 1;
+    auto day_of_year = julian_day - make_julian_day(result.year, 1, 1) + 1;
+
+    result.day_of_year = integral_cast<decltype(result.day_of_year)>(day_of_year);
 
     return result;
 }
@@ -430,18 +437,19 @@ inline std::string to_string (date const & d, std::string const & format)
     timeinfo.tm_wday = di.day_of_week - 1; // Day of week [0-6]
     timeinfo.tm_yday = di.day_of_year - 1; // Days in year [0-365]
 
-    // https://stackoverflow.com/questions/7935483/c-function-to-format-time-t-as-stdstring-buffer-length
-    std::string result;
-    result.resize(format.size());
-    int len = std::strftime(& result[0], result.size(), format.c_str(), & timeinfo);
+    //// https://stackoverflow.com/questions/7935483/c-function-to-format-time-t-as-stdstring-buffer-length
+    //std::string result;
+    //result.resize(format.size());
+    //int len = std::strftime(& result[0], result.size(), format.c_str(), & timeinfo);
 
-    while (len == 0) {
-        result.resize(result.size()*2);
-        len = strftime(& result[0], result.size(), format.c_str(), & timeinfo);
-    }
+    //while (len == 0) {
+    //    result.resize(result.size()*2);
+    //    len = strftime(& result[0], result.size(), format.c_str(), & timeinfo);
+    //}
 
-    result.resize(len); //remove that trailing '\a'
+    //result.resize(len); //remove that trailing '\a'
 
+    auto result = fmt::format(format, timeinfo);
     return result;
 }
 
@@ -457,7 +465,7 @@ inline std::string to_string (date const & d, std::string const & format)
  */
 inline std::string to_string (date const & d)
 {
-    return to_string(d, std::string{"%F"}); // equivalent to %H:%M:%S
+    return to_string(d, std::string{"{:%F}"}); // equivalent to %H:%M:%S
 }
 
 }} // namespace pfs::calendar

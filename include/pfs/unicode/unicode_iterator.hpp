@@ -66,23 +66,6 @@ struct unicode_iterator_traits<char const *>
 #if defined(_WIN32) || defined(_WIN64)
 
 template <>
-struct unicode_iterator_traits<unsigned wchar_t *>
-    :  unicode_iterator_limits<unsigned wchar_t *, unsigned wchar_t *>
-{
-    typedef utf16_iterator<unsigned wchar_t *> iterator;
-    typedef u8_output_iterator<unsigned wchar_t *> output_iterator;
-    typedef u8_input_iterator<unsigned wchar_t *> input_iterator;
-};
-
-template <>
-struct unicode_iterator_traits<unsigned wchar_t const *>
-    :  unicode_iterator_limits<unsigned wchar_t const *, unsigned wchar_t const *>
-{
-    typedef utf16_iterator<unsigned wchar_t const *> iterator;
-    typedef u8_input_iterator<unsigned *> input_iterator;
-};
-
-template <>
 struct unicode_iterator_traits<wchar_t *>
     :  unicode_iterator_limits<wchar_t *, wchar_t *>
 {
