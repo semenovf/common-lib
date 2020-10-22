@@ -28,6 +28,7 @@ set(TEST_NAMES
     optional
     pointer_proxy_iterator
     rational
+    ring_buffer
     safeformat
     string_view
     variant
