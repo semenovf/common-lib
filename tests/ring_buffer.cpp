@@ -11,12 +11,13 @@
 #include "pfs/ring_buffer.hpp"
 #include <list>
 #include <vector>
+#include <cassert>
 
-template <typename T>
+template <typename T, size_t BulkSize>
 struct BulksContainer
 {
     using value_type = T;
-    using bulk_type = std::vector<value_type>;
+    using bulk_type = pfs::ring_buffer_details::static_vector<value_type, BulkSize>;
     using bulk_list_type = std::list<bulk_type>;
     using size_type = std::size_t;
 
@@ -35,40 +36,56 @@ struct BulksContainer
     {
         return --_pbulks->end();
     }
-
 };
 
 struct X {
-    int x {0};
-    bool moved{false};
+    int * px {nullptr};
 
     X () {};
-    X (int i) : x(i) {}
-    X (X && other) { other.moved = true; x = other.x; other.x = -1; }
-    ~X () {
-//         if (!moved)
-//             std::cout << "Destruct X{" << x << "}\n";
+    X (int i) : px(new int{i})
+    {}
+
+    X (X && other)
+    {
+        px = other.px;
+        other.px = nullptr;
+    }
+
+    int x () const
+    {
+        assert(px);
+        return *px;
+    }
+
+    ~X ()
+    {
+        //std::cout << "Destruct X: ptr=" << reinterpret_cast<intptr_t>(px) << "\n";
+        if (px) {
+            *px = 12345;
+            delete px;
+        }
+        px = nullptr;
     }
 };
 
 TEST_CASE("Bulks iterator") {
-    using iterator = pfs::ring_buffer_details::forward_iterator<BulksContainer<int>>;
+    static constexpr size_t const bulk_size = 1;
+
+    using iterator = pfs::ring_buffer_details::forward_iterator<BulksContainer<int, bulk_size>>;
 
     {
         iterator it; // default constructor
     }
 
     {
-        std::list<std::vector<int>> bulk_list;
+        std::list<pfs::ring_buffer_details::static_vector<int, bulk_size>> bulk_list;
         static size_t const bulk_count = 5;
-        static size_t const bulk_size = 1;
 
         for (size_t i = 0; i < bulk_count; i++) {
             bulk_list.emplace_back();
-            bulk_list.back().resize(bulk_size);
         }
 
-        BulksContainer<int> bulks{bulk_list};
+        BulksContainer<int, bulk_size> bulks{bulk_list};
 
         {
             iterator first{bulks, bulk_list.begin(), bulk_list.front().begin()};
@@ -115,7 +132,8 @@ TEST_CASE("Bulks iterator") {
 }
 
 TEST_CASE("Constructors") {
-    using ring_buffer = pfs::ring_buffer<X>;
+    static constexpr size_t const bulk_size = 2;
+    using ring_buffer = pfs::ring_buffer<X, bulk_size>;
 
     // Default constructor
     {
@@ -123,90 +141,86 @@ TEST_CASE("Constructors") {
 
         CHECK(rb.size() == 0);
         CHECK(rb.empty());
-        CHECK(rb.bulk_size() == ring_buffer::default_bulk_size);
         CHECK(rb.bulk_count() == 1);
     }
 
     // Custom constructor
     {
-        ring_buffer rb{10, 10};
+        ring_buffer rb{10};
 
         CHECK(rb.size() == 0);
         CHECK(rb.empty());
-        CHECK(rb.bulk_size() == 10);
+        CHECK(rb.capacity() == bulk_size * rb.bulk_count());
         CHECK(rb.bulk_count() == 10);
     }
 
     // Move constructor
     {
-        ring_buffer rb_orig{10, 10};
+        ring_buffer rb_orig{10};
 
-        CHECK(rb_orig.bulk_size() == 10);
         CHECK(rb_orig.bulk_count() == 10);
 
         ring_buffer rb{std::move(rb_orig)};
 
-        CHECK(rb_orig.bulk_size() == 0);
+        CHECK(rb_orig.capacity() == 0);
         CHECK(rb_orig.bulk_count() == 0);
 
-        CHECK(rb.bulk_size() == 10);
+        CHECK(rb.capacity() == bulk_size * 10);
         CHECK(rb.bulk_count() == 10);
     }
 
     // Move assignment
     {
-        ring_buffer rb_orig{10, 10};
+        ring_buffer rb_orig{10};
         ring_buffer rb;
 
-        CHECK(rb_orig.bulk_size() == 10);
+        CHECK(rb_orig.capacity() == bulk_size * 10);
         CHECK(rb_orig.bulk_count() == 10);
 
         CHECK(rb.bulk_count() == 1);
 
         rb = std::move(rb_orig);
 
-        CHECK(rb_orig.bulk_size() == 0);
+        CHECK(rb_orig.capacity() == 0);
         CHECK(rb_orig.bulk_count() == 0);
 
-        CHECK(rb.bulk_size() == 10);
+        CHECK(rb.capacity() == bulk_size * 10);
         CHECK(rb.bulk_count() == 10);
     }
 }
 
 TEST_CASE("Modifiers") {
-    using ring_buffer = pfs::ring_buffer<X>;
-
     {
-        ring_buffer rb{1, 3};
+        pfs::ring_buffer<X, 1> rb{3};
 
         REQUIRE_THROWS_AS(rb.back(), std::out_of_range);
 
         rb.push(X{42});
 
-        CHECK(rb.front().x == 42);
-        CHECK(rb.back().x == 42);
+        CHECK(rb.front().x() == 42);
+        CHECK(rb.back().x() == 42);
 
         rb.push(X{43});
 
-        CHECK(rb.front().x == 42);
-        CHECK(rb.back().x == 43);
+        CHECK(rb.front().x() == 42);
+        CHECK(rb.back().x() == 43);
 
         rb.push(X{44});
 
-        CHECK(rb.front().x == 42);
-        CHECK(rb.back().x == 44);
+        CHECK(rb.front().x() == 42);
+        CHECK(rb.back().x() == 44);
 
         REQUIRE_THROWS_AS(rb.push(X{45}), std::bad_alloc);
 
-        CHECK(rb.front().x == 42);
+        CHECK(rb.front().x() == 42);
 
         rb.pop();
 
-        CHECK(rb.front().x == 43);
+        CHECK(rb.front().x() == 43);
 
         rb.pop();
 
-        CHECK(rb.front().x == 44);
+        CHECK(rb.front().x() == 44);
 
         rb.pop();
 
@@ -214,13 +228,14 @@ TEST_CASE("Modifiers") {
     }
 
     {
-        ring_buffer rb{1, 3};
+        pfs::ring_buffer<X, 1> rb{3};
 
         rb.push(X{42});
         rb.push(X{43});
         rb.push(X{44});
 
-        CHECK(rb.size() == 3);
+        REQUIRE(rb.size() == 3);
+        CHECK(rb.front().x() == 42);
 
         rb.clear();
         CHECK(rb.empty());
@@ -229,27 +244,58 @@ TEST_CASE("Modifiers") {
         rb.push(X{43});
         rb.emplace(X{44});
 
-        CHECK(rb.back().x == 44);
+        CHECK(rb.back().x() == 44);
         CHECK(rb.size() == 3);
     }
 }
 
 TEST_CASE("Splice") {
-    using ring_buffer = pfs::ring_buffer<X>;
-
     // Both are empty
     {
-        ring_buffer rb{1, 3};
-        ring_buffer rb1{1, 2};
+        pfs::ring_buffer<X, 2> rb{3};
+        decltype(rb) rb1{2};
 
         CHECK(rb.bulk_count() == 3);
         CHECK(rb.empty());
+        CHECK(rb.capacity() == 6);
+
         CHECK(rb1.bulk_count() == 2);
+        CHECK(rb1.capacity() == 4);
 
         rb.splice(std::move(rb1));
 
         CHECK(rb.bulk_count() == 5);
         CHECK(rb.empty());
+        CHECK(rb.capacity() == 10);
         CHECK(rb1.bulk_count() == 0);
+    }
+
+    // Second buffer is empty
+    {
+        pfs::ring_buffer<X, 2> rb{3};
+        decltype(rb) rb1{2};
+
+        for (int i = 0; i < rb.capacity(); i++) {
+            rb.push(X{42 + i});
+            CHECK(rb.front().x() == 42);
+        }
+
+        CHECK(rb.front().x() == 42);
+
+        CHECK(rb.size() == 6);
+        CHECK(rb.capacity() == 6);
+
+        rb.splice(std::move(rb1));
+
+        CHECK(rb.size() == 6);
+        CHECK(rb.capacity() == 10);
+
+        int i = 0;
+        while (rb.size() < rb.capacity())
+            rb.push(X{-42 - i--});
+
+        CHECK(rb.size() == 10);
+
+        CHECK(rb.front().x() == 42);
     }
 }

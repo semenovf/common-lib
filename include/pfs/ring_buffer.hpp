@@ -18,11 +18,55 @@ namespace pfs {
 
 namespace ring_buffer_details {
 
-template <typename T>
-using default_bulk_container = std::vector<T>;
+template <typename T, std::size_t N>
+class static_vector
+{
+public:
+    using iterator = typename std::aligned_storage<sizeof(T), alignof(T)>::type *;
+    using const_iterator = typename std::aligned_storage<sizeof(T), alignof(T)>::type const *;
 
-template <typename T>
-using default_list_container = std::list<T>;
+private:
+    typename std::aligned_storage<sizeof(T), alignof(T)>::type _data[N];
+    std::size_t _size = 0;
+
+public:
+    // For test purposes only
+    T const & operator [] (std::size_t pos) const
+    {
+        return *reinterpret_cast<T const *>(& _data[pos]);
+    }
+
+    // For test purposes only
+    T & operator [] (std::size_t pos)
+    {
+        return *reinterpret_cast<T *>(& _data[pos]);
+    }
+
+    ~static_vector ()
+    {
+        // Deleting elements is a responsibility of the holder
+    }
+
+    iterator begin ()
+    {
+        return & _data[0];
+    }
+
+    const_iterator begin () const
+    {
+        return & _data[0];
+    }
+
+    iterator end ()
+    {
+        return & _data[N];
+    }
+
+    const_iterator end () const
+    {
+        return & _data[N];
+    }
+};
 
 template <typename BulksBuffer>
 class forward_iterator : public pfs::iterator_facade<
@@ -31,6 +75,7 @@ class forward_iterator : public pfs::iterator_facade<
         , typename BulksBuffer::value_type
         , typename BulksBuffer::value_type *
         , typename BulksBuffer::value_type &>
+
 {
     using item_iterator = typename BulksBuffer::item_iterator;
     using bulk_iterator = typename BulksBuffer::bulk_iterator;
@@ -68,13 +113,11 @@ public:
 
     typename forward_iterator::reference ref ()
     {
-        //return *_pos;
         return *reinterpret_cast<typename forward_iterator::pointer>(& *_pos);
     }
 
     typename forward_iterator::pointer ptr ()
     {
-        //return & *_pos;
         return reinterpret_cast<typename forward_iterator::pointer>(& *_pos);
     }
 
@@ -98,29 +141,36 @@ public:
     }
 };
 
+template <typename T, size_t N>
+using default_bulk_container = static_vector<T, N>;
+
+template <typename T>
+using default_list_container = std::list<T>;
+
 } // namespace ring_buffer_details
 
 template <typename T
+    , size_t BulkSize
     , template <typename> class ListContainer = ring_buffer_details::default_list_container
-    , template <typename> class BulkContainer = ring_buffer_details::default_bulk_container>
+    , template <typename, size_t> class BulkContainer = ring_buffer_details::default_bulk_container>
 class ring_buffer
 {
     friend class ring_buffer_details::forward_iterator<ring_buffer>;
 
 public:
-    using item_storage = std::aligned_storage<sizeof(T), alignof(T)>;
+    //using item_storage = std::aligned_storage<sizeof(T), alignof(T)>;
     using value_type = T;
     using reference = T &;
     using const_reference = T const &;
     using pointer = T *;
     using const_pointer = T const *;
-    using bulk_type = BulkContainer<item_storage>;
+    using bulk_type = BulkContainer<T, BulkSize>;
     using bulk_list_type = ListContainer<bulk_type>;
     using size_type = std::size_t;
 
     // Actually infinite limit
     static constexpr const size_type nbulks = std::numeric_limits<size_type>::max();
-    static constexpr const size_type default_bulk_size = 256;
+    static constexpr const size_type bulk_size = BulkSize;
 
 private:
     using item_iterator = typename bulk_type::iterator;
@@ -133,28 +183,26 @@ private:
 
     // Use this memeber for constant complexity call of size()
     size_type _size {0};
+    size_type _capacity {0};
 
     iterator _head;
     iterator _tail;
+    bool _is_head_preceed_tail {true};
 
 public:
     /**
      * Constructs container with specified bulk size and with limit of bulks.
      */
-    ring_buffer (size_type bulk_size, size_type bulk_count = 1)
+    ring_buffer (size_type bulk_count)
     {
-        if (!bulk_size)
-            bulk_size = default_bulk_size;
-
         if (!bulk_count)
             bulk_count = 1;
 
         // Initialize list of bulks
-        for (size_t i = 0; i < bulk_count; i++) {
+        for (size_t i = 0; i < bulk_count; i++)
             _bulks.emplace_back();
-            _bulks.back().resize(bulk_size);
-        }
 
+        _capacity = bulk_size * bulk_count;
         _head = begin();
         _tail = end();
     }
@@ -164,7 +212,7 @@ public:
      * and with only one bulk.
      */
     ring_buffer ()
-        : ring_buffer(default_bulk_size, 1)
+        : ring_buffer(1)
     {}
 
     ring_buffer (ring_buffer const & other) = delete;
@@ -173,20 +221,25 @@ public:
     ring_buffer (ring_buffer && other)
         : _bulks(std::move(other._bulks))
         , _size(other._size)
+        , _capacity(other._capacity)
         , _head(other._head)
         , _tail(other._tail)
     {
         other._size = 0;
+        other._capacity = 0;
     }
 
     ring_buffer & operator = (ring_buffer && other)
     {
         _bulks = std::move(other._bulks);
         _size = other._size;
+        _capacity = other._capacity;
         _head = other._head;
         _tail = other._tail;
+        _is_head_preceed_tail = true;
 
         other._size = 0;
+        other._capacity = 0;
 
         return *this;
     }
@@ -207,17 +260,12 @@ public:
 
     size_type capacity () const
     {
-        return bulk_size() * bulk_count();
+        return _capacity; // bulk_size() * bulk_count();
     }
 
     size_type size () const
     {
         return _size;
-    }
-
-    size_type bulk_size () const
-    {
-        return _bulks.front().size();
     }
 
     size_type bulk_count () const
@@ -230,9 +278,25 @@ public:
         // Both are empty
         if (_size == 0 && other._size == 0) {
             _bulks.splice(_bulks.end(), std::forward<bulk_list_type>(other._bulks));
+            _capacity += other._capacity;
             _head = begin();
             _tail = end();
+        } else {
+            if (other._size == 0) {
+                // Check if head is on the left side from tail
+                if (_is_head_preceed_tail) {
+                    _bulks.splice(_bulks.end(), std::forward<bulk_list_type>(other._bulks));
+                    _capacity += other._capacity;
+                }
+            } else {
+                throw std::logic_error("ring_buffer::splice(): ring_buffers can be spliced if:\n"
+                    "\t* both buffers are empty\n"
+                    "\t* heed of first buffer is at the left side from tail and second buffer is empty");
+            }
         }
+
+        other._size = 0;
+        other._capacity = 0;
     }
 
     //
@@ -308,6 +372,7 @@ public:
 
         _head = begin();
         _tail = end();
+        _is_head_preceed_tail = true;
 
         _size = 0;
     }
@@ -334,9 +399,9 @@ public:
             throw std::bad_alloc();
 
         move_write_position();
+
         new (& *_tail) value_type(std::forward<value_type>(value));
     }
-
 
     template <typename ...Args>
     void emplace (Args &&... args)
@@ -358,8 +423,10 @@ public:
 
         ++_head;
 
-        if (_head == end())
+        if (_head == end()) {
             _head = begin();
+            _is_head_preceed_tail = true;
+        }
 
         --_size;
     }
@@ -367,10 +434,14 @@ public:
 private:
     void move_write_position ()
     {
-        if (_tail == end())
+        if (_tail == end()) {
             _tail = begin();
-        else
+
+            if (_size > 0) // is not first movement
+                _is_head_preceed_tail = false;
+        } else {
             ++_tail;
+        }
 
         _size++;
     }
@@ -389,17 +460,18 @@ private:
             , _bulks.back().end());
     }
 
+    iterator last ()
+    {
+        return iterator(*this
+            , last_bulk()
+            , --_bulks.back().end());
+    }
+
     // Iterator specific helper method
     bulk_iterator last_bulk ()
     {
         return --_bulks.end();
     }
 };
-
-template <typename T
-    , template <typename> class ListContainer
-    , template <typename> class BulkContainer>
-typename ring_buffer<T, ListContainer, BulkContainer>::size_type const
-ring_buffer<T, ListContainer, BulkContainer>::default_bulk_size;
 
 } // namespace pfs
