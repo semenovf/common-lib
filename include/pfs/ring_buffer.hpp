@@ -606,6 +606,12 @@ public:
         return base_class::bulk_count();
     }
 
+    void clear ()
+    {
+        std::unique_lock<mutex_type> locker{_mtx};
+        return base_class::clear();
+    }
+
     void reserve (size_type new_capacity)
     {
         std::unique_lock<mutex_type> locker{_mtx};
