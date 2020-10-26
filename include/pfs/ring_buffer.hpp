@@ -622,7 +622,7 @@ public:
     {
         std::unique_lock<mutex_type> locker{_mtx};
 
-        if (base_class::size() < base_class::capacity()) {
+        if (base_class::size() == base_class::capacity()) {
             if (new_capacity <= base_class::capacity())
                 return false;
 
@@ -640,7 +640,7 @@ public:
     {
         std::unique_lock<mutex_type> locker{_mtx};
 
-        if (base_class::size() < base_class::capacity()) {
+        if (base_class::size() == base_class::capacity()) {
             if (new_capacity <= base_class::capacity())
                 return false;
 
@@ -668,7 +668,7 @@ public:
     {
         std::unique_lock<mutex_type> locker{_mtx};
 
-        if (base_class::size() < base_class::capacity()) {
+        if (base_class::size() == base_class::capacity()) {
             if (new_capacity <= base_class::capacity())
                 return false;
 
