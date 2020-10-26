@@ -1,6 +1,8 @@
 project(pfs_common_TESTS)
 option(ENABLE_COVERAGE "Build tests with coverage support" OFF)
 
+find_package(Threads REQUIRED)
+
 if (ENABLE_COVERAGE)
     message(STATUS "Coverage feature enabled")
     if (NOT "${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
@@ -29,6 +31,7 @@ set(TEST_NAMES
     pointer_proxy_iterator
     rational
     ring_buffer
+    ring_buffer_mt
     safeformat
     string_view
     variant
@@ -58,6 +61,8 @@ foreach (name ${TEST_NAMES})
     target_link_libraries(${name} PRIVATE pfs::common)
     add_test(NAME ${name} COMMAND ${name})
 endforeach()
+
+target_link_libraries(ring_buffer_mt PRIVATE Threads::Threads)
 
 if (UNIX)
     target_link_libraries(dynamic_library PRIVATE dl)

@@ -10,6 +10,7 @@
 #include "pfs/iterator.hpp"
 #include <limits>
 #include <list>
+#include <mutex>
 #include <stdexcept>
 #include <type_traits>
 #include <vector>
@@ -17,6 +18,9 @@
 namespace pfs {
 
 namespace ring_buffer_details {
+
+template <typename Container>
+bool contains_iterator (typename Container::iterator it);
 
 template <typename T, std::size_t N>
 class static_vector
@@ -30,6 +34,11 @@ private:
     std::size_t _size = 0;
 
 public:
+    ~static_vector ()
+    {
+        // Deleting elements is a responsibility of the holder
+    }
+
     // For test purposes only
     T const & operator [] (std::size_t pos) const
     {
@@ -40,11 +49,6 @@ public:
     T & operator [] (std::size_t pos)
     {
         return *reinterpret_cast<T *>(& _data[pos]);
-    }
-
-    ~static_vector ()
-    {
-        // Deleting elements is a responsibility of the holder
     }
 
     iterator begin ()
@@ -66,6 +70,24 @@ public:
     {
         return & _data[N];
     }
+
+    bool contains_iterator (iterator it) const
+    {
+        return it >= & _data[0] && it < & _data[N];
+    }
+
+    bool contains_iterator (const_iterator it) const
+    {
+        return it >= & _data[0] && it < & _data[N];
+    }
+
+    static void move_values (iterator first, iterator last, iterator pos)
+    {
+        for (auto it = first; it != last; ++it) {
+            *reinterpret_cast<T *>(pos) = std::move(*reinterpret_cast<T *>(it));
+            ++pos;
+        }
+    }
 };
 
 template <typename BulksBuffer>
@@ -75,7 +97,6 @@ class forward_iterator : public pfs::iterator_facade<
         , typename BulksBuffer::value_type
         , typename BulksBuffer::value_type *
         , typename BulksBuffer::value_type &>
-
 {
     using item_iterator = typename BulksBuffer::item_iterator;
     using bulk_iterator = typename BulksBuffer::bulk_iterator;
@@ -139,6 +160,16 @@ public:
     {
         return _pos == other._pos;
     }
+
+    typename BulksBuffer::item_iterator base ()
+    {
+        return _pos;
+    }
+
+    bulk_iterator current_bulk () const
+    {
+        return _bulk_pos;
+    }
 };
 
 template <typename T, size_t N>
@@ -158,7 +189,6 @@ class ring_buffer
     friend class ring_buffer_details::forward_iterator<ring_buffer>;
 
 public:
-    //using item_storage = std::aligned_storage<sizeof(T), alignof(T)>;
     using value_type = T;
     using reference = T &;
     using const_reference = T const &;
@@ -183,7 +213,6 @@ private:
 
     // Use this memeber for constant complexity call of size()
     size_type _size {0};
-    size_type _capacity {0};
 
     iterator _head;
     iterator _tail;
@@ -202,7 +231,6 @@ public:
         for (size_t i = 0; i < bulk_count; i++)
             _bulks.emplace_back();
 
-        _capacity = bulk_size * bulk_count;
         _head = begin();
         _tail = end();
     }
@@ -221,25 +249,21 @@ public:
     ring_buffer (ring_buffer && other)
         : _bulks(std::move(other._bulks))
         , _size(other._size)
-        , _capacity(other._capacity)
         , _head(other._head)
         , _tail(other._tail)
     {
         other._size = 0;
-        other._capacity = 0;
     }
 
     ring_buffer & operator = (ring_buffer && other)
     {
         _bulks = std::move(other._bulks);
         _size = other._size;
-        _capacity = other._capacity;
         _head = other._head;
         _tail = other._tail;
         _is_head_preceed_tail = true;
 
         other._size = 0;
-        other._capacity = 0;
 
         return *this;
     }
@@ -260,7 +284,7 @@ public:
 
     size_type capacity () const
     {
-        return _capacity; // bulk_size() * bulk_count();
+        return bulk_size * _bulks.size();
     }
 
     size_type size () const
@@ -273,31 +297,83 @@ public:
         return _bulks.size();
     }
 
-    void splice (ring_buffer && other)
+    void reserve (size_type new_capacity)
     {
-        // Both are empty
-        if (_size == 0 && other._size == 0) {
-            _bulks.splice(_bulks.end(), std::forward<bulk_list_type>(other._bulks));
-            _capacity += other._capacity;
+        if (new_capacity <= capacity())
+            return;
+
+        // Calculate number of bulks to add
+        size_type nbulks = (new_capacity - 1 - capacity()) / bulk_size + 1;
+
+        if (_size == 0) {
+            for (size_type i = 0; i < nbulks; i++)
+                _bulks.emplace_back();
             _head = begin();
             _tail = end();
         } else {
-            if (other._size == 0) {
-                // Check if head is on the left side from tail
-                if (_is_head_preceed_tail) {
-                    _bulks.splice(_bulks.end(), std::forward<bulk_list_type>(other._bulks));
-                    _capacity += other._capacity;
-                }
+            // If head is on the left side from tail just add new bulks to the end
+            if (_is_head_preceed_tail) {
+                for (size_type i = 0; i < nbulks; i++)
+                    _bulks.emplace_back();
             } else {
-                throw std::logic_error("ring_buffer::splice(): ring_buffers can be spliced if:\n"
-                    "\t* both buffers are empty\n"
-                    "\t* heed of first buffer is at the left side from tail and second buffer is empty");
+                // If head is on the right side from tail
+
+                // If head and tail is on different bulks just insert new bulks
+                // before head's bulk
+                if (!_head.current_bulk()->contains_iterator(_tail.base())) {
+                    for (size_type i = 0; i < nbulks; i++)
+                        _bulks.emplace(_head.current_bulk());
+                } else {
+                // If head and tail is on the same bulks insert new bulks
+                // before head's bulk and move values to the new bulk
+
+                    // Save first inserted bulk to store tail's values from head's bulk
+                    auto first_inserted_bulk = _bulks.emplace(_head.current_bulk());
+
+                    // Insert the rest bulks
+                    for (size_type i = 0; i < nbulks - 1; i++)
+                        _bulks.emplace(_head.current_bulk());
+
+                    // Get first and last value positions to move
+                    auto first = _tail.current_bulk()->begin();
+                    auto last = _tail.base();
+                    ++last;
+
+                    bulk_type::move_values(first, last
+                        , first_inserted_bulk->begin());
+                }
             }
         }
-
-        other._size = 0;
-        other._capacity = 0;
     }
+
+
+//     void splice (ring_buffer && other)
+//     {
+//         // Both are empty
+//         if (_size == 0 && other._size == 0) {
+//             _bulks.splice(_bulks.end(), std::forward<bulk_list_type>(other._bulks));
+//             _capacity += other._capacity;
+//             _head = begin();
+//             _tail = end();
+//         } else {
+//             if (other._size == 0) {
+//                 // Check if head is on the left side from tail
+//                 if (_is_head_preceed_tail) {
+//                     _bulks.splice(_bulks.end(), std::forward<bulk_list_type>(other._bulks));
+//                     _capacity += other._capacity;
+//                 } else {
+//                     // TODO
+//                 }
+//             } else {
+//                 throw std::logic_error("ring_buffer::splice(): ring_buffers can be spliced if:\n"
+//                     "\t* both buffers are empty\n"
+//                     "\t* head of first buffer is at the left side from tail and second buffer is empty");
+//             }
+//         }
+//
+//         other._size = 0;
+//         other._capacity = 0;
+//     }
 
     //
     // Element access
@@ -365,6 +441,9 @@ public:
         while (_head != _tail) {
             reinterpret_cast<pointer>(& *_head)->~value_type();
             ++_head;
+
+            if (_head == end())
+                _head = begin();
         }
 
         // Destroy last element
@@ -434,6 +513,7 @@ public:
 private:
     void move_write_position ()
     {
+        // Intially _tail points to the end of ring buffer
         if (_tail == end()) {
             _tail = begin();
 
@@ -441,6 +521,13 @@ private:
                 _is_head_preceed_tail = false;
         } else {
             ++_tail;
+
+            if (_tail == end()) {
+                _tail = begin();
+
+                if (_size > 0) // is not first movement
+                    _is_head_preceed_tail = false;
+            }
         }
 
         _size++;
@@ -471,6 +558,107 @@ private:
     bulk_iterator last_bulk ()
     {
         return --_bulks.end();
+    }
+};
+
+
+template <typename T
+    , size_t BulkSize
+    , typename BasicLockable = std::mutex
+    , template <typename> class ListContainer = ring_buffer_details::default_list_container
+    , template <typename, size_t> class BulkContainer = ring_buffer_details::default_bulk_container>
+class ring_buffer_mt : protected ring_buffer<T, BulkSize, ListContainer, BulkContainer>
+{
+    using base_class = ring_buffer<T, BulkSize, ListContainer, BulkContainer>;
+    using mutex_type = BasicLockable;
+
+public:
+    using value_type = typename base_class::value_type;
+    using size_type = typename base_class::size_type;
+
+private:
+    mutable mutex_type _mtx;
+
+public:
+    using base_class::base_class;
+
+    bool empty () const
+    {
+        std::unique_lock<mutex_type> locker{_mtx};
+        return base_class::empty();
+    }
+
+    size_type capacity () const
+    {
+        std::unique_lock<mutex_type> locker{_mtx};
+        return base_class::capacity();
+    }
+
+    size_type size () const
+    {
+        std::unique_lock<mutex_type> locker{_mtx};
+        return base_class::size();
+    }
+
+    size_type bulk_count () const
+    {
+        std::unique_lock<mutex_type> locker{_mtx};
+        return base_class::bulk_count();
+    }
+
+    void reserve (size_type new_capacity)
+    {
+        std::unique_lock<mutex_type> locker{_mtx};
+        base_class::reserve(new_capacity);
+    }
+
+    bool try_push (value_type const & value)
+    {
+        std::unique_lock<mutex_type> locker{_mtx};
+
+        if (base_class::size() < base_class::capacity())
+            return false;
+
+        base_class::push(value);
+        return true;
+    }
+
+    /**
+     * @exception std::bad_alloc no more space available.
+     */
+    bool try_push (value_type && value)
+    {
+        std::unique_lock<mutex_type> locker{_mtx};
+
+        if (base_class::size() == base_class::capacity())
+            return false;
+
+        base_class::push(std::forward<value_type>(value));
+        return true;
+    }
+
+    template <typename ...Args>
+    bool try_emplace (Args &&... args)
+    {
+        std::unique_lock<mutex_type> locker{_mtx};
+
+        if (base_class::size() == base_class::capacity())
+            return false;
+
+        base_class::emplace(std::forward<Args>(args)...);
+        return true;
+    }
+
+    bool try_pop (value_type & value)
+    {
+        std::unique_lock<mutex_type> locker{_mtx};
+
+        if (!base_class::size())
+            return false;
+
+        value = std::move(base_class::front());
+        base_class::pop();
+        return true;
     }
 };
 

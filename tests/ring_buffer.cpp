@@ -10,6 +10,7 @@
 #include "doctest.h"
 #include "pfs/ring_buffer.hpp"
 #include <list>
+#include <thread>
 #include <vector>
 #include <cassert>
 
@@ -49,6 +50,13 @@ struct X {
     {
         px = other.px;
         other.px = nullptr;
+    }
+
+    X & operator = (X && other)
+    {
+        px = other.px;
+        other.px = nullptr;
+        return *this;
     }
 
     int x () const
@@ -249,28 +257,36 @@ TEST_CASE("Modifiers") {
     }
 }
 
-TEST_CASE("Splice") {
-    // Both are empty
+TEST_CASE("Reserve") {
+    // Buffer is empty
     {
-        pfs::ring_buffer<X, 2> rb{3};
-        decltype(rb) rb1{2};
+        {
+            pfs::ring_buffer<X, 2> rb{3};
 
-        CHECK(rb.bulk_count() == 3);
-        CHECK(rb.empty());
-        CHECK(rb.capacity() == 6);
+            CHECK(rb.bulk_count() == 3);
+            CHECK(rb.capacity() == 6);
 
-        CHECK(rb1.bulk_count() == 2);
-        CHECK(rb1.capacity() == 4);
+            rb.reserve(rb.capacity() + 1);
+            CHECK(rb.bulk_count() == 4);
+            CHECK(rb.capacity() == 8);
+        }
 
-        rb.splice(std::move(rb1));
+        {
+            pfs::ring_buffer<X, 2> rb{3};
+            rb.reserve(rb.capacity() + 2);
+            CHECK(rb.bulk_count() == 4);
+            CHECK(rb.capacity() == 8);
+        }
 
-        CHECK(rb.bulk_count() == 5);
-        CHECK(rb.empty());
-        CHECK(rb.capacity() == 10);
-        CHECK(rb1.bulk_count() == 0);
+        {
+            pfs::ring_buffer<X, 2> rb{3};
+            rb.reserve(rb.capacity() + 3);
+            CHECK(rb.bulk_count() == 5);
+            CHECK(rb.capacity() == 10);
+        }
     }
 
-    // Second buffer is empty
+    // Head is on the left side from tail
     {
         pfs::ring_buffer<X, 2> rb{3};
         decltype(rb) rb1{2};
@@ -280,22 +296,131 @@ TEST_CASE("Splice") {
             CHECK(rb.front().x() == 42);
         }
 
-        CHECK(rb.front().x() == 42);
+        auto initial_capacity = rb.capacity();
 
-        CHECK(rb.size() == 6);
-        CHECK(rb.capacity() == 6);
+        CHECK(rb.size() == initial_capacity);
 
-        rb.splice(std::move(rb1));
-
-        CHECK(rb.size() == 6);
-        CHECK(rb.capacity() == 10);
-
-        int i = 0;
-        while (rb.size() < rb.capacity())
-            rb.push(X{-42 - i--});
-
-        CHECK(rb.size() == 10);
+        rb.reserve(initial_capacity + 1);
+        rb.push(X{-42});
 
         CHECK(rb.front().x() == 42);
+
+        for (int i = 0; i < initial_capacity; i++) {
+            rb.pop();
+        }
+
+        CHECK(rb.size() == 1);
+        CHECK(rb.front().x() == -42);
+    }
+
+    // Head is on the right side from tail
+    // and head and tail is on different bulks
+    {
+        pfs::ring_buffer<X, 2> rb{3};
+        decltype(rb) rb1{2};
+
+        auto initial_capacity = rb.capacity();
+
+        for (int i = 0; i < initial_capacity; i++) {
+            rb.push(X{42 + i});
+            CHECK(rb.front().x() == 42);
+        }
+
+        rb.pop();
+        rb.pop();
+        rb.push(X{-42});
+
+        rb.reserve(initial_capacity + 1);
+        CHECK(rb.capacity() == initial_capacity + 2);
+
+        rb.push(X{-43});
+        rb.push(X{-44});
+        rb.push(X{-45});
+
+        CHECK(rb.size() == rb.capacity());
+
+        REQUIRE_THROWS_AS(rb.push(X{-46}), std::bad_alloc);
+    }
+
+    // Head is on the right side from tail
+    // and head and tail is on the same bulk
+    {
+        pfs::ring_buffer<X, 2> rb{3};
+        decltype(rb) rb1{2};
+
+        auto initial_capacity = rb.capacity();
+
+        for (int i = 0; i < initial_capacity; i++) {
+            rb.push(X{42 + i});
+            CHECK(rb.front().x() == 42);
+        }
+
+        rb.pop();
+        rb.pop();
+        rb.pop();
+
+        rb.push(X{-42});
+        rb.push(X{-43});
+        rb.push(X{-44});
+
+        rb.reserve(initial_capacity + 1);
+        CHECK(rb.capacity() == initial_capacity + 2);
+
+        rb.push(X{-45});
+        rb.push(X{-46});
+
+        CHECK(rb.size() == rb.capacity());
+        REQUIRE_THROWS_AS(rb.push(X{-47}), std::bad_alloc);
     }
 }
+
+// TEST_CASE("Splice") {
+//     // Both are empty
+//     {
+//         pfs::ring_buffer<X, 2> rb{3};
+//         decltype(rb) rb1{2};
+//
+//         CHECK(rb.bulk_count() == 3);
+//         CHECK(rb.empty());
+//         CHECK(rb.capacity() == 6);
+//
+//         CHECK(rb1.bulk_count() == 2);
+//         CHECK(rb1.capacity() == 4);
+//
+//         rb.splice(std::move(rb1));
+//
+//         CHECK(rb.bulk_count() == 5);
+//         CHECK(rb.empty());
+//         CHECK(rb.capacity() == 10);
+//         CHECK(rb1.bulk_count() == 0);
+//     }
+//
+//     // Second buffer is empty
+//     {
+//         pfs::ring_buffer<X, 2> rb{3};
+//         decltype(rb) rb1{2};
+//
+//         for (int i = 0; i < rb.capacity(); i++) {
+//             rb.push(X{42 + i});
+//             CHECK(rb.front().x() == 42);
+//         }
+//
+//         CHECK(rb.front().x() == 42);
+//
+//         CHECK(rb.size() == 6);
+//         CHECK(rb.capacity() == 6);
+//
+//         rb.splice(std::move(rb1));
+//
+//         CHECK(rb.size() == 6);
+//         CHECK(rb.capacity() == 10);
+//
+//         int i = 0;
+//
+//         while (rb.size() < rb.capacity())
+//             rb.push(X{-42 - i--});
+//
+//         CHECK(rb.size() == 10);
+//         CHECK(rb.front().x() == 42);
+//     }
+// }
