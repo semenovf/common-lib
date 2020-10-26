@@ -618,12 +618,16 @@ public:
         base_class::reserve(new_capacity);
     }
 
-    bool try_push (value_type const & value)
+    bool try_push (value_type const & value, size_type new_capacity = 0)
     {
         std::unique_lock<mutex_type> locker{_mtx};
 
-        if (base_class::size() < base_class::capacity())
-            return false;
+        if (base_class::size() < base_class::capacity()) {
+            if (new_capacity <= base_class::capacity())
+                return false;
+
+            base_class::reserve(new_capacity);
+        }
 
         base_class::push(value);
         return true;
@@ -632,12 +636,16 @@ public:
     /**
      * @exception std::bad_alloc no more space available.
      */
-    bool try_push (value_type && value)
+    bool try_push (value_type && value, size_type new_capacity = 0)
     {
         std::unique_lock<mutex_type> locker{_mtx};
 
-        if (base_class::size() == base_class::capacity())
-            return false;
+        if (base_class::size() < base_class::capacity()) {
+            if (new_capacity <= base_class::capacity())
+                return false;
+
+            base_class::reserve(new_capacity);
+        }
 
         base_class::push(std::forward<value_type>(value));
         return true;
@@ -650,6 +658,22 @@ public:
 
         if (base_class::size() == base_class::capacity())
             return false;
+
+        base_class::emplace(std::forward<Args>(args)...);
+        return true;
+    }
+
+    template <typename ...Args>
+    bool try_reserve_and_emplace (size_type new_capacity, Args &&... args)
+    {
+        std::unique_lock<mutex_type> locker{_mtx};
+
+        if (base_class::size() < base_class::capacity()) {
+            if (new_capacity <= base_class::capacity())
+                return false;
+
+            base_class::reserve(new_capacity);
+        }
 
         base_class::emplace(std::forward<Args>(args)...);
         return true;
