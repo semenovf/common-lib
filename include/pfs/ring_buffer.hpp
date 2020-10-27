@@ -81,12 +81,19 @@ public:
         return it >= & _data[0] && it < & _data[N];
     }
 
-    static void move_values (iterator first, iterator last, iterator pos)
+    // Move values inclusive from first to last 
+    static iterator move_values (iterator first, iterator last, iterator pos)
     {
+        auto last_pos = pos;
+        ++last;
+
         for (auto it = first; it != last; ++it) {
-            *reinterpret_cast<T *>(pos) = std::move(*reinterpret_cast<T *>(it));
+            new (& *pos) T(std::move(*reinterpret_cast<T *>(it)));
+            last_pos = pos;
             ++pos;
         }
+
+        return last_pos;
     }
 };
 
@@ -180,6 +187,9 @@ using default_list_container = std::list<T>;
 
 } // namespace ring_buffer_details
 
+///////////////////////////////////////////////////////////
+// ring_buffer
+///////////////////////////////////////////////////////////
 template <typename T
     , size_t BulkSize
     , template <typename> class ListContainer = ring_buffer_details::default_list_container
@@ -337,43 +347,12 @@ public:
                     // Get first and last value positions to move
                     auto first = _tail.current_bulk()->begin();
                     auto last = _tail.base();
-                    ++last;
-
-                    bulk_type::move_values(first, last
-                        , first_inserted_bulk->begin());
+                    auto pos = bulk_type::move_values(first, last, first_inserted_bulk->begin());
+                    _tail = iterator(*this, first_inserted_bulk, pos);
                 }
             }
         }
     }
-
-
-//     void splice (ring_buffer && other)
-//     {
-//         // Both are empty
-//         if (_size == 0 && other._size == 0) {
-//             _bulks.splice(_bulks.end(), std::forward<bulk_list_type>(other._bulks));
-//             _capacity += other._capacity;
-//             _head = begin();
-//             _tail = end();
-//         } else {
-//             if (other._size == 0) {
-//                 // Check if head is on the left side from tail
-//                 if (_is_head_preceed_tail) {
-//                     _bulks.splice(_bulks.end(), std::forward<bulk_list_type>(other._bulks));
-//                     _capacity += other._capacity;
-//                 } else {
-//                     // TODO
-//                 }
-//             } else {
-//                 throw std::logic_error("ring_buffer::splice(): ring_buffers can be spliced if:\n"
-//                     "\t* both buffers are empty\n"
-//                     "\t* head of first buffer is at the left side from tail and second buffer is empty");
-//             }
-//         }
-//
-//         other._size = 0;
-//         other._capacity = 0;
-//     }
 
     //
     // Element access
@@ -561,7 +540,9 @@ private:
     }
 };
 
-
+///////////////////////////////////////////////////////////
+// ring_buffer_mt
+///////////////////////////////////////////////////////////
 template <typename T
     , size_t BulkSize
     , typename BasicLockable = std::mutex
