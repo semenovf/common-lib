@@ -56,7 +56,7 @@ inline std::string utf8_encode (wchar_t const * s, int nwchars)
     int nbytes = WideCharToMultiByte(CP_UTF8, 0, s
         , nwchars, nullptr, 0, nullptr, nullptr);
 
-    if (nbytes == 0)
+    if (!nbytes)
         return std::string{};
 
     std::string result(nbytes, '\0');
@@ -64,8 +64,32 @@ inline std::string utf8_encode (wchar_t const * s, int nwchars)
     nbytes = WideCharToMultiByte(CP_UTF8, 0, s
         , nwchars, & result[0], nbytes, nullptr, nullptr);
 
-    if (nbytes == 0)
+    if (!nbytes)
         return std::string{};
+
+    return result;
+}
+
+// Convert an UTF8 string to a wide Unicode String
+inline std::wstring utf8_decode (char const * s, int nchars /*const std::string & str*/)
+{
+    if (!s) 
+        return std::wstring{};
+
+    if (!nchars)
+        return std::wstring{};
+
+    int nwchars = MultiByteToWideChar(CP_UTF8, 0, s, nchars, nullptr, 0);
+
+    if (!nwchars)
+        return std::wstring{};
+
+    std::wstring result(nwchars, 0);
+
+    nwchars = MultiByteToWideChar(CP_UTF8, 0, s, nchars, & result[0], nwchars);
+
+    if (!nwchars)
+        return std::wstring{};
 
     return result;
 }
@@ -161,9 +185,6 @@ inline std::error_code make_error_code (dynamic_library_errc e)
 class dynamic_library
 {
 public:
-    using string_type = std::string;
-    using stringlist_type = std::list<string_type>;
-
 #if defined(_WIN32) || defined(_WIN64)
     using native_handle_type = HMODULE;
     using symbol_type = FARPROC;
@@ -325,12 +346,13 @@ public:
     *
     * @param name Base name of dynamic library.
     */
-    static string_type build_dl_filename (dynamic_library::string_type const & name) noexcept
+    static fs::path::string_type build_dl_filename (fs::path::string_type const & name) noexcept
     {
-        string_type result;
-#if defined(_WIN32) || defined(_WIN64)
+        fs::path::string_type result;
+
+#if (defined(_WIN32) || defined(_WIN64)) && defined(_UNICODE)
         result += name;
-        result += ".dll";
+        result += L".dll";
 #else
         result += "lib";
         result += name;
