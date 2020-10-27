@@ -273,7 +273,7 @@ TEST_CASE("Filesystem path") {
 
         CHECK(fs::path("c:\\path\\to\\file").parent_path() == fs::path("c:\\path\\to"));
         CHECK(fs::path("c:\\path\\to\\.").parent_path() == fs::path("c:\\path\\to"));
-        CHECK(fs::path("\\").parent_path() == fs::path("")); // FIXME for Windows
+        CHECK(fs::path("\\").parent_path() == fs::path("\\"));
 #endif
     }
 

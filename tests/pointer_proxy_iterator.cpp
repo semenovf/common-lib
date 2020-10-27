@@ -169,8 +169,8 @@ TEST_CASE("Pointer proxy iterator") {
 
         CHECK(it2 - it1 == std::strlen(sample));
         CHECK(it2 - it1 == std::distance(first, last));
-        CHECK(it1 - it2 == - std::strlen(sample));
-        CHECK(it1 - it2 == - std::distance(first, last));
+        CHECK(-(it1 - it2) == std::strlen(sample));
+        CHECK(-(it1 - it2) == std::distance(first, last));
         CHECK(it1 - it2 == std::distance(last, first));
     }
 

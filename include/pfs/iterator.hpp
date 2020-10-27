@@ -313,7 +313,7 @@ public:
 
     int compare (pointer_proxy_iterator const & rhs) const
     {
-        return _p - rhs._p;
+        return static_cast<int>(_p - rhs._p);
     }
 
     reference ref ()

@@ -83,8 +83,8 @@ public:
                 && Denom >= std::numeric_limits<int_type>::min()))
             throw std::overflow_error("denominator overflow");
 
-        _num = sign_of(ratio.num) * sign_of(ratio.den) * std::abs(ratio.num);
-        _den = std::abs(ratio.den);
+        _num = static_cast<decltype(_num)>(sign_of(ratio.num) * sign_of(ratio.den) * std::abs(ratio.num));
+        _den = static_cast<decltype(_den)>(std::abs(ratio.den));
     }
 
     rational (rational const & rhs) = default;
@@ -342,8 +342,8 @@ namespace details {
 
     typedef uint64_t multiply_param_type;
     typedef uint32_t multiply_part_type;
-    inline constexpr uint64_t uint_lo(uint64_t x) { return x & 0xffffffff; }
-    inline constexpr uint64_t uint_hi(uint64_t x) { return x >> 32; }
+    inline constexpr uint32_t uint_lo(uint64_t x) { return static_cast<uint32_t>(x & 0xffffffff); }
+    inline constexpr uint32_t uint_hi(uint64_t x) { return static_cast<uint32_t>(x >> 32); }
     static uint64_t const uint_carry = (static_cast<uint64_t>(1) << 32);
 
 inline void multiply (multiply_param_type a, multiply_param_type b
@@ -366,7 +366,7 @@ inline void multiply (multiply_param_type a, multiply_param_type b
         r3 += uint_carry;
 
     hi = r3 + uint_hi(r1);
-    lo = (uint_lo(r1) << 32) + uint_lo(r0);
+    lo = (static_cast<uint64_t>(uint_lo(r1)) << 32) + uint_lo(r0);
 }
 
 } // namespace details
