@@ -10,6 +10,12 @@
 #include "doctest.h"
 #include "pfs/dynamic_library.hpp"
 
+#ifdef PFS_NO_STD_FILESYSTEM
+    namespace fs = pfs::filesystem;
+#else
+    namespace fs = std::filesystem;
+#endif
+
 #if defined(_WIN32) || defined(_WIN64)
 // Test dlerror() function implementation for Windows
 TEST_CASE("dlerror") {
@@ -21,7 +27,11 @@ TEST_CASE("Dynamic Library basics") {
     pfs::dynamic_library dl;
     typedef int (* dl_test_fn)(void);
 
-    auto dlfile = "./" + pfs::dynamic_library::build_dl_filename("shared_object");
+#if (defined(_WIN32) || defined(_WIN64)) && defined(_UNICODE)
+    auto dlfile = L"./" + pfs::dynamic_library::build_dl_filename(L"shared_object");
+#else
+    auto dlfile = L"./" + pfs::dynamic_library::build_dl_filename("shared_object");
+#endif
 
     std::error_code ec;
 
