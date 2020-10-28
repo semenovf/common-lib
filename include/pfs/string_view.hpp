@@ -11,14 +11,14 @@
 #   include <string_view>
 #else
 #   ifndef STX_NAMESPACE_NAME
-#       define STX_NAMESPACE_NAME std
+#       define STX_NAMESPACE_NAME pfs
 #   endif
 
 #   define STX_NO_STD_STRING_VIEW
 
 #   include "3rdparty/stx/string_view.hpp"
 
-namespace std {
+namespace pfs {
 
 // Avoid `undefined reference to `std::basic_string_view<char, std::char_traits<char> >::npos`
 template <typename CharT, typename Traits>

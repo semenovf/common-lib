@@ -28,7 +28,11 @@
 
 namespace pfs {
 
-namespace fs = std::filesystem;
+#if defined(PFS_NO_STD_FILESYSTEM)
+    namespace fs = pfs::filesystem;
+#else
+    namespace fs = std::filesystem;
+#endif
 
 ////////////////////////////////////////////////////////////////////////////////
 // dynamic_library_errc
@@ -73,7 +77,7 @@ inline std::string utf8_encode (wchar_t const * s, int nwchars)
 // Convert an UTF8 string to a wide Unicode String
 inline std::wstring utf8_decode (char const * s, int nchars /*const std::string & str*/)
 {
-    if (!s) 
+    if (!s)
         return std::wstring{};
 
     if (!nchars)

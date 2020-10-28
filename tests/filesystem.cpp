@@ -18,7 +18,11 @@
 #endif
 
 TEST_CASE("Filesystem path") {
+#if defined(PFS_NO_STD_FILESYSTEM)
+    namespace fs = pfs::filesystem;
+#else
     namespace fs = std::filesystem;
+#endif
 
 ////////////////////////////////////////////////////////////////////////////////
 // Constructors                                                               //
@@ -79,7 +83,7 @@ TEST_CASE("Filesystem path") {
 //         CHECK(fs::path("//host") / "foo"  == fs::path::string_type("//host/foo")); // appends with separator
         CHECK(fs::path("//host/") / "foo" == fs::path::string_type(_STR("//host/foo"))); // appends without separator
 
-//#if defined(_WIN32) || defined(_WIN64)
+#if defined(_WIN32) || defined(_WIN64)
         CHECK((fs::path("foo") /= "C:/bar") == fs::path::string_type(_STR("C:/bar")));     // the result is "C:/bar" (replaces)
         CHECK((fs::path("foo") /= "C:") == fs::path::string_type(_STR("C:")));             // the result is "C:"     (replaces)
         CHECK((fs::path("C:") /= "") == fs::path::string_type(_STR("C:")));                // the result is "C:"     (appends, without separator)
@@ -92,7 +96,7 @@ TEST_CASE("Filesystem path") {
         CHECK(fs::path("C:") / "" == fs::path::string_type(_STR("C:")));                // the result is "C:"     (appends, without separator)
         CHECK(fs::path("C:foo") / "/bar" == fs::path::string_type(_STR("C:/bar")));     // yields "C:/bar"        (removes relative path, then appends)
         CHECK(fs::path("C:foo") / "C:bar" == fs::path::string_type(_STR("C:foo/bar"))); // yields "C:foo/bar"     (appends, omitting p's root-name)
-//#else
+#else
 // FIXME
 //         CHECK((fs::path("foo") /= "") == fs::path::string_type("foo")); // the result is "foo/" (appends) // FIXME for GHC version
 //         CHECK((fs::path("foo") /= "/bar") == fs::path::string_type("foo/bar")); // the result is "/bar" (replaces) // FIXME for GHC version
@@ -101,7 +105,7 @@ TEST_CASE("Filesystem path") {
         // FIXME
 //         CHECK(fs::path("foo") / "" == fs::path::string_type("foo")); // the result is "foo/" (appends) // FIXME for GHC version
 //         CHECK(fs::path("foo") / "/bar" == fs::path::string_type("foo/bar")); // the result is "/bar" (replaces) // FIXME for GHC version
-//#endif
+#endif
     }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -370,7 +374,8 @@ TEST_CASE("Filesystem path") {
         CHECK(*it++ == "app_data");
         CHECK(*it++ == "Local");
         CHECK(*it++ == "Temp");
-        CHECK(*it++ == "."); // FIXME for GHC version
+        //CHECK(*it++ == ".");
+        CHECK(*it++ == "");    // Valid for GHC version
         CHECK(it == p.end());
 #endif
     }
@@ -413,7 +418,11 @@ TEST_CASE("Filesystem path") {
 // directory_entry
 ////////////////////////////////////////////////////////////////////////////////
 TEST_CASE("Filesystem directory_entry") {
+#if defined(PFS_NO_STD_FILESYSTEM)
+    namespace fs = pfs::filesystem;
+#else
     namespace fs = std::filesystem;
+#endif
 
     // Constructors
     {

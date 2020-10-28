@@ -15,7 +15,7 @@
 #       define GHC_WIN_WSTRING_STRING_TYPE
 #   endif
 #   include "3rdparty/ghc/filesystem.hpp"
-namespace std {
+namespace pfs {
     namespace filesystem = ghc::filesystem;
-} // namespace std
+} // namespace pfs
 #endif

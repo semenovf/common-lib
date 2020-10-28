@@ -13,14 +13,25 @@
 #include <string>
 #include <utility>
 
+#if defined(PFS_NO_STD_ANY)
+    using pfs::any;
+    using pfs::any_cast;
+    using pfs::bad_any_cast;
+#else
+    using std::any;
+    using std::any_cast;
+    using std::bad_any_cast;
+#endif
+
+
 TEST_CASE("basic") {
-    std::any a{3};
+    any a{3};
     CHECK(a.type() == typeid(int));
-    CHECK(std::any_cast<int>(a) == 3);
+    CHECK(any_cast<int>(a) == 3);
 
     a = 3.0f;
     CHECK(a.type() == typeid(float));
-    CHECK_THROWS_AS(std::any_cast<int>(a), std::bad_any_cast);
+    CHECK_THROWS_AS(any_cast<int>(a), bad_any_cast);
 }
 
 //////////////////
@@ -52,19 +63,15 @@ struct big_type
 // small type which has nothrow move ctor but throw copy ctor
 struct regression1_type
 {
-    const void* confuse_stack_storage = (void*)(0);
+    const void * confuse_stack_storage = (void*)(0);
     regression1_type() {}
-    regression1_type(const regression1_type&) {}
-    regression1_type(regression1_type&&) noexcept {}
-    regression1_type& operator=(const regression1_type&) { return *this; }
-    regression1_type& operator=(regression1_type&&) { return *this; }
+    regression1_type (const regression1_type &) {}
+    regression1_type (regression1_type &&) noexcept {}
+    regression1_type & operator = (const regression1_type &) { return *this; }
+    regression1_type & operator = (regression1_type &&) { return *this; }
 };
 
 TEST_CASE("complete") {
-    using std::any;
-    using std::any_cast;
-    using std::bad_any_cast;
-
     {
         any x = 4;
         any y = big_type{};
