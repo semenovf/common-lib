@@ -12,7 +12,13 @@
 #include <string>
 #include <utility>
 
-using string_view = std::string_view;
+#if defined(PFS_NO_STD_STRING_VIEW)
+using pfs::basic_string_view;
+using pfs::string_view;
+#else
+using std::basic_string_view;
+using std::string_view;
+#endif
 
 //  Should be equal
 void interop (std::string const & str, string_view ref)
@@ -579,7 +585,7 @@ void string_view_output ()//, CharT, char_types)
 {
     using char_type = CharT;
     using ostream_type = std::basic_ostringstream<char_type>;
-    using string_view_type = std::basic_string_view<char_type>;
+    using string_view_type = basic_string_view<char_type>;
 
     context<char_type> ctx;
 
@@ -594,7 +600,7 @@ void padding ()
 {
     using char_type = CharT;
     using ostream_type = std::basic_ostringstream<char_type>;
-    using string_view_type = std::basic_string_view<char_type>;
+    using string_view_type = basic_string_view<char_type>;
 
     context<char_type> ctx;
 
@@ -638,7 +644,7 @@ void padding_fill ()
 {
     using char_type = CharT;
     using ostream_type = std::basic_ostringstream<char_type>;
-    using string_view_type = std::basic_string_view<char_type>;
+    using string_view_type = basic_string_view<char_type>;
 
     context<char_type> ctx;
 
@@ -662,7 +668,7 @@ void alignment ()
 //     typedef boost::basic_string_view< char_type > string_view_type;
     using char_type = CharT;
     using ostream_type = std::basic_ostringstream<char_type>;
-    using string_view_type = std::basic_string_view<char_type>;
+    using string_view_type = basic_string_view<char_type>;
 
     context<char_type> ctx;
 

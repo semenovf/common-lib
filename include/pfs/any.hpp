@@ -11,7 +11,7 @@
 #   include <any>
 #else
 #   ifndef STX_NAMESPACE_NAME
-#       define STX_NAMESPACE_NAME std
+#       define STX_NAMESPACE_NAME pfs
 #   endif
 
 #   define STX_NO_STD_ANY

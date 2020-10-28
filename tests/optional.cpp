@@ -16,7 +16,6 @@
 // authored by Fernando Luis Cacciola Carballal
 ////////////////////////////////////////////////////////////////////////////////
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
-// #define STX_NO_STD_OPTIONAL
 #include "doctest.h"
 #include "pfs/optional.hpp"
 #include <complex>
@@ -25,13 +24,29 @@
 #include <string>
 #include <utility>
 
+#if defined(PFS_NO_STD_OPTIONAL)
+    using pfs::optional;
+    using pfs::bad_optional_access;
+    using pfs::nullopt;
+    using pfs::in_place;
+    using pfs::make_optional;
+    using pfs::constexpr_move;
+#else
+    using std::optional;
+    using std::bad_optional_access;
+    using std::nullopt;
+    using std::in_place;
+    using std::make_optional;
+    using std::constexpr_move;
+#endif
+
 TEST_CASE("basic") {
-    constexpr std::optional<int> empty{};
+    constexpr optional<int> empty{};
 
     static_assert(!empty, "");
-    CHECK_THROWS_AS(empty.value(), std::bad_optional_access);
+    CHECK_THROWS_AS(empty.value(), bad_optional_access);
 
-    constexpr std::optional<int> opt{3};
+    constexpr optional<int> opt{3};
     CHECK(opt);
     static_assert(opt.value() == 3, "");
 }
@@ -122,9 +137,6 @@ inline bool operator != (Oracle const & a, Oracle const & b )
     return a.val.i != b.val.i;
 }
 
-using std::optional;
-using std::nullopt;
-
 //namespace tr2 = stx;
 TEST_CASE("disengaged_ctor") {
     optional<int> o1;
@@ -185,7 +197,7 @@ TEST_CASE("value_ctor")
 
     {
         OracleVal v;
-        optional<Oracle> oo1{std::in_place, v};
+        optional<Oracle> oo1{in_place, v};
         CHECK(oo1 != nullopt);
         CHECK(oo1 != optional<Oracle>{});
         CHECK(oo1 == optional<Oracle>{v});
@@ -194,7 +206,7 @@ TEST_CASE("value_ctor")
         CHECK(oo1->s == sValueCopyConstructed);
         CHECK(v.s == sValueConstructed);
 
-        optional<Oracle> oo2{std::in_place, std::move(v)};
+        optional<Oracle> oo2{in_place, std::move(v)};
         CHECK(oo2 != nullopt);
         CHECK(oo2 != optional<Oracle>{});
         CHECK(oo2 == oo1);
@@ -325,7 +337,7 @@ TEST_CASE("optional_optional")
     CHECK(!oi1);
 
     {
-        optional<optional<int>> oi2 {std::in_place};
+        optional<optional<int>> oi2 {in_place};
         CHECK(oi2 != nullopt);
         CHECK(bool(oi2));
         CHECK(*oi2 == nullopt);
@@ -334,7 +346,7 @@ TEST_CASE("optional_optional")
     }
 
     {
-        optional<optional<int>> oi2 {std::in_place, nullopt};
+        optional<optional<int>> oi2 {in_place, nullopt};
         CHECK(oi2 != nullopt);
         CHECK(bool(oi2));
         CHECK(*oi2 == nullopt);
@@ -350,7 +362,7 @@ TEST_CASE("optional_optional")
     }
 
     optional<int> oi;
-    auto ooi = std::make_optional(oi);
+    auto ooi = make_optional(oi);
     static_assert( std::is_same<optional<optional<int>>, decltype(ooi)>::value, "");
 }
 
@@ -360,11 +372,11 @@ TEST_CASE("example_guard")
     //FAILS: optional<Guard> ogx = "res1";
     //FAILS: optional<Guard> ogx("res1");
     optional<Guard> oga;                  // Guard is non-copyable (and non-moveable)
-    optional<Guard> ogb(std::in_place, "res1");   // initialzes the contained value with "res1"
+    optional<Guard> ogb(in_place, "res1");   // initialzes the contained value with "res1"
     CHECK(bool(ogb));
     CHECK(ogb->val == "res1");
 
-    optional<Guard> ogc(std::in_place);   // default-constructs the contained value
+    optional<Guard> ogc(in_place);   // default-constructs the contained value
     CHECK(bool(ogc));
     CHECK(ogc->val == "");
 
@@ -429,7 +441,7 @@ TEST_CASE("example1")
     CHECK(i == 1);
     *ol = 9;               // the object contained in ol becomes 9
     CHECK(*ol == 9);
-    CHECK(ol == std::make_optional(9));
+    CHECK(ol == make_optional(9));
 
     ///////////////////////////////////
     int p = 1;
@@ -511,7 +523,7 @@ TEST_CASE("example_optional_arg")
     iii = getValue<int>();
 
     {
-        optional<Guard> grd1{std::in_place, "res1", 1};   // guard 1 initialized
+        optional<Guard> grd1{in_place, "res1", 1};   // guard 1 initialized
         optional<Guard> grd2;
 
         grd2.emplace("res2", 2);  // guard 2 initialized
@@ -613,7 +625,7 @@ TEST_CASE("example_rationale")
 
     /////////////////////////////////
     optional<int> o;
-    o = std::make_optional(1); // copy/move assignment
+    o = make_optional(1); // copy/move assignment
     o = 1;                     // assignment from T
     o.emplace(1);              // emplacement
 
@@ -644,7 +656,7 @@ TEST_CASE("example_rationale")
     // inconvenient syntax:
     {
 
-        optional<std::vector<int>> ov2{std::in_place, {2, 3}};
+        optional<std::vector<int>> ov2{in_place, {2, 3}};
 
         CHECK(bool(ov2));
         CHECK((*ov2)[1] == 3);
@@ -652,7 +664,7 @@ TEST_CASE("example_rationale")
         ////////////////////////////
 
         std::vector<int> v = {1, 2, 4, 8};
-        optional<std::vector<int>> ov{std::in_place, {1, 2, 4, 8}};
+        optional<std::vector<int>> ov{in_place, {1, 2, 4, 8}};
 
         CHECK(v == *ov);
 
@@ -668,8 +680,8 @@ TEST_CASE("example_rationale")
     /////////////////////////////////
     {
         typedef int T;
-        optional<optional<T>> ot {std::in_place};
-        optional<optional<T>> ou {std::in_place, nullopt};
+        optional<optional<T>> ot {in_place};
+        optional<optional<T>> ou {in_place, nullopt};
         optional<optional<T>> ov {optional<T>{}};
 
         optional<int> oi;
@@ -831,10 +843,10 @@ TEST_CASE("bad_relops")
 
 TEST_CASE("mixed_equality")
 {
-    CHECK(std::make_optional(0) == 0);
-    CHECK(std::make_optional(1) == 1);
-    CHECK(std::make_optional(0) != 1);
-    CHECK(std::make_optional(1) != 0);
+    CHECK(make_optional(0) == 0);
+    CHECK(make_optional(1) == 1);
+    CHECK(make_optional(0) != 1);
+    CHECK(make_optional(1) != 0);
 
     optional<int> oN {nullopt};
     optional<int> o0 {0};
@@ -910,7 +922,7 @@ TEST_CASE("safe_value")
         try {
             ovN.value();
             CHECK(false);
-        } catch (std::bad_optional_access const &) {
+        } catch (bad_optional_access const &) {
         }
 
         { // ref variant
@@ -923,7 +935,7 @@ TEST_CASE("safe_value")
             try {
                 orN.value();
                 CHECK(false);
-            } catch (std::bad_optional_access const &) {
+            } catch (bad_optional_access const &) {
             }
         }
     } catch (...) {
@@ -952,7 +964,7 @@ TEST_CASE("optional_ref")
     CHECK(*ori == 9);
 
     int j = 22;
-    auto && oj = std::make_optional(std::ref(j));
+    auto && oj = make_optional(std::ref(j));
     (*oj)++;
 
 //     CHECK((& *oj == & j));
@@ -1106,7 +1118,7 @@ TEST_CASE("optional_ref_emulation")
 # if OPTIONAL_HAS_THIS_RVALUE_REFS == 1
 TEST_CASE("moved_on_value_or")
 {
-    optional<Oracle> oo{std::in_place};
+    optional<Oracle> oo{in_place};
 
     CHECK(oo);
     CHECK(oo->s == sDefaultConstructed);
@@ -1116,7 +1128,7 @@ TEST_CASE("moved_on_value_or")
     CHECK(oo->s == sMovedFrom);
     CHECK(o.s == sMoveConstructed);
 
-    optional<MoveAware<int>> om {std::in_place, 1};
+    optional<MoveAware<int>> om {in_place, 1};
     CHECK(om);
     CHECK(om->moved == false);
 
@@ -1126,10 +1138,10 @@ TEST_CASE("moved_on_value_or")
 
 #   if OPTIONAL_HAS_MOVE_ACCESSORS == 1
     {
-        Date d = optional<Date>{std::in_place, 1}.value();
+        Date d = optional<Date>{in_place, 1}.value();
         CHECK(d.i); // to silence compiler warning
 
-        Date d2 = *optional<Date>{std::in_place, 1};
+        Date d2 = *optional<Date>{in_place, 1};
         CHECK(d2.i); // to silence compiler warning
     }
 #   endif
@@ -1258,12 +1270,12 @@ struct Nasty
 
 TEST_CASE("arrow_operator")
 {
-    optional<Combined> oc1{std::in_place, 1, 2};
+    optional<Combined> oc1{in_place, 1, 2};
     CHECK(oc1);
     CHECK(oc1->m == 1);
     CHECK(oc1->n == 2);
 
-    optional<Nasty> on{std::in_place, 1, 2};
+    optional<Nasty> on{in_place, 1, 2};
     CHECK(on);
     CHECK(on->m == 1);
     CHECK(on->n == 2);
@@ -1297,7 +1309,7 @@ TEST_CASE("arrow_wit_optional_ref")
     CHECK(on->get().m == 5);
     CHECK(on->get().n == 6);
 
-    optional<std::reference_wrapper<Nasty>> om{std::in_place, n};
+    optional<std::reference_wrapper<Nasty>> om{in_place, n};
     CHECK(om);
     CHECK(om->get().m == 1);
     CHECK(om->get().n == 2);
@@ -1338,7 +1350,7 @@ int CountedObject::_counter = 0;
 TEST_CASE("exception_safety")
 {
     try {
-        optional<CountedObject> oo(std::in_place, true); // throw
+        optional<CountedObject> oo(in_place, true); // throw
         optional<CountedObject> o1(oo);
     } catch(...) {
         //
@@ -1346,7 +1358,7 @@ TEST_CASE("exception_safety")
     CHECK(CountedObject::_counter == 0);
 
     try {
-        optional<CountedObject> oo(std::in_place, true); // throw
+        optional<CountedObject> oo(in_place, true); // throw
         optional<CountedObject> o1(std::move(oo));  // now move
     } catch(...) {
         //
@@ -1360,11 +1372,11 @@ TEST_CASE("nested_optional")
     optional<optional<optional<int>>> o1 {nullopt};
     CHECK(!o1);
 
-    optional<optional<optional<int>>> o2 {std::in_place, nullopt};
+    optional<optional<optional<int>>> o2 {in_place, nullopt};
     CHECK(o2);
     CHECK(!*o2);
 
-    optional<optional<optional<int>>> o3 (std::in_place, std::in_place, nullopt);
+    optional<optional<optional<int>>> o3 (in_place, in_place, nullopt);
     CHECK(o3);
     CHECK(*o3);
     CHECK(!**o3);
@@ -1395,16 +1407,6 @@ struct NothrowNone
     NothrowNone (NothrowNone &&) noexcept(false) {}
     void operator = (NothrowNone &&) noexcept(false) {}
 };
-
-
-#ifndef PFS_NO_STD_OPTIONAL
-template <class T> inline constexpr typename std::remove_reference<T>::type&& constexpr_move(T&& t) noexcept
-{
-    return static_cast<typename std::remove_reference<T>::type&&>(t);
-}
-#else
-    using std::constexpr_move;
-#endif
 
 // FIXME
 // TEST_CASE("test_noexcept")
@@ -1486,7 +1488,7 @@ static_assert( optional<int>{3}.value_or(1) == 3, "WTF!" );
 static_assert( optional<int>{}.value_or(4) == 4, "WTF!" );
 # endif
 
-constexpr optional<Combined> gc0{std::in_place};
+constexpr optional<Combined> gc0{in_place};
 static_assert(gc0->n == 6, "WTF!");
 
 // constexpr int gci = 1;
@@ -1525,7 +1527,7 @@ namespace InitList {
     constexpr ConstInitLister CIL {2, 3, 4};
     static_assert(CIL.len == 3, "WTF!");
 
-    constexpr optional<ConstInitLister> oil {std::in_place, {4, 5, 6, 7}};
+    constexpr optional<ConstInitLister> oil {in_place, {4, 5, 6, 7}};
     static_assert(oil, "WTF!");
     static_assert(oil->len == 4, "WTF!");
 }
