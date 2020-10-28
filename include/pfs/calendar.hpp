@@ -9,7 +9,6 @@
 #pragma once
 #include "compare.hpp"
 #include "fmt.hpp"
-#include "integral_cast.hpp"
 #include <array>
 #include <locale>
 #include <tuple>
@@ -144,9 +143,9 @@ date_info decompose (intmax_t julian_day)
     auto month = m + 3 - 12 * floor_div(m, 10);
     auto year = 100 * b + d - 4800 + floor_div(m, 10);
 
-    result.day_of_month = integral_cast<decltype(result.day_of_month)>(day_of_month);
-    result.month = integral_cast<decltype(result.month)>(month);
-    result.year = integral_cast<decltype(result.year)>(year);
+    result.day_of_month = static_cast<decltype(result.day_of_month)>(day_of_month);
+    result.month = static_cast<decltype(result.month)>(month);
+    result.year = static_cast<decltype(result.year)>(year);
 
     if (result.year <= 0)
         --result.year;
@@ -158,7 +157,7 @@ date_info decompose (intmax_t julian_day)
 
     auto day_of_year = julian_day - make_julian_day(result.year, 1, 1) + 1;
 
-    result.day_of_year = integral_cast<decltype(result.day_of_year)>(day_of_year);
+    result.day_of_year = static_cast<decltype(result.day_of_year)>(day_of_year);
 
     return result;
 }
