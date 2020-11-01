@@ -16,13 +16,6 @@
     namespace fs = std::filesystem;
 #endif
 
-#if defined(_WIN32) || defined(_WIN64)
-// Test dlerror() function implementation for Windows
-TEST_CASE("dlerror") {
-    // TODO
-}
-#endif
-
 TEST_CASE("Dynamic Library basics") {
     pfs::dynamic_library dl;
     typedef int (* dl_test_fn)(void);
@@ -30,7 +23,7 @@ TEST_CASE("Dynamic Library basics") {
 #if (defined(_WIN32) || defined(_WIN64)) && defined(_UNICODE)
     auto dlfile = L"./" + pfs::dynamic_library::build_dl_filename(L"shared_object");
 #else
-    auto dlfile = L"./" + pfs::dynamic_library::build_dl_filename("shared_object");
+    auto dlfile = "./" + pfs::dynamic_library::build_dl_filename("shared_object");
 #endif
 
     std::error_code ec;
@@ -40,7 +33,7 @@ TEST_CASE("Dynamic Library basics") {
     REQUIRE_MESSAGE(rc, "Dynamic library open failed: " << ec.message());
 
     dl_test_fn dltest = pfs::void_func_ptr_cast<dl_test_fn>(
-         dl.resolve("dl_only_for_testing_purpose", ec));
+        dl.resolve("dl_only_for_testing_purpose", ec));
 
     REQUIRE_MESSAGE(!ec, "Dynamic library symbol resolve failed: " << ec.message());
     MESSAGE("'dl_only_for_testing_purpose': symbol (function pointer) found");
