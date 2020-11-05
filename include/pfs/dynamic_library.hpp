@@ -220,6 +220,11 @@ public:
         return _handle;
     }
 
+    std::string const & native_error () const
+    {
+        return _native_error;
+    }
+
     bool open (fs::path const & p, std::error_code & ec)
     {
         native_handle_type h{0};
