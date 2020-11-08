@@ -6,7 +6,9 @@
 #include <iterator>
 #include <string>
 #include <sstream>
-#include "unicode/utf8/test_data.hpp"
+
+#define UTF_SUBDIR "utf8"
+#include "unicode/test_data.hpp"
 
 template <typename OctetIt>
 bool decode (const char * itertype)

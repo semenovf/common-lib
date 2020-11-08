@@ -8,7 +8,7 @@
 //      2020.11.01 Refactored u8_input_iterator
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
-#include <pfs/unicode/ux_iterator.hpp>
+#include <pfs/unicode/utf_iterator.hpp>
 
 /* UTF-8
  *
@@ -26,10 +26,10 @@ namespace unicode {
 
 template <typename OctetInputIt, typename BrokenSeqAction = ignore_broken_sequence>
 class u8_input_iterator
-    : public details::ux_input_iterator<u8_input_iterator<OctetInputIt, BrokenSeqAction>
+    : public details::utf_input_iterator<u8_input_iterator<OctetInputIt, BrokenSeqAction>
         , OctetInputIt, BrokenSeqAction>
 {
-    using base_class = details::ux_input_iterator<u8_input_iterator, OctetInputIt, BrokenSeqAction>;
+    using base_class = details::utf_input_iterator<u8_input_iterator, OctetInputIt, BrokenSeqAction>;
 
 public:
     using difference_type = typename base_class::difference_type;

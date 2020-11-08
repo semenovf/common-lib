@@ -1,10 +1,20 @@
+////////////////////////////////////////////////////////////////////////////////
+// Copyright (c) 2019-2020 Vladislav Trifochkin
+//
+// This file is part of [pfs-common](https://github.com/semenovf/pfs-common) library.
+//
+// Changelog:
+//
+////////////////////////////////////////////////////////////////////////////////
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include "doctest.h"
 #include <pfs/unicode/unicode_iterator.hpp>
 #include <pfs/unicode/u8_iterator.hpp>
 #include <string>
 #include <sstream>
-#include "unicode/utf8/test_data.hpp"
+
+#define UTF_SUBDIR "utf8"
+#include "unicode/test_data.hpp"
 
 template <typename OctetIt>
 bool encode (char const * itertype)

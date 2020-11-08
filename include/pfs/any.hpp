@@ -16,5 +16,8 @@
 
 #   define STX_NO_STD_ANY
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wplacement-new"
 #   include "3rdparty/stx/any.hpp"
+#pragma GCC diagnostic pop
 #endif

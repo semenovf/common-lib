@@ -20,14 +20,14 @@ struct unicode_iterator_traits;
 namespace details {
 
 template <typename Derived, typename XtetInputIt, typename BrokenSeqAction>
-class ux_input_iterator : public iterator_facade<input_iterator_tag
-        , ux_input_iterator<Derived, XtetInputIt, BrokenSeqAction>
+class utf_input_iterator : public iterator_facade<input_iterator_tag
+        , utf_input_iterator<Derived, XtetInputIt, BrokenSeqAction>
         , char_t
         , char_t *  // unused
         , char_t &> // unused
 {
     typedef iterator_facade<input_iterator_tag
-        , ux_input_iterator<Derived, XtetInputIt, BrokenSeqAction>
+        , utf_input_iterator<Derived, XtetInputIt, BrokenSeqAction>
         , char_t
         , char_t *
         , char_t &> base_class;
@@ -48,12 +48,12 @@ protected:
     int8_t       _flag;
 
 public:
-    ux_input_iterator ()
+    utf_input_iterator ()
         : _p(0)
         , _flag(0)
     {}
 
-    ux_input_iterator (XtetInputIt & first, XtetInputIt last)
+    utf_input_iterator (XtetInputIt & first, XtetInputIt last)
         : _p(& first)
         , _last(last)
         , _flag(0)
@@ -66,7 +66,7 @@ public:
         }
     }
 
-    ux_input_iterator (XtetInputIt last)
+    utf_input_iterator (XtetInputIt last)
         : _p(0)
         , _last(last)
         , _flag(ATEND_FLAG)
@@ -83,7 +83,7 @@ public:
         return & _value;
     }
 
-    bool equals (ux_input_iterator const & rhs) const
+    bool equals (utf_input_iterator const & rhs) const
     {
         return ((_flag & ATEND_FLAG) && (rhs._flag & ATEND_FLAG))
                 && (_p == rhs._p);
@@ -92,6 +92,11 @@ public:
     void increment (difference_type)
     {
         static_cast<Derived *>(this)->increment(1);
+    }
+
+    bool is_broken () const
+    {
+        return _flag & BROKEN_FLAG;
     }
 
 protected:
