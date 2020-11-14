@@ -684,8 +684,23 @@ public:
     {
         std::unique_lock<mutex_type> locker{_mtx};
 
-        if (!base_class::size())
-            _condvar.wait(locker, [this] { return base_class::size(); });
+        if (base_class::empty()) {
+            _condvar.wait(locker, [this] {
+                return !base_class::empty();
+            });
+        }
+    }
+
+    template <typename Rep, typename Period>
+    void wait_for (std::chrono::duration<Rep, Period> const & rel_time)
+    {
+        std::unique_lock<mutex_type> locker{_mtx};
+
+        if (base_class::empty()) {
+            _condvar.wait_for(locker, rel_time, [this] {
+                return !base_class::empty();
+            });
+        }
     }
 };
 
