@@ -8,6 +8,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
 #include "pfs/iterator.hpp"
+#include <condition_variable>
 #include <limits>
 #include <list>
 #include <mutex>
@@ -81,7 +82,7 @@ public:
         return it >= & _data[0] && it < & _data[N];
     }
 
-    // Move values inclusive from first to last 
+    // Move values inclusive from first to last
     static iterator move_values (iterator first, iterator last, iterator pos)
     {
         auto last_pos = pos;
@@ -546,12 +547,14 @@ private:
 template <typename T
     , size_t BulkSize
     , typename BasicLockable = std::mutex
+    , typename ConditionVariable = std::condition_variable
     , template <typename> class ListContainer = ring_buffer_details::default_list_container
     , template <typename, size_t> class BulkContainer = ring_buffer_details::default_bulk_container>
 class ring_buffer_mt : protected ring_buffer<T, BulkSize, ListContainer, BulkContainer>
 {
     using base_class = ring_buffer<T, BulkSize, ListContainer, BulkContainer>;
     using mutex_type = BasicLockable;
+    using condition_variable_type = ConditionVariable;
 
 public:
     using value_type = typename base_class::value_type;
@@ -559,6 +562,7 @@ public:
 
 private:
     mutable mutex_type _mtx;
+    mutable condition_variable_type _condvar;
 
 public:
     using base_class::base_class;
@@ -611,6 +615,7 @@ public:
         }
 
         base_class::push(value);
+        _condvar.notify_one();
         return true;
     }
 
@@ -629,6 +634,7 @@ public:
         }
 
         base_class::push(std::forward<value_type>(value));
+        _condvar.notify_one();
         return true;
     }
 
@@ -641,6 +647,7 @@ public:
             return false;
 
         base_class::emplace(std::forward<Args>(args)...);
+        _condvar.notify_one();
         return true;
     }
 
@@ -657,6 +664,7 @@ public:
         }
 
         base_class::emplace(std::forward<Args>(args)...);
+        _condvar.notify_one();
         return true;
     }
 
@@ -670,6 +678,14 @@ public:
         value = std::move(base_class::front());
         base_class::pop();
         return true;
+    }
+
+    void wait ()
+    {
+        std::unique_lock<mutex_type> locker{_mtx};
+
+        if (!base_class::size())
+            _condvar.wait(locker, [this] { return base_class::size(); });
     }
 };
 

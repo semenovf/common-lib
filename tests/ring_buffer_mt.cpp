@@ -204,3 +204,78 @@ TEST_CASE("Multithreading with expandable buffer") {
     CHECK_MESSAGE((test_producer_consumer_expanded<32, 5, counter>(6, 4, 10))
         , "N producers / N consumers");
 }
+
+template <size_t BulkSize, size_t N, int Count>
+bool test_producer_consumer_wait (int nproducers
+    , int nconsumers
+    , int capacity_inc)
+{
+    pfs::ring_buffer_mt<X, BulkSize> rb{N};
+    std::atomic_int counter {Count};
+
+    std::vector<std::thread> producers;
+    std::vector<std::thread> consumers;
+
+    int quit_flag = 1042;
+
+    MESSAGE("Initial capacity: " << rb.capacity() << "\n");
+
+    for (int i = 0; i < nproducers; i++) {
+        producers.emplace_back([& rb, & counter, quit_flag, capacity_inc, nconsumers] () {
+            while (counter > 0) {
+                if (rb.try_emplace(42)) {
+                    rb.reserve(rb.capacity() + static_cast<size_t>(capacity_inc));
+                    REQUIRE(rb.try_emplace(42));
+                    --counter;
+                }
+            }
+
+            for (int i = 0; i < nconsumers; i++)
+                rb.try_emplace(quit_flag);
+        });
+
+
+    }
+
+    for (int i = 0; i < nconsumers; i++) {
+        consumers.emplace_back([& rb, quit_flag] () {
+            while (true) {
+                X x;
+                rb.wait();
+                if (rb.try_pop(x)) {
+                    if (x.x() == quit_flag)
+                        break;
+                    CHECK(x.x() == 42);
+                }
+            }
+        });
+    }
+
+    for (auto & p: producers)
+        p.join();
+
+    for (auto & c: consumers)
+        c.join();
+
+    MESSAGE("Result capacity: " << rb.capacity() << "\n");
+    return counter <= 0;
+}
+
+TEST_CASE("Multithreading with wait()") {
+        static constexpr int counter = 100000;
+
+    CHECK_MESSAGE((test_producer_consumer_wait<32, 5, counter>(1, 1, 10))
+        , "One producer / One consumer");
+
+    CHECK_MESSAGE((test_producer_consumer_wait<32, 5, counter>(1, 5, 10))
+        , "One producer / N consumers");
+
+    CHECK_MESSAGE((test_producer_consumer_wait<32, 5, counter>(5, 1, 10))
+        , "N producers / One consumers");
+
+    CHECK_MESSAGE((test_producer_consumer_wait<32, 5, counter>(4, 6, 10))
+        , "N producers / N consumers");
+
+    CHECK_MESSAGE((test_producer_consumer_wait<32, 5, counter>(6, 4, 10))
+        , "N producers / N consumers");
+}
