@@ -1,6 +1,7 @@
 !.gitignore
 
 .settings/
+.vs/
 .build*/
 build*/
 .kdev4/
@@ -51,3 +52,4 @@ moc_*.cpp
 qrc_*.cpp
 .sconsign.dblite
 Doxyget.err
+CMakeSettings.json
