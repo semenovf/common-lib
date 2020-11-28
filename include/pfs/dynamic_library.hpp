@@ -359,9 +359,14 @@ public:
     {
         fs::path::string_type result;
 
-#if (defined(_WIN32) || defined(_WIN64)) && defined(_UNICODE)
+#if defined(_WIN32) || defined(_WIN64)
+#   if defined(_UNICODE)
         result += name;
         result += L".dll";
+#   else
+        result += name;
+        result += ".dll";
+#   endif
 #else
         result += "lib";
         result += name;
