@@ -17,5 +17,5 @@ TEST_CASE("Decode utf16le") {
 //     decode<int16_t const *>("int16_t const *", true);
 // //     decode<std::string::iterator>("std::string::iterator");
 // //     decode<std::string::const_iterator>("std::string::const_iterator");
-    decode_files(true);
+//     decode_files(true);
 }

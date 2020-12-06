@@ -708,16 +708,25 @@ TEST_CASE("test_io")
 
     padding<char>();
     padding<wchar_t>();
-//     padding<char16_t>(); // FIXME throws bad_cast
-//     padding<char32_t>(); // FIXME throws bad_cast
+    
+#if !defined(PFS_NO_STD_STRING_VIEW)    
+    padding<char16_t>();
+    padding<char32_t>();
+#endif    
 
     padding_fill<char>();
     padding_fill<wchar_t>();
-//     padding_fill<char16_t>();
-//     padding_fill<char32_t>();
+    
+#if !defined(PFS_NO_STD_STRING_VIEW)        
+//     padding_fill<char16_t>(); // Throws exception std::bad_cast
+//     padding_fill<char32_t>(); // Throws exception std::bad_cast
+#endif
 
     alignment<char>();
     alignment<wchar_t>();
-//     alignment<char16_t>(); // FIXME throws bad_cast
-//     alignment<char32_t>(); // FIXME throws bad_cast
+    
+#if !defined(PFS_NO_STD_STRING_VIEW)        
+    alignment<char16_t>();
+    alignment<char32_t>();
+#endif
 }
