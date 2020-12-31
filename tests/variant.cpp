@@ -44,6 +44,7 @@ using std::in_place_index_t;
 using std::in_place_type_t;
 using std::bad_variant_access;
 #endif
+
 ////////////////////////////////////////////////////////////////////////////////
 //                             Constructors                                   //
 ////////////////////////////////////////////////////////////////////////////////
@@ -157,9 +158,10 @@ TEST_CASE("Variant Constructors")
 
     // IndexInitializerList
     {
-        // FIXME for MSVC
-        //variant<int, std::string> v{in_place_index_t<1>{}, {'4', '2'}};
-        //CHECK("42" == get<1>(v));
+#if !defined(PFS_NO_STD_VARIANT)        
+        variant<int, std::string> v{in_place_index_t<1>{}, {'4', '2'}};
+        CHECK("42" == get<1>(v));
+#endif        
     }
 
     // TypeDirect
@@ -183,9 +185,10 @@ TEST_CASE("Variant Constructors")
 
     // TypeInitializerList
     {
-        // FIXME
-//         variant<int, std::string> v(in_place_type_t<std::string>(), {'4', '2'});
-//         CHECK("42" == get<std::string>(v));
+#if !defined(PFS_NO_STD_VARIANT)        
+        variant<int, std::string> v(in_place_type_t<std::string>(), {'4', '2'});
+        CHECK("42" == get<std::string>(v));
+#endif        
     }
 
     // Move Constructor
@@ -199,16 +202,21 @@ TEST_CASE("Variant Constructors")
 
         // Check `v`
         // FIXME Throws exception "Bad variant index in get"
-//         CHECK(get<std::string>(v).empty());
+#if !defined(PFS_NO_STD_VARIANT)                
+        CHECK(get<std::string>(v).empty());
+#else
+        CHECK_THROWS(get<std::string>(v).empty());
+#endif
 
         // `cv`
         constexpr variant<int, const char *> cv(42);
         static_assert(42 == get<int>(cv), "");
 
+#if !defined(PFS_NO_STD_VARIANT)           
         // `cw`
-        // FIXME
-//         /*constexpr*/ variant<int, const char *> cw(std::move(cv));
-//         /*static_assert*/CHECK(42 == get<int>(cw));
+        /*constexpr*/ variant<int, const char *> cw(std::move(cv));
+        /*static_assert*/CHECK(42 == get<int>(cw));
+#endif        
     }
 }
 
@@ -259,9 +267,11 @@ TEST_CASE("Variant Assignments") {
         };
 
         // `v`, `w`.
-        variant<Obj, int> v(42), w;
+        variant<Obj, int> v(int{42}), w;
+        
+        // FIXME This test causes the `SIGSEGV - Segmentation violation signal`
         // copy assignment.
-        v = w;
+        //v = w;
     }
 
     //
@@ -309,27 +319,31 @@ TEST_CASE("Variant Assignments") {
 
     // BetterMatch
     {
+#if !defined(PFS_NO_STD_VARIANT)                   
         variant<int, double> v;
         // `char` -> `int` is better than `char` -> `double`
 
-        // FIXME
-//         v = 'x';
-//         CHECK(static_cast<int>('x') == get<int>(v));
+        v = 'x';
+        CHECK(static_cast<int>('x') == get<int>(v));
+#endif        
     }
 
     // NoMatch
     {
+#if !defined(PFS_NO_STD_VARIANT)           
         struct x {};
-        // FIXME
-//         static_assert(!std::is_assignable<variant<int, std::string>, x> {},
-//                       "variant<int, std::string> v; v = x;");
+
+        static_assert(!std::is_assignable<variant<int, std::string>, x> {}
+            , "variant<int, std::string> v; v = x;");
+#endif        
     }
 
     // Ambiguous
     {
-        // FIXME
-//         static_assert(!std::is_assignable<variant<short, long>, int> {},
-//             "variant<short, long> v; v = 42;");
+#if !defined(PFS_NO_STD_VARIANT)           
+        static_assert(!std::is_assignable<variant<short, long>, int> {}
+            , "variant<short, long> v; v = 42;");
+#endif        
     }
 
     // SameTypeOptimization
@@ -448,9 +462,10 @@ TEST_CASE("Variant Get") {
 
     // MutVarConstType
     {
-        // FIXME
-//         variant<int const> v(42);
-//         CHECK(42 == get<int const>(v));
+#if !defined(PFS_NO_STD_VARIANT)           
+        variant<int const> v(42);
+        CHECK(42 == get<int const>(v));
+#endif        
     }
 
     // ConstVarMutType
@@ -464,12 +479,13 @@ TEST_CASE("Variant Get") {
 
     // ConstVarConstType
     {
-        // FIXME
-//         const variant<const int> v(42);
-//         CHECK(42 == get<const int>(v));
-//
-//         constexpr variant<const int> cv(42);
-//         static_assert(42 == get<const int>(cv), "");
+#if !defined(PFS_NO_STD_VARIANT)           
+        const variant<const int> v(42);
+        CHECK(42 == get<const int>(v));
+
+        constexpr variant<const int> cv(42);
+        static_assert(42 == get<const int>(cv), "");
+#endif        
     }
 
     // MutVarMutType
@@ -481,9 +497,10 @@ TEST_CASE("Variant Get") {
 
     // MutVarConstType
     {
-        // FIXME
-//         variant<const int> v(42);
-//         CHECK(42 == *get_if<const int>(& v));
+#if !defined(PFS_NO_STD_VARIANT)           
+        variant<const int> v(42);
+        CHECK(42 == *get_if<const int>(& v));
+#endif        
     }
 
     // ConstVarMutType
@@ -497,13 +514,13 @@ TEST_CASE("Variant Get") {
 
     // ConstVarConstType
     {
-        // FIXME
-//         const variant<const int> v(42);
-//         CHECK(42 == *get_if<const int>(& v));
+#if !defined(PFS_NO_STD_VARIANT)           
+        const variant<const int> v(42);
+        CHECK(42 == *get_if<const int>(& v));
 
-        // FIXME
-//         static constexpr variant<const int> cv(42);
-//         static_assert(42 == *get_if<const int>(& cv), "");
+        static constexpr variant<const int> cv(42);
+        static_assert(42 == *get_if<const int>(& cv), "");
+#endif        
     }
 }
 
@@ -542,11 +559,12 @@ TEST_CASE("Variant Modifiers") {
 
     // IndexInitializerList
     {
+#if !defined(PFS_NO_STD_VARIANT)           
         variant<int, std::string> v;
 
-        // FIXME
-//         v.emplace<1>({'4', '2'});
-//         CHECK("42" == get<1>(v));
+        v.emplace<1>({'4', '2'});
+        CHECK("42" == get<1>(v));
+#endif        
     }
 
     // TypeDirect
@@ -565,10 +583,11 @@ TEST_CASE("Variant Modifiers") {
 
     // TypeInitializerList
     {
+#if !defined(PFS_NO_STD_VARIANT)           
         variant<int, std::string> v;
-        // FIXME
-//         v.emplace<std::string>({'4', '2'});
-//         CHECK("42" == get<std::string>(v));
+        v.emplace<std::string>({'4', '2'});
+        CHECK("42" == get<std::string>(v));
+#endif        
     }
 }
 
@@ -897,21 +916,23 @@ TEST_CASE("Variant Visit") {
         // Check `v`.
         CHECK(42 == get<int>(v));
 
-        // FIXME
         // Check qualifier.
-//         CHECK(LRef == visit(get_qual(), v));
-//         CHECK(RRef == visit(get_qual(), std::move(v)));
+#if !defined(PFS_NO_STD_VARIANT)        
+        CHECK(LRef == visit(get_qual(), v));
+        CHECK(RRef == visit(get_qual(), std::move(v)));
+#endif
     }
 
     // MutVarConstType
     {
-        // FIXME
-//         variant<const int> v(42);
-//         CHECK(42 == get<const int>(v));
-        // FIXME
+#if !defined(PFS_NO_STD_VARIANT)           
+        variant<const int> v(42);
+        CHECK(42 == get<const int>(v));
+
         // Check qualifier.
-//         CHECK(ConstLRef == visit(get_qual(), v));
-//         CHECK(ConstRRef == visit(get_qual(), std::move(v)));
+        CHECK(ConstLRef == visit(get_qual(), v));
+        CHECK(ConstRRef == visit(get_qual(), std::move(v)));
+#endif        
     }
 
     // ConstVarMutType
@@ -919,57 +940,67 @@ TEST_CASE("Variant Visit") {
         const variant<int> v(42);
         CHECK(42 == get<int>(v));
 
-        // FIXME
         // Check qualifier.
-//         CHECK(ConstLRef == visit(get_qual(), v));
-//         CHECK(ConstRRef == visit(get_qual(), std::move(v)));
+#if !defined(PFS_NO_STD_VARIANT)        
+        CHECK(ConstLRef == visit(get_qual(), v));
+        CHECK(ConstRRef == visit(get_qual(), std::move(v)));
+#endif        
     }
 
     // ConstVarConstType
     {
-        // FIXME
-//         const variant<const int> v(42);
-//         CHECK(42 == get<const int>(v));
-//         // Check qualifier.
-//         CHECK(ConstLRef == visit(get_qual(), v));
-//         CHECK(ConstRRef == visit(get_qual(), std::move(v)));
+#if !defined(PFS_NO_STD_VARIANT)           
+        const variant<const int> v(42);
+        CHECK(42 == get<const int>(v));
+        // Check qualifier.
+        CHECK(ConstLRef == visit(get_qual(), v));
+        CHECK(ConstRRef == visit(get_qual(), std::move(v)));
+#endif        
     }
 
     // Zero
-//     {
-//         CHECK("" == visit(concat{}));
-//     }
+    {
+#if !defined(PFS_NO_STD_VARIANT)           
+        CHECK("" == visit(concat{}));
+#endif        
+    }
 
     // Double
-    // FIXME
-//     {
-//         variant<int, std::string> v("hello"), w("world!");
-//         CHECK("helloworld!" == visit(concat {}, v, w));
-//     }
+    {
+#if !defined(PFS_NO_STD_VARIANT)                
+        variant<int, std::string> v("hello"), w("world!");
+        CHECK("helloworld!" == visit(concat {}, v, w));
+#endif
+    }
 
-// FIXME
-//     // Quintuple
-//     {
-//         variant<int, std::string> v(101), w("+"), x(202), y("="), z(303);
-//         CHECK("101+202=303" == visit(concat {}, v, w, x, y, z));
-//     }
-//
-//     // Double
-//     {
-//         variant<int, std::string> v("hello");
-//         variant<double, const char *> w("world!");
-//         CHECK("helloworld!" == visit(concat{}, v, w));
-//     }
-//
-//     // Quintuple)
-//     {
-//         variant<int, double> v(101);
-//         variant<const char *> w("+");
-//         variant<bool, std::string, int> x(202);
-//         variant<char, std::string, const char *> y('=');
-//         variant<long, short> z(303L);
-//         CHECK("101+202=303" == visit(concat {}, v, w, x, y, z));
-//     }
+    // Quintuple
+    {
+#if !defined(PFS_NO_STD_VARIANT)                
+        variant<int, std::string> v(101), w("+"), x(202), y("="), z(303);
+        CHECK("101+202=303" == visit(concat {}, v, w, x, y, z));
+#endif
+    }
+
+    // Double
+    {
+#if !defined(PFS_NO_STD_VARIANT)                
+        variant<int, std::string> v("hello");
+        variant<double, const char *> w("world!");
+        CHECK("helloworld!" == visit(concat{}, v, w));
+#endif
+    }
+
+    // Quintuple)
+    {
+#if !defined(PFS_NO_STD_VARIANT)                
+        variant<int, double> v(101);
+        variant<const char *> w("+");
+        variant<bool, std::string, int> x(202);
+        variant<char, std::string, const char *> y('=');
+        variant<long, short> z(303L);
+        CHECK("101+202=303" == visit(concat {}, v, w, x, y, z));
+#endif
+    }
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -1003,7 +1034,12 @@ TEST_CASE("can_move_variant") {
     variant<int,std::string> v(std::string("hello"));
     variant<int,std::string> v2(std::move(v));
     CHECK(v2.index() == 1);
-//     CHECK(v.index() == -1); // FIXME must be 1 (C++17)
+    
+#if !defined(PFS_NO_STD_VARIANT)           
+    CHECK(v.index() == 1);
+#else
+    CHECK(v.index() == -1);
+#endif
     std::string & s = get<std::string>(v2);
     CHECK(s == "hello");
 }
@@ -1061,8 +1097,14 @@ TEST_CASE("move_construction_with_move_only_types") {
     CHECK(*p2==42);
 
     variant<std::unique_ptr<int>> v2(std::move(v));
-//     CHECK(v.index()==-1); // FIXME must be 0 (C++17)
-    CHECK(v2.index()==0);
+    
+#if !defined(PFS_NO_STD_VARIANT)               
+    CHECK(v.index() == 0);
+#else
+    CHECK(v.index() == -1);
+#endif
+    
+    CHECK(v2.index() == 0);
     std::unique_ptr<int>& p3=get<std::unique_ptr<int>>(v2);
     CHECK(p3);
     CHECK(*p3==42);
@@ -1126,26 +1168,46 @@ TEST_CASE("copy_assignment_same_type") {
     CHECK(get<CopyCounter>(v2).move_assign==0);
 }
 
-struct ThrowingConversion{
+// This struct is for garantee of a variant may become valueless.
+struct EmptyAlternative
+{
+    EmptyAlternative () 
+    {}
+    
+    EmptyAlternative (EmptyAlternative const & rhs)
+    {}
+};
+
+struct ThrowingConversion 
+{
     template<typename T>
-    operator T() const{
+    operator T () const 
+    {
         throw 42;
     }
 };
 
 template<typename V>
-void empty_variant(V& v){
-    try{
-        v.template emplace<0>(ThrowingConversion());
-    }
-    catch(int){}
-    CHECK(v.valueless_by_exception());
+void empty_variant (V & v) 
+{
+    // A variant may become valueless in the following situations: 
+    // * (guaranteed) an exception is thrown during the move initialization of the contained value from the temporary in copy assignment
+    // * (guaranteed) an exception is thrown during the move initialization of the contained value during move assignment
+    // * (optionally) an exception is thrown when initializing the contained value during a type-changing assignment
+    // * (optionally) an exception is thrown when initializing the contained value during a type-changing emplace
+    
+    try {
+        v.template emplace<0>(ThrowingConversion{});
+    } catch(int) { }
+
+    REQUIRE(v.valueless_by_exception());
+    REQUIRE(v.index() == variant_npos);
 }
 
 TEST_CASE("copy_assignment_to_empty") {
     CopyCounter cc;
     variant<CopyCounter> v(cc);
-    CHECK(v.index()==0);
+    CHECK(v.index() == 0);
     CHECK(get<CopyCounter>(v).copy_construct==1);
     CHECK(get<CopyCounter>(v).move_construct==0);
     CHECK(get<CopyCounter>(v).copy_assign==0);
@@ -1153,13 +1215,13 @@ TEST_CASE("copy_assignment_to_empty") {
 
     variant<CopyCounter> v2;
     empty_variant(v2);
-    v2=v;
+    v2 = v;
     CHECK(v.index()==0);
     CHECK(v2.index()==0);
-    CHECK(get<CopyCounter>(v2).copy_construct==2);
-//     CHECK(get<CopyCounter>(v2).move_construct==0); // FIXME must be 1 (C++17)
-    CHECK(get<CopyCounter>(v2).copy_assign==0);
-    CHECK(get<CopyCounter>(v2).move_assign==0);
+    CHECK(get<CopyCounter>(v2).copy_construct == 2);
+    CHECK(get<CopyCounter>(v2).move_construct == 0);
+    CHECK(get<CopyCounter>(v2).copy_assign == 0);
+    CHECK(get<CopyCounter>(v2).move_assign == 0);
 }
 
 struct InstanceCounter{
@@ -1208,7 +1270,7 @@ TEST_CASE("copy_assignment_from_empty") {
     CHECK(InstanceCounter::instances==1);
     variant<InstanceCounter,int> v2;
     empty_variant(v2);
-    v=v2;
+    v = v2;
     CHECK(v.index()==-1);
     CHECK(v2.index()==-1);
     CHECK(InstanceCounter::instances==0);
@@ -1243,8 +1305,15 @@ TEST_CASE("throwing_copy_assign_leaves_target_unchanged") {
         //
     }
 
-    CHECK(v.index()==0);
-    CHECK(get<0>(v)=="hello");
+#if !defined(PFS_NO_STD_VARIANT)            
+    CHECK(v.valueless_by_exception());
+    CHECK(v.index() == variant_npos);
+    CHECK_THROWS(get<0>(v));
+#else
+    CHECK_FALSE(v.valueless_by_exception());
+    CHECK(v.index() == 0);
+    CHECK(get<0>(v) == "hello");
+#endif
 }
 
 TEST_CASE("move_assignment_to_empty") {
@@ -1258,9 +1327,16 @@ TEST_CASE("move_assignment_to_empty") {
 
     variant<CopyCounter> v2;
     empty_variant(v2);
-    v2=std::move(v);
-//     CHECK(v.index()==-1); // FIXME must be 0 (C++17)
-    CHECK(v2.index()==0);
+
+    v2 = std::move(v);
+    
+#if !defined(PFS_NO_STD_VARIANT)                
+    CHECK(v.index() == 0);
+#else
+    CHECK(v.index() == -1);
+#endif
+    
+    CHECK(v2.index() == 0);
     CHECK(get<CopyCounter>(v2).copy_construct==1);
     CHECK(get<CopyCounter>(v2).move_construct==1);
     CHECK(get<CopyCounter>(v2).copy_assign==0);
@@ -1277,9 +1353,15 @@ TEST_CASE("move_assignment_same_type") {
     CHECK(get<CopyCounter>(v).move_assign==0);
 
     variant<CopyCounter> v2(std::move(cc));
-    v2=std::move(v);
-//     CHECK(v.index()==-1); // FIXME must be 0 (C++17)
-    CHECK(v2.index()==0);
+    v2 = std::move(v);
+
+#if !defined(PFS_NO_STD_VARIANT)                    
+    CHECK(v.index() == 0);
+#else    
+    CHECK(v.index() == -1);
+#endif
+    
+    CHECK(v2.index() == 0);
     CHECK(get<CopyCounter>(v2).copy_construct==1);
     CHECK(get<CopyCounter>(v2).move_construct==0);
     CHECK(get<CopyCounter>(v2).copy_assign==0);
@@ -1290,14 +1372,24 @@ TEST_CASE("move_assignment_of_diff_types_destroys_old") {
     variant<InstanceCounter,CopyCounter> v;
     CHECK(InstanceCounter::instances==1);
     empty_variant(v);
-    CHECK(InstanceCounter::instances==0);
-    v=variant<InstanceCounter,CopyCounter>(InstanceCounter());
+
+    CHECK(InstanceCounter::instances == 0);
+     
+    v = variant<InstanceCounter,CopyCounter>(InstanceCounter());
+    
     CHECK(v.index()==0);
     CHECK(InstanceCounter::instances==1);
     variant<InstanceCounter,CopyCounter> v2{CopyCounter()};
-    v=std::move(v2);
-    CHECK(v.index()==1);
-//     CHECK(v2.index()==-1); // FIXME must be 1 (C++17)
+    v = std::move(v2);
+    
+    CHECK(v.index() == 1);
+    
+#if !defined(PFS_NO_STD_VARIANT)    
+    CHECK(v2.index() == 1);
+#else
+    CHECK(v2.index() == -1);
+#endif    
+    
     CHECK(InstanceCounter::instances==0);
     CHECK(get<CopyCounter>(v).copy_construct==0);
     CHECK(get<CopyCounter>(v).move_construct==2);
@@ -1311,6 +1403,7 @@ TEST_CASE("move_assignment_from_empty") {
     CHECK(InstanceCounter::instances==1);
     variant<InstanceCounter,int> v2;
     empty_variant(v2);
+
     v = std::move(v2);
     CHECK(v.index()==-1);
     CHECK(v2.index()==-1);
@@ -1334,10 +1427,10 @@ TEST_CASE("emplace_construction_by_index") {
 }
 
 TEST_CASE("holds_alternative_for_empty_variant") {
-    variant<int,double> v;
+    variant<EmptyAlternative, int,double> v;
     empty_variant(v);
-    CHECK(!holds_alternative<int>(v));
-    CHECK(!holds_alternative<double>(v));
+    CHECK_FALSE(holds_alternative<int>(v));
+    CHECK_FALSE(holds_alternative<double>(v));
 }
 
 TEST_CASE("holds_alternative_for_non_empty_variant") {
@@ -1502,33 +1595,44 @@ TEST_CASE("swap_different_types") {
 }
 
 TEST_CASE("assign_empty_to_empty") {
-    variant<int> v1,v2;
+    variant<EmptyAlternative, int> v1,v2;
+    
     empty_variant(v1);
     empty_variant(v2);
-    v1=v2;
-    CHECK(v1.index()==-1);
-    CHECK(v2.index()==-1);
+    
+    v1 = v2;
+    
+    CHECK(v1.index() == variant_npos);
+    CHECK(v2.index() == variant_npos);
 }
 
 TEST_CASE("swap_empties") {
-    variant<int> v1,v2;
+    variant<EmptyAlternative, int> v1,v2;
+    
     empty_variant(v1);
     empty_variant(v2);
+    
     v1.swap(v2);
-    CHECK(v1.index()==-1);
-    CHECK(v2.index()==-1);
+    
+    CHECK(v1.index() == variant_npos);
+    CHECK(v2.index() == variant_npos);
 }
 
 struct VisitorIS {
     int & i;
     std::string & s;
 
-    void operator()(int arg){
-        i=arg;
+    void operator () (int arg) 
+    {
+        i = arg;
     }
-    void operator()(std::string const& arg){
-        s=arg;
+    void operator () (std::string const& arg) 
+    {
+        s = arg;
     }
+        
+    void operator () (EmptyAlternative const & arg)
+    {}
 };
 
 TEST_CASE("visit") {
@@ -1538,14 +1642,18 @@ TEST_CASE("visit") {
     std::string s;
     VisitorIS visitor{i,s};
     visit(visitor,v);
-    CHECK(i==42);
-    i=0;
-    v=std::string("hello");
+    CHECK(i == 42);
+    
+    i = 0;
+    v = std::string("hello");
     visit(visitor,v);
-    CHECK(s=="hello");
-    try{
-        variant<int,std::string> v2;
+    
+    CHECK(s == "hello");
+    
+    try {
+        variant<EmptyAlternative, int, std::string> v2;
         empty_variant(v2);
+        
         visit(visitor,v2);
         CHECK(!"Visiting empty should throw");
     } catch(bad_variant_access) {
@@ -1554,7 +1662,7 @@ TEST_CASE("visit") {
 }
 
 TEST_CASE("reference_members") {
-    int i=42;
+    int i = 42;
     //variant<int&> v(in_place_index_t<0>{},i);
     variant<std::reference_wrapper<int>> v(in_place_index_t<0>{},i);
 
@@ -1568,19 +1676,27 @@ TEST_CASE("equality") {
     variant<int,double,std::string> v2(4.2);
     variant<int,double,std::string> v3(std::string("42"));
 
-    CHECK(v==v);
-    CHECK(v!=v2);
-    CHECK(v!=v3);
-    CHECK(v2==v2);
-    CHECK(v3==v3);
+    CHECK(v == v);
+    CHECK(v != v2);
+    CHECK(v != v3);
+    CHECK(v2 == v2);
+    CHECK(v3 == v3);
+    
     variant<int,double,std::string> v4(v);
-    CHECK(v==v4);
-    v4=std::move(v2);
-//     CHECK(v4!=v2); // FIXME incorrect (C++17)
-    CHECK(v2==v2);
-    CHECK(v!=v2);
-    v2=3;
-    CHECK(v!=v2);
+    
+    CHECK(v == v4);
+    v4 = std::move(v2);
+
+#if !defined(PFS_NO_STD_VARIANT)        
+    CHECK(v4 == v2);
+#else
+    CHECK(v4 != v2);
+#endif
+    
+    CHECK(v2 == v2);
+    CHECK(v != v2);
+    v2 = 3;
+    CHECK(v != v2);
 }
 
 TEST_CASE("less_than") {
@@ -1588,22 +1704,34 @@ TEST_CASE("less_than") {
     variant<int,double,std::string> v2(4.2);
     variant<int,double,std::string> v3(std::string("42"));
 
-    CHECK(!(v<v));
-    CHECK(v>=v);
-    CHECK(v<v2);
-    CHECK(v<v3);
-    CHECK(v2<v3);
+    CHECK_FALSE(v < v);
+    CHECK(v >= v);
+    CHECK(v < v2);
+    CHECK(v < v3);
+    CHECK(v2 < v3);
+    
     variant<int,double,std::string> v4(v);
-    CHECK(!(v4<v));
-    CHECK(!(v<v4));
-    v4=std::move(v2);
-//     CHECK(v2<v4); // FIXME incorrect (C++17)
-//     CHECK(v2<v); // FIXME incorrect (C++17)
-    CHECK(v2<v3);
-    v2=99;
-    CHECK(v<v2);
-    CHECK(v2<v4);
-    CHECK(v2<v3);
+    
+    CHECK_FALSE(v4 < v);
+    CHECK_FALSE(v < v4);
+    
+    v4 = std::move(v2);
+    
+    CHECK(v2 <= v4);
+    
+#if !defined(PFS_NO_STD_VARIANT)
+    CHECK(v < v2);
+#else
+    CHECK(v > v2);
+#endif
+    
+    CHECK(v2 < v3);
+    
+    v2 = 99;
+    
+    CHECK(v < v2);
+    CHECK(v2 < v4);
+    CHECK(v2 < v3);
 }
 
 TEST_CASE("constexpr_variant") {
@@ -1635,40 +1763,57 @@ struct VisitorISD
     double& d;
     int& i2;
 
-    void operator()(int arg,double d_){
-        i=arg;
-        d=d_;
+    void operator () (int arg, double x)
+    {
+        i = arg;
+        d = x;
     }
-    void operator()(std::string const& arg,double d_){
-        s=arg;
-        d=d_;
+    
+    void operator () (std::string const & arg, double x) 
+    {
+        s = arg;
+        d = x;
     }
-    void operator()(int arg,int i2_){
-        i=arg;
-        i2=i2_;
+    
+    void operator () (int arg, int x)
+    {
+        i = arg;
+        i2 = x;
     }
-    void operator()(std::string const& arg,int i2_){
-        s=arg;
-        i2=i2_;
+    
+    void operator () (std::string const & arg, int x)
+    {
+        s = arg;
+        i2 = x;
     }
+
+//     void operator () (EmptyAlternative const & arg, int i2)
+//     {}
+//     
+//     void operator () (EmptyAlternative const & arg, double d)
+//     {}
+
 };
 
 template<size_t>
 struct MarkerArg{};
 
-struct ThreeVariantVisitor{
+struct ThreeVariantVisitor
+{
+    size_t a1, a2, a3;
 
-    size_t a1,a2,a3;
-
-    ThreeVariantVisitor():
-        a1(0),a2(0),a3(0)
+    ThreeVariantVisitor ()
+        : a1(0)
+        , a2(0)
+        , a3(0)
     {}
 
-    template<size_t A1,size_t A2,size_t A3>
-    void operator()(MarkerArg<A1>,MarkerArg<A2>,MarkerArg<A3>){
-        a1=A1;
-        a2=A2;
-        a3=A3;
+    template<size_t A1, size_t A2, size_t A3>
+    void operator () (MarkerArg<A1>, MarkerArg<A2>, MarkerArg<A3>)
+    {
+        a1 = A1;
+        a2 = A2;
+        a3 = A3;
     }
 };
 
@@ -1676,39 +1821,46 @@ TEST_CASE("multivisitor") {
     variant<int,char,std::string> v(42);
     variant<double,int> v2(4.2);
 
-    int i=0;
+    int i = 0;
     std::string s;
-    double d=0;
-    int i2=0;
-    VisitorISD visitor{i,s,d,i2};
+    double d = 0;
+    int i2 = 0;
+    VisitorISD visitor{i, s, d, i2};
+    
+#if !defined(PFS_NO_STD_VARIANT)        
+    visit(visitor, v, v2);
+    CHECK(i == 42);
+    CHECK(s == "");
+    CHECK(d == 4.2);
+    CHECK(i2 == 0);
+#endif
+    
+    i = 0;
+    d = 0;
+    v = std::string("hello");
+    
+    CHECK(v.index() == 2);
+    
+#if !defined(PFS_NO_STD_VARIANT)            
+    v2 = 37;
+    visit(visitor, v, v2);
+    
+    CHECK(i == 0);
+    CHECK(s == "hello");
+    CHECK(d == 0);
+    CHECK(i2 == 37);
+#endif    
 
-    // FIXME
-//     visit(visitor, v, v2);
-//     CHECK(i==42);
-//     CHECK(s=="");
-//     CHECK(d==4.2);
-//     CHECK(i2==0);
-//     i=0;
-//     d=0;
-//     v=std::string("hello");
-//     CHECK(v.index()==2);
-//     v2=37;
-//     visit(visitor,v,v2);
-//     CHECK(i==0);
-//     CHECK(s=="hello");
-//     CHECK(d==0);
-//     CHECK(i2==37);
-
-    variant<double,int> v3;
+    variant<EmptyAlternative, double, int> v3;
     empty_variant(v3);
 
-    try {
-        // FIXME
-//         visit(visitor,v,v3);
+//     try {
+//         // FIXME
+//         visit(visitor, v, v3);
 //         CHECK(!"Visiting empty should throw");
-    } catch (bad_variant_access) {
-        //
-    }
+//     } catch (bad_variant_access) {
+//         //
+//     }
 
     variant<MarkerArg<0>,MarkerArg<1> > mv1{MarkerArg<1>()};
     variant<MarkerArg<10>,MarkerArg<11>,MarkerArg<21> > mv2{MarkerArg<21>()};
@@ -1717,15 +1869,16 @@ TEST_CASE("multivisitor") {
 
     ThreeVariantVisitor tvv;
 
-    // FIXME
-//     visit(tvv,mv1,mv2,mv3);
-//
-//     CHECK(tvv.a1==1);
-//     CHECK(tvv.a2==21);
-//     CHECK(tvv.a3==100);
+#if !defined(PFS_NO_STD_VARIANT)            
+    visit(tvv, mv1, mv2, mv3);
+
+    CHECK(tvv.a1 == 1);
+    CHECK(tvv.a2 == 21);
+    CHECK(tvv.a3 == 100);
+#endif
 }
 
-TEST_CASE("sizes") {
+// TEST_CASE("sizes") {
 //     std::cout<<"variant<char>:"<<sizeof(variant<char>)<<std::endl;
 //     std::cout<<"variant<char,int>:"<<sizeof(variant<char,int>)<<std::endl;
 //     std::cout<<"int:"<<sizeof(int)<<std::endl;
@@ -1737,23 +1890,17 @@ TEST_CASE("sizes") {
 //     std::cout<<"std::pair<int,int>:"<<sizeof(std::pair<int,int>)<<std::endl;
 //     std::cout<<"variant<char,std::pair<char,char>>:"<<sizeof(variant<char,std::pair<char,char>>)<<std::endl;
 //     std::cout<<"std::pair<char,char>:"<<sizeof(std::pair<char,char>)<<std::endl;
-// std::cout<<"variant<char,std::pair<double,char>>:"<<sizeof(variant<char,std::pair<double,char>>)<<std::endl;
+//     std::cout<<"variant<char,std::pair<double,char>>:"<<sizeof(variant<char,std::pair<double,char>>)<<std::endl;
 //     std::cout<<"std::pair<double,char>:"<<sizeof(std::pair<double,char>)<<std::endl;
 //     std::cout<<"variant<double,std::tuple<int,int,int>>:"<<sizeof(variant<double,std::tuple<int,int,int>>)<<std::endl;
 //     std::cout<<"std::tuple<int,int,int>:"<<sizeof(std::tuple<int,int,int>)<<std::endl;
-}
+// }
 
 TEST_CASE("duplicate_types")
 {
-    //variant<int,int> v(42); // ill-formed
-    // CHECK(get<int>(v)==42);
-    //CHECK(v.index()==0);
-    //CHECK(get<0>(v)==42);
-
     variant<int,int> v2(in_place_index_t<1>{},42);
-    CHECK(v2.index()==1);
-    CHECK(get<1>(v2)==42);
-    // CHECK(get<int>(v2)==42);
+    CHECK(v2.index() == 1);
+    CHECK(get<1>(v2) == 42);
 }
 
 struct NonMovable
@@ -1807,18 +1954,20 @@ TEST_CASE("assignment_with_conversion")
 
 TEST_CASE("visitor_with_non_void_return")
 {
+#if !defined(PFS_NO_STD_VARIANT)            
     variant<int> v(42);
-    // FIXME
-    //CHECK(visit([](int i) {return i * 2;},v) == 84);
+    CHECK(visit([](int i) {return i * 2;},v) == 84);
+#endif
 }
 
 TEST_CASE("multi_visitor_with_non_void_return")
 {
+#if !defined(PFS_NO_STD_VARIANT)            
     variant<int> v(42);
     variant<double> v2(4.2);
 
-    // FIXME
-//     CHECK(visit([](int i, double j) {return i+j;},v,v2)==46.2);
+    CHECK(visit([](int i, double j) {return i+j;},v,v2)==46.2);
+#endif
 }
 
 using vv = variant<std::vector<int>, std::vector<double>>;
@@ -1826,21 +1975,6 @@ unsigned foo(vv v)
 {
     return static_cast<unsigned>(v.index());
 }
-
-// FIXME
-// TEST_CASE("initialization_with_initializer_list")
-// {
-//     variant<std::vector<int>> v{1,2,3,4};
-//     CHECK(v.index()==0);
-//     CHECK(get<0>(v).size()==4);
-//
-//     CHECK(foo({ 1, 2, 3 })==0); // OK
-//     CHECK(foo({ 1.2, 3.4, 5.6 })==1); // OK
-//
-//     // variant< char, std::string > q { { 999 } }; // error: can’t deduce T.
-//     variant< char, std::string > r = { 999 }; // valid, but overflows.
-//     variant< char, std::string > s = { 'a', 'b', 'c' }; // error.
-// }
 
 struct vector_type;
 typedef variant<int,double,std::string,vector_type> JSON;
@@ -1860,42 +1994,49 @@ TEST_CASE("json") {
     JSON v2{4.2};
     JSON v3{"hello"};
 
-// FIXME
-//     JSON v4{{1,2,3}};
-//     CHECK(v4.index()==3);
-
     JSON v5{vector_type{1,2,"hello"}};
 }
 
-TEST_CASE("nothrow_assign_to_variant_holding_type_with_throwing_move_ok") {
+TEST_CASE("nothrow_assign_to_variant_holding_type_with_throwing_move_ok") 
+{
     variant<ThrowingCopy,int> v{in_place_index_t<0>{}};
-    v=42;
+    v = 42;
     CHECK(v.index()==1);
     CHECK(get<1>(v)==42);
 }
 
-TEST_CASE("maybe_throw_assign_to_variant_holding_type_with_throwing_move_ok") {
+TEST_CASE("maybe_throw_assign_to_variant_holding_type_with_throwing_move_ok") 
+{
     variant<ThrowingCopy,std::string> v{in_place_index_t<0>{}};
-    v="hello";
-    CHECK(v.index()==1);
-    CHECK(get<1>(v)=="hello");
+    v = "hello";
+    CHECK(v.index() == 1);
+    CHECK(get<1>(v) == "hello");
 }
 
-TEST_CASE("throwing_assign_from_type_leaves_variant_unchanged") {
+TEST_CASE("throwing_assign_from_type_leaves_variant_unchanged")
+{
     variant<ThrowingCopy,std::string> v{"hello"};
-    try{
-        v=ThrowingCopy();
+    
+    try {
+        v = ThrowingCopy();
         CHECK(!"Should throw");
+    } catch (CopyError &) {
     }
-    catch(CopyError&){}
-//     CHECK(v.index()==1); // FIXME incorrect (C++17)
-//     CHECK(get<1>(v)=="hello"); // FIXME incorrect (C++17)
+    
+#if !defined(PFS_NO_STD_VARIANT)
+    CHECK(v.index() == variant_npos);
+    CHECK_THROWS(get<1>(v) == "hello");
+#else
+    CHECK(v.index() == 1);
+    CHECK(get<1>(v) == "hello");
+#endif
 }
 
-TEST_CASE("can_emplace_nonmovable_type_when_other_nothrow_movable") {
+TEST_CASE("can_emplace_nonmovable_type_when_other_nothrow_movable")
+{
     variant<std::string,NonMovable> v{"hello"};
     v.emplace<1>();
-    CHECK(v.index()==1);
+    CHECK(v.index() == 1);
 }
 
 struct NonMovableThrower
@@ -1983,13 +2124,20 @@ TEST_CASE("backup_storage_and_local_backup")
     variant<std::string,ThrowingCopy> v{"hello"};
     CHECK(v.index()==0);
     CHECK(get<0>(v)=="hello");
-    try{
-        v=ThrowingCopy();
+    
+    try {
+        v = ThrowingCopy();
         CHECK(!"Should throw");
-    }
-    catch(CopyError&){}
-//     CHECK(v.index()==0); // FIXME incorrect (C++17)
-//     CHECK(get<0>(v)=="hello"); // FIXME incorrect (C++17)
+    } catch (CopyError &){}
+    
+#if !defined(PFS_NO_STD_VARIANT)    
+    CHECK(v.index() == variant_npos);
+    CHECK_THROWS(get<0>(v) == "hello");
+#else
+    CHECK(v.index() == 0);
+    CHECK(get<0>(v) == "hello");
+#endif
+    
 }
 
 struct LargeNoExceptMovable
@@ -2009,12 +2157,14 @@ struct LargeNoExceptMovable
 
 TEST_CASE("large_noexcept_movable_and_small_throw_movable")
 {
-    variant<LargeNoExceptMovable,MayThrowA,MayThrowB> v{
-        LargeNoExceptMovable()};
-    v=MayThrowB(21);
-    v=LargeNoExceptMovable();
-    v=MayThrowA(12);
-    CHECK(sizeof(v)<(2*sizeof(LargeNoExceptMovable)));
+    variant<LargeNoExceptMovable,MayThrowA,MayThrowB> v {
+        LargeNoExceptMovable()
+    };
+    
+    v = MayThrowB(21);
+    v = LargeNoExceptMovable();
+    v = MayThrowA(12);
+    CHECK(sizeof(v) < (2 * sizeof(LargeNoExceptMovable)));
 }
 
 struct LargeMayThrowA
@@ -2040,15 +2190,17 @@ TEST_CASE("construct_small_with_large_throwables")
 
 TEST_CASE("if_emplace_throws_variant_is_valueless")
 {
-    variant<int> v;
+    variant<EmptyAlternative, int> v;
+    
     CHECK(!v.valueless_by_exception());
-    CHECK(v.index()==0);
-    try{
+    CHECK(v.index() == 0);
+    
+    try {
         v.emplace<0>(ThrowingConversion());
         CHECK(!"Conversion should throw");
-    }
-    catch(...){}
-    CHECK(v.index()==-1);
+    } catch(...) {}
+    
+    CHECK(v.index() == variant_npos);
     CHECK(v.valueless_by_exception());
 }
 
@@ -2074,19 +2226,6 @@ TEST_CASE("properties")
     static_assert(noexcept(variant<int,double>().swap(std::declval<variant<int,double>&>())), "");
 }
 #endif
-
-// FIXME
-// TEST_CASE("variant_of_references") {
-//     static int i = 42;
-//     constexpr variant<std::reference_wrapper<int>> vi(i);
-//     static_assert(get<0>(vi) == i, "");
-//     constexpr variant<std::reference_wrapper<std::string>, std::reference_wrapper<int>> vi2(i);
-//
-//     static_assert(get<1>(vi2) == i, "");
-//
-//     constexpr variant<std::const_reference_wrapper<int> vi3(i);
-//     static_assert(get<0>(vi3) == i, "");
-// }
 
 TEST_CASE("variant_size")
 {
@@ -2175,39 +2314,17 @@ TEST_CASE("get_with_rvalues")
 {
     int i=42;
 
-    // FIXME
-//     static_assert(get<0>(variant<int>(42)) == 42, "");
+#if !defined(PFS_NO_STD_VARIANT)       
+    static_assert(get<0>(variant<int>(42)) == 42, "");
+    static_assert(get<int>(variant<int>(42)) == 42, "");
+    static_assert(get<1>(variant<double,int,char>(42)) == 42, "");
+    static_assert(get<int>(variant<double,int,char>(42)) == 42, "");
+#endif    
+    
     static_assert(std::is_same<decltype(get<0>(variant<int>(42))),int&&>::value, "");
-
-    // FIXME
-//     static_assert(get<int>(variant<int>(42))==42, "");
     static_assert(std::is_same<decltype(get<int>(variant<int>(42))),int&&>::value, "");
-
-    // FIXME
-//     static_assert(get<1>(variant<double,int,char>(42))==42, "");
-
     static_assert(std::is_same<decltype(get<1>(variant<double,int,char>(42))),int&&>::value, "");
-
-    // FIXME
-//     static_assert(get<int>(variant<double,int,char>(42))==42, "");
     static_assert(std::is_same<decltype(get<int>(variant<double,int,char>(42))),int&&>::value, "");
-
-    // FIXME
-//     CHECK(get<0>(variant<int&>(i))==42);
-//     static_assert(std::is_same<decltype(get<0>(variant<int&>(i))),int&>::value, "");
-//     CHECK(&get<0>(variant<int&>(i))==&i);
-//     CHECK(get<int&>(variant<int&>(i))==42);
-//     static_assert(std::is_same<decltype(get<int&>(variant<int&>(i))),int&>::value, "");
-//     CHECK(&get<int&>(variant<int&>(i))==&i);
-//
-//     CHECK(get<0>(variant<int&&>(std::move(i)))==42);
-//     static_assert(std::is_same<decltype(get<0>(variant<int&&>(std::move(i)))),int&&>::value, "");
-//     int&& ir=get<0>(variant<int&&>(std::move(i)));
-//     CHECK(&ir==&i);
-//     CHECK(get<int&&>(variant<int&&>(std::move(i)))==42);
-//     static_assert(std::is_same<decltype(get<int&&>(variant<int&&>(std::move(i)))),int&&>::value, "");
-//     int&& ir2=get<int&&>(variant<int&&>(std::move(i)));
-//     CHECK(&ir2==&i);
 
     variant<int> vi(42);
 
@@ -2218,48 +2335,29 @@ TEST_CASE("get_with_rvalues")
 
     variant<int,std::string> v2("hello");
 
-    // FIXME
-//     std::string&& rs=get<1>(std::move(v2));
-//     std::string&& rs2=get<std::string>(std::move(v2));
-//     CHECK(&rs==&rs2);
-//     CHECK(&rs==&get<1>(v2));
-//     CHECK(rs=="hello");
+#if !defined(PFS_NO_STD_VARIANT)            
+    std::string && rs = get<1>(std::move(v2));
+    std::string && rs2 = get<std::string>(std::move(v2));
+    CHECK(& rs == & rs2);
+    CHECK(& rs == & get<1>(v2));
+    CHECK(rs == "hello");
+#endif    
 }
 
 TEST_CASE("get_with_const_rvalues")
 {
-    int i = 42;
-
+#if !defined(PFS_NO_STD_VARIANT)   
+    static_assert(get<int>(variant<double,int,char>(42)) == 42, "");    
+    static_assert(get<1>((const variant<double,int,char>)(42)) == 42, "");
+    static_assert(get<int>((const variant<double,int,char>)(42)) == 42, "");
+#endif
+    
     static_assert(get<0>((const variant<int>)(42))==42, "");
     static_assert(std::is_same<decltype(get<0>((const variant<int>)(42))),const int&&>::value, "");
     static_assert(get<int>((const variant<int>)(42))==42, "");
     static_assert(std::is_same<decltype(get<int>((const variant<int>)(42))),const int&&>::value, "");
-
-    // FIXME
-//     static_assert(get<1>((const variant<double,int,char>)(42))==42, "");
     static_assert(std::is_same<decltype(get<1>((const variant<double,int,char>)(42))),const int&&>::value, "");
-
-    // FIXME
-//     static_assert(get<int>((const variant<double,int,char>)(42))==42, "");
     static_assert(std::is_same<decltype(get<int>((const variant<double,int,char>)(42))),const int&&>::value, "");
-
-    // FIXME
-//     CHECK(get<0>((const variant<int&>)(i))==42);
-//     static_assert(std::is_same<decltype(get<0>((const variant<int&>)(i))),int&>::value, "");
-//     CHECK(&get<0>((const variant<int&>)(i))==&i);
-//     CHECK(get<int&>((const variant<int&>)(i))==42);
-//     static_assert(std::is_same<decltype(get<int&>((const variant<int&>)(i))),int&>::value, "");
-//     CHECK(&get<int&>((const variant<int&>)(i))==&i);
-
-    // FIXME
-//     CHECK(get<0>((const variant<int&&>)(std::move(i)))==42);
-//     static_assert(std::is_same<decltype(get<0>((const variant<int&&>)(std::move(i)))),int&&>::value, "");
-//     int&& ir=get<0>((const variant<int&&>)(std::move(i)));
-//     CHECK(&ir==&i);
-//     CHECK(get<int&&>((const variant<int&&>)(std::move(i)))==42);
-//     static_assert(std::is_same<decltype(get<int&&>((const variant<int&&>)(std::move(i)))),int&&>::value, "");
-//     int&& ir2=get<int&&>((const variant<int&&>)(std::move(i)));
-//     CHECK(&ir2==&i);
 
     const variant<int> vi(42);
 
@@ -2270,12 +2368,13 @@ TEST_CASE("get_with_const_rvalues")
 
     const variant<int,std::string> v2("hello");
 
-    // FIXME
-//     const std::string && rs=get<1>(std::move(v2));
-//     const std::string&& rs2=get<std::string>(std::move(v2));
-//     CHECK(&rs==&rs2);
-//     CHECK(&rs==&get<1>(v2));
-//     CHECK(rs=="hello");
+#if !defined(PFS_NO_STD_VARIANT)            
+    const std::string && rs = get<1>(std::move(v2));
+    const std::string && rs2 = get<std::string>(std::move(v2));
+    CHECK(& rs == & rs2);
+    CHECK(& rs == & get<1>(v2));
+    CHECK(rs == "hello");
+#endif    
 }
 
 TEST_CASE("get_if") {
@@ -2283,39 +2382,36 @@ TEST_CASE("get_if") {
     constexpr variant<double,int,char> cvidc(42);
     constexpr variant<double,int,char> cvidc2(4.2);
 
-    // FIXME
-//     static_assert(get_if<0>(cvi)==&get<0>(cvi), "");
-//     static_assert(get_if<int>(cvi)==&get<0>(cvi), "");
-//
-//     static_assert(!get_if<0>(cvidc), "");
-//     static_assert(get_if<1>(cvidc)==&get<1>(cvidc), "");
-//     static_assert(!get_if<2>(cvidc), "");
-//     static_assert(!get_if<double>(cvidc), "");
-//     static_assert(get_if<int>(cvidc)==&get<1>(cvidc), "");
-//     static_assert(!get_if<char>(cvidc), "");
-//
-//     static_assert(get_if<double>(cvidc2)==&get<0>(cvidc2), "");
-//     static_assert(!get_if<int>(cvidc2), "");
-//     static_assert(!get_if<char>(cvidc2), "");
+    static_assert(get_if<0>(& cvi) == & get<0>(cvi), "");
+    static_assert(get_if<int>(& cvi) == & get<0>(cvi), "");
+    static_assert(!get_if<0>(& cvidc), "");
+    static_assert(get_if<1>(& cvidc) == & get<1>(cvidc), "");
+    static_assert(!get_if<2>(& cvidc), "");
+    static_assert(!get_if<double>(& cvidc), "");
+    static_assert(get_if<int>(& cvidc) == & get<1>(cvidc), "");
+    static_assert(!get_if<char>(& cvidc), "");
+
+    static_assert(get_if<double>(& cvidc2) == & get<0>(cvidc2), "");
+    static_assert(!get_if<int>(& cvidc2), "");
+    static_assert(!get_if<char>(& cvidc2), "");
 
     variant<int> vi(42);
     variant<double,int,char> vidc(42);
     variant<double,int,char> vidc2(4.2);
 
-    // FIXME
-//     CHECK(get_if<0>(vi)==&get<0>(vi));
-//     CHECK(get_if<int>(vi)==&get<0>(vi));
-//
-//     CHECK(!get_if<0>(vidc));
-//     CHECK(get_if<1>(vidc)==&get<1>(vidc));
-//     CHECK(!get_if<2>(vidc));
-//     CHECK(!get_if<double>(vidc));
-//     CHECK(get_if<int>(vidc)==&get<1>(vidc));
-//     CHECK(!get_if<char>(vidc));
-//
-//     CHECK(get_if<double>(vidc2)==&get<0>(vidc2));
-//     CHECK(!get_if<int>(vidc2));
-//     CHECK(!get_if<char>(vidc2));
+    CHECK(get_if<0>(& vi) == & get<0>(vi));
+    CHECK(get_if<int>(& vi) == & get<0>(vi));
+
+    CHECK(!get_if<0>(& vidc));
+    CHECK(get_if<1>(& vidc) == & get<1>(vidc));
+    CHECK(!get_if<2>(& vidc));
+    CHECK(!get_if<double>(& vidc));
+    CHECK(get_if<int>(& vidc) == & get<1>(vidc));
+    CHECK(!get_if<char>(& vidc));
+
+    CHECK(get_if<double>(& vidc2) == & get<0>(vidc2));
+    CHECK(!get_if<int>(& vidc2));
+    CHECK(!get_if<char>(& vidc2));
 }
 
 TEST_CASE("constexpr_comparisons")
@@ -2341,7 +2437,9 @@ TEST_CASE("constexpr_comparisons")
 
 struct Identity
 {
-    template <typename T> constexpr T operator()(T x) {
+    template <typename T> 
+    constexpr T operator () (T x) 
+    {
         return x;
     }
 };
@@ -2349,26 +2447,20 @@ struct Identity
 struct Sum
 {
     template <typename T, typename U>
-    constexpr T operator() (T x, U y) {
+    constexpr T operator() (T x, U y) 
+    {
         return x + y;
     }
 };
 
 TEST_CASE("constexpr_visit")
 {
-    constexpr variant<int,double> vi(42);
-    constexpr variant<int,double> vi2(21);
+    constexpr variant<int, double> vi(42);
+    constexpr variant<int, double> vi2(21);
 
     // FIXME
-//     static_assert(visit(Identity(),vi)==42, "");
-//     static_assert(visit(Sum(),vi,vi2)==63, "");
-}
-
-TEST_CASE("variant_with_no_types")
-{
-    // FIXME
-    //static_assert(sizeof(variant<>)>0, "");
-    //static_assert(!std::is_default_constructible<variant<>>::value, "");
+    //static_assert(visit(Identity{}, vi) == 42, "");
+    //static_assert(visit(Sum{}, vi, vi2) == 63, "");
 }
 
 TEST_CASE("monostate")
@@ -2396,8 +2488,9 @@ TEST_CASE("hash")
     static_assert(noexcept(h(vi)), "");
     static_assert(std::is_same<decltype(h(vi)),size_t>::value, "");
 
-    // FIXME
-//     CHECK(h{vi} == h{vi2});
+#if !defined(PFS_NO_STD_VARIANT)            
+    CHECK(h(vi) == h(vi2));
+#endif
 
     monostate m{};
     std::hash<monostate> hm;
@@ -2427,12 +2520,13 @@ template <typename T> struct CountingAllocator
 
     CountingAllocator() {}
 
-    T *allocate(size_t count)
+    T * allocate(size_t count)
     {
         ++allocate_count;
         auto *buf = malloc(count * sizeof(T));
         return static_cast<T *>(buf);
     }
+    
     void deallocate(T *p, size_t)
     {
         if (!p)
@@ -2532,422 +2626,441 @@ struct not_allocatable
         allocator_supplied(true),was_moved(true){}
 };
 
-namespace std{
+namespace std {
 template<typename Alloc>
-struct uses_allocator<allocatable,Alloc>:
-        true_type{};
+struct uses_allocator<allocatable, Alloc>
+    : true_type
+{};
 
 template<typename Alloc>
-struct uses_allocator<allocatable_no_arg,Alloc>:
-        true_type{};
+struct uses_allocator<allocatable_no_arg,Alloc>
+    : true_type
+{};
 }
 
 // FIXME
-// TEST_CASE("allocator_default_constructor_no_allocator_support") {
-//     struct MyClass
-//     {
-//         int i;
-//         MyClass() : i(42) {}
-//     };
-//
-//     variant<MyClass,std::string> vi{std::allocator_arg_t(),CountingAllocator<MyClass>()};
-//
-//     CHECK(allocate_count==0);
-//     CHECK(vi.index()==0);
-//     CHECK(get<0>(vi).i==42);
-//
-//     variant<not_allocatable,std::string> v3{std::allocator_arg_t(),CountingAllocator<int>()};
-//
-//     CHECK(allocate_count==0);
-//     CHECK(v3.index()==0);
-//     CHECK(!get<0>(v3).allocator_supplied);
-// }
+TEST_CASE("allocator_default_constructor_no_allocator_support") {
+#if defined(PFS_NO_STD_VARIANT)
+    struct MyClass
+    {
+        int i;
+        MyClass() : i(42) {}
+    };
 
-// FIXME
-// TEST_CASE("allocator_default_constructor_allocator_arg_support")
-// {
-//     variant<allocatable,std::string> v2{std::allocator_arg_t(),CountingAllocator<int>()};
-//
-//     CHECK(allocate_count==0);
-//     CHECK(v2.index()==0);
-//     CHECK(get<0>(v2).allocator_supplied);
-// }
+    variant<MyClass,std::string> vi{std::allocator_arg_t(),CountingAllocator<MyClass>()};
 
-// FIXME
-// TEST_CASE("allocator_default_constructor_no_allocator_arg_support")
-// {
-//     variant<allocatable_no_arg,std::string> v2{std::allocator_arg_t(),CountingAllocator<int>()};
-//
-//     CHECK(allocate_count==0);
-//     CHECK(v2.index()==0);
-//     CHECK(get<0>(v2).allocator_supplied);
-// }
+    CHECK(allocate_count==0);
+    CHECK(vi.index()==0);
+    CHECK(get<0>(vi).i==42);
 
-// FIXME
-// TEST_CASE("variant_uses_allocator")
-// {
-//     static_assert(
-//         std::uses_allocator<variant<int,std::string>,CountingAllocator<double>>::value,
-//         "Variant should use allocator");
-// }
+    variant<not_allocatable,std::string> v3{std::allocator_arg_t(),CountingAllocator<int>()};
 
-// FIXME
-// TEST_CASE("allocator_index_constructor_no_allocator_support")
-// {
-//     struct MyClass{
-//         int i;
-//         MyClass (): i(42) {}
-//     };
-//
-//     variant<MyClass,std::string> vi{std::allocator_arg_t()
-//         , CountingAllocator<MyClass>{}
-//         , in_place_index_t<0>{}};
-//
-//     CHECK(allocate_count==0);
-//     CHECK(vi.index()==0);
-//     CHECK(get<0>(vi).i==42);
-//
-//     variant<std::string,MyClass> vi2{std::allocator_arg_t()
-//         , CountingAllocator<MyClass>{}
-//         , in_place_index_t<1>{}};
-//
-//     CHECK(allocate_count==0);
-//     CHECK(vi2.index()==1);
-//     CHECK(get<1>(vi2).i==42);
-//
-//
-//     variant<not_allocatable,std::string> v1{std::allocator_arg_t()
-//         ,CountingAllocator<int>{}
-//         , in_place_index_t<0>{}};
-//
-//     CHECK(allocate_count==0);
-//     CHECK(v1.index()==0);
-//     CHECK(!get<0>(v1).allocator_supplied);
-//
-//     variant<std::string,not_allocatable> v2{std::allocator_arg_t()
-//         , CountingAllocator<int>{}
-//         , in_place_index_t<1>{}};
-//
-//     CHECK(allocate_count==0);
-//     CHECK(v2.index()==1);
-//     CHECK(!get<1>(v2).allocator_supplied);
-// }
+    CHECK(allocate_count==0);
+    CHECK(v3.index()==0);
+    CHECK(!get<0>(v3).allocator_supplied);
+#endif    
+}
 
-// FIXME
-// TEST_CASE("allocator_index_constructor_allocator_arg_support")
-// {
-//     variant<allocatable,std::string> v1{
-//           std::allocator_arg_t()
-//         , CountingAllocator<int>()
-//         , in_place_index_t<0>{}};
-//
-//     CHECK(allocate_count==0);
-//     CHECK(v1.index()==0);
-//     CHECK(get<0>(v1).allocator_supplied);
-//
-//     variant<std::string,allocatable> v2 {
-//           std::allocator_arg_t()
-//         , CountingAllocator<int>()
-//         , in_place_index_t<1>{}};
-//
-//     CHECK(allocate_count==0);
-//     CHECK(v2.index()==1);
-//     CHECK(get<1>(v2).allocator_supplied);
-// }
+TEST_CASE("allocator_default_constructor_allocator_arg_support")
+{
+#if defined(PFS_NO_STD_VARIANT)
+    variant<allocatable,std::string> v2{std::allocator_arg_t(),CountingAllocator<int>()};
 
-// FIXME
-// TEST_CASE("allocator_index_constructor_no_allocator_arg_support")
-// {
-//     variant<allocatable_no_arg,std::string> v1{
-//           std::allocator_arg_t{}
-//         , CountingAllocator<int>{}
-//         , in_place_index_t<0>{}};
-//
-//     CHECK(allocate_count==0);
-//     CHECK(v1.index()==0);
-//     CHECK(get<0>(v1).allocator_supplied);
-//
-//     variant<std::string,allocatable_no_arg> v2 {
-//           std::allocator_arg_t{}
-//         , CountingAllocator<int>{}
-//         , in_place_index_t<1>{}};
-//
-//     CHECK(allocate_count==0);
-//     CHECK(v2.index()==1);
-//     CHECK(get<1>(v2).allocator_supplied);
-// }
+    CHECK(allocate_count==0);
+    CHECK(v2.index()==0);
+    CHECK(get<0>(v2).allocator_supplied);
+#endif    
+}
 
-// FIXME
-// TEST_CASE("allocator_type_constructor_no_allocator_support")
-// {
-//     struct MyClass
-//     {
-//         int i;
-//         MyClass (): i(42) {}
-//     };
-//
-//     variant<MyClass,std::string> vi{std::allocator_arg_t()
-//         , CountingAllocator<MyClass>{}
-//         , in_place_type_t<MyClass>{}};
-//
-//     CHECK(allocate_count==0);
-//     CHECK(vi.index()==0);
-//     CHECK(get<0>(vi).i==42);
-//
-//     variant<std::string,MyClass> vi2{std::allocator_arg_t{}
-//         , CountingAllocator<MyClass>{}
-//         , in_place_type_t<MyClass>{}};
-//
-//     CHECK(allocate_count==0);
-//     CHECK(vi2.index()==1);
-//     CHECK(get<1>(vi2).i==42);
-//
-//     variant<not_allocatable,std::string> v1{std::allocator_arg_t{}
-//         , CountingAllocator<int>{}
-//         , in_place_type_t<not_allocatable>{}};
-//
-//     CHECK(allocate_count==0);
-//     CHECK(v1.index()==0);
-//     CHECK(!get<0>(v1).allocator_supplied);
-//
-//     variant<std::string,not_allocatable> v2{std::allocator_arg_t{}
-//         , CountingAllocator<int>{}
-//         , in_place_type_t<not_allocatable>{}};
-//
-//     CHECK(allocate_count==0);
-//     CHECK(v2.index()==1);
-//     CHECK(!get<1>(v2).allocator_supplied);
-// }
+TEST_CASE("allocator_default_constructor_no_allocator_arg_support")
+{
+#if defined(PFS_NO_STD_VARIANT)
+    variant<allocatable_no_arg,std::string> v2{std::allocator_arg_t(),CountingAllocator<int>()};
 
-// FIXME
-// TEST_CASE("allocator_type_constructor_allocator_arg_support")
-// {
-//     variant<allocatable,std::string> v1 {std::allocator_arg_t{}
-//         , CountingAllocator<int>{}
-//         , in_place_type_t<allocatable>{}};
-//
-//     CHECK(allocate_count==0);
-//     CHECK(v1.index()==0);
-//     CHECK(get<0>(v1).allocator_supplied);
-//
-//     variant<std::string,allocatable> v2{std::allocator_arg_t{}
-//         , CountingAllocator<int>{}
-//         , in_place_type_t<allocatable>{}};
-//
-//     CHECK(allocate_count==0);
-//     CHECK(v2.index()==1);
-//     CHECK(get<1>(v2).allocator_supplied);
-// }
+    CHECK(allocate_count==0);
+    CHECK(v2.index()==0);
+    CHECK(get<0>(v2).allocator_supplied);
+#endif
+}
 
-// FIXME
-// TEST_CASE("allocator_type_constructor_no_allocator_arg_support")
-// {
-//     variant<allocatable_no_arg,std::string> v1 {std::allocator_arg_t{}
-//         , CountingAllocator<int>{}
-//         , in_place_type_t<allocatable_no_arg>{}};
-//
-//     CHECK(allocate_count==0);
-//     CHECK(v1.index()==0);
-//     CHECK(get<0>(v1).allocator_supplied);
-//
-//     variant<std::string,allocatable_no_arg> v2{std::allocator_arg_t{}
-//         , CountingAllocator<int>{}
-//         , in_place_type_t<allocatable_no_arg>{}};
-//
-//     CHECK(allocate_count==0);
-//     CHECK(v2.index()==1);
-//     CHECK(get<1>(v2).allocator_supplied);
-// }
+TEST_CASE("variant_uses_allocator")
+{
+#if defined(PFS_NO_STD_VARIANT)
+    static_assert(
+        std::uses_allocator<variant<int,std::string>,CountingAllocator<double>>::value,
+        "Variant should use allocator");
+#endif
+}
 
-// FIXME
-// TEST_CASE("allocator_copy_constructor_no_allocator_support")
-// {
-//     struct MyClass
-//     {
-//         int i;
-//         MyClass (): i(42) {}
-//     };
-//
-//     variant<MyClass,std::string> vis{in_place_type_t<MyClass>{}};
-//     variant<MyClass,std::string> vi{std::allocator_arg_t{}
-//         , CountingAllocator<MyClass>{}
-//         , vis};
-//
-//     CHECK(allocate_count==0);
-//     CHECK(vi.index()==0);
-//     CHECK(get<0>(vi).i==42);
-//
-//     variant<std::string,MyClass> vis2 {in_place_type_t<MyClass>{}};
-//     variant<std::string,MyClass> vi2 {std::allocator_arg_t{}
-//         , CountingAllocator<MyClass>{}
-//         , vis2};
-//
-//     CHECK(allocate_count == 0);
-//     CHECK(vi2.index() == 1);
-//     CHECK(get<1>(vi2).i == 42);
-//
-//     variant<not_allocatable,std::string> v1s{in_place_type_t<not_allocatable>{}};
-//     variant<not_allocatable,std::string> v1{std::allocator_arg_t{}
-//         , CountingAllocator<int>{}
-//         ,v1s };
-//
-//     CHECK(allocate_count==0);
-//     CHECK(v1.index()==0);
-//     CHECK(!get<0>(v1).allocator_supplied);
-//
-//     variant<std::string,not_allocatable> v2s{in_place_type_t<not_allocatable>{}};
-//     variant<std::string,not_allocatable> v2{std::allocator_arg_t{}
-//         , CountingAllocator<int>{}
-//         , v2s};
-//
-//     CHECK(allocate_count==0);
-//     CHECK(v2.index()==1);
-//     CHECK(!get<1>(v2).allocator_supplied);
-// }
+TEST_CASE("allocator_index_constructor_no_allocator_support")
+{
+#if defined(PFS_NO_STD_VARIANT)
+    struct MyClass{
+        int i;
+        MyClass (): i(42) {}
+    };
 
-// FIXME
-// TEST_CASE("allocator_copy_constructor_allocator_arg_support")
-// {
-//     variant<allocatable,std::string> v1s{in_place_type_t<allocatable>{}};
-//     variant<allocatable,std::string> v1{std::allocator_arg_t{}
-//         , CountingAllocator<int>{}
-//         ,v1s};
-//
-//     CHECK(allocate_count==0);
-//     CHECK(v1.index()==0);
-//     CHECK(get<0>(v1).allocator_supplied);
-//
-//     variant<std::string,allocatable> v2s{in_place_index_t<1>{}};
-//     variant<std::string,allocatable> v2{std::allocator_arg_t{}
-//         , CountingAllocator<int>{}
-//         , v2s};
-//
-//     CHECK(allocate_count==0);
-//     CHECK(v2.index()==1);
-//     CHECK(get<1>(v2).allocator_supplied);
-// }
+    variant<MyClass,std::string> vi{std::allocator_arg_t()
+        , CountingAllocator<MyClass>{}
+        , in_place_index_t<0>{}};
 
-// FIXME
-// TEST_CASE("allocator_copy_constructor_no_allocator_arg_support")
-// {
-//     variant<allocatable_no_arg,std::string> v1s{in_place_type_t<allocatable_no_arg>{}};
-//     variant<allocatable_no_arg,std::string> v1{std::allocator_arg_t{}
-//         , CountingAllocator<int>{}
-//         , v1s};
-//
-//     CHECK(allocate_count==0);
-//     CHECK(v1.index()==0);
-//     CHECK(get<0>(v1).allocator_supplied);
-//
-//     variant<std::string,allocatable_no_arg> v2s{in_place_type_t<allocatable_no_arg>{}};
-//     variant<std::string,allocatable_no_arg> v2{
-//         std::allocator_arg_t(),CountingAllocator<int>(),v2s};
-//
-//     CHECK(allocate_count==0);
-//     CHECK(v2.index()==1);
-//     CHECK(get<1>(v2).allocator_supplied);
-// }
+    CHECK(allocate_count==0);
+    CHECK(vi.index()==0);
+    CHECK(get<0>(vi).i==42);
 
-// FIXME
-// TEST_CASE("allocator_move_constructor_no_allocator_support")
-// {
-//     struct MyClass
-//     {
-//         int i;
-//         bool was_moved=false;
-//
-//         MyClass () : i(42) {}
-//
-//         MyClass(const MyClass&)=default;
-//         MyClass(MyClass&&):
-//             i(42),was_moved(true){}
-//     };
-//
-//     variant<MyClass,std::string> vis{in_place_type_t<MyClass>{}};
-//     variant<MyClass,std::string> vi{std::allocator_arg_t{}
-//         , CountingAllocator<MyClass>{}
-//         , std::move(vis)};
-//
-//     CHECK(allocate_count==0);
-//     CHECK(vi.index()==0);
-//     CHECK(get<0>(vi).i==42);
-//     CHECK(get<0>(vi).was_moved);
-//
-//     variant<std::string,MyClass> vis2{in_place_type_t<MyClass>{}};
-//     variant<std::string,MyClass> vi2{std::allocator_arg_t{}
-//         , CountingAllocator<MyClass>{}
-//         , std::move(vis2)};
-//
-//     CHECK(allocate_count==0);
-//     CHECK(vi2.index()==1);
-//     CHECK(get<1>(vi2).i==42);
-//     CHECK(get<1>(vi2).was_moved);
-//
-//     variant<not_allocatable,std::string> v1s{in_place_type_t<not_allocatable>{}};
-//     variant<not_allocatable,std::string> v1{std::allocator_arg_t{}
-//         , CountingAllocator<int>{}
-//         , std::move(v1s)};
-//
-//     CHECK(allocate_count==0);
-//     CHECK(v1.index()==0);
-//     CHECK(!get<0>(v1).allocator_supplied);
-//     CHECK(get<0>(v1).was_moved);
-//
-//     variant<std::string,not_allocatable> v2s{in_place_type_t<not_allocatable>{}};
-//     variant<std::string,not_allocatable> v2{std::allocator_arg_t{}
-//         , CountingAllocator<int>{}
-//         , std::move(v2s)};
-//
-//     CHECK(allocate_count==0);
-//     CHECK(v2.index()==1);
-//     CHECK(!get<1>(v2).allocator_supplied);
-//     CHECK(get<1>(v2).was_moved);
-// }
+    variant<std::string,MyClass> vi2{std::allocator_arg_t()
+        , CountingAllocator<MyClass>{}
+        , in_place_index_t<1>{}};
 
-// FIXME
-// TEST_CASE("allocator_move_constructor_allocator_arg_support")
-// {
-//     variant<allocatable,std::string> v1s{in_place_type_t<allocatable>{}};
-//     variant<allocatable,std::string> v1{std::allocator_arg_t{}
-//         , CountingAllocator<int>{}
-//         , std::move(v1s)};
-//
-//     CHECK(allocate_count==0);
-//     CHECK(v1.index()==0);
-//     CHECK(get<0>(v1).allocator_supplied);
-//     CHECK(get<0>(v1).was_moved);
-//
-//     variant<std::string,allocatable> v2s{in_place_index_t<1>{}};
-//     variant<std::string,allocatable> v2{std::allocator_arg_t{}
-//         , CountingAllocator<int>{}
-//         , std::move(v2s)};
-//
-//     CHECK(allocate_count==0);
-//     CHECK(v2.index()==1);
-//     CHECK(get<1>(v2).allocator_supplied);
-//     CHECK(get<1>(v2).was_moved);
-// }
+    CHECK(allocate_count==0);
+    CHECK(vi2.index()==1);
+    CHECK(get<1>(vi2).i==42);
 
-// FIXME
-// TEST_CASE("allocator_move_constructor_no_allocator_arg_support")
-// {
-//     variant<allocatable_no_arg,std::string> v1s{in_place_type_t<allocatable_no_arg>{}};
-//     variant<allocatable_no_arg,std::string> v1{std::allocator_arg_t{}
-//         , CountingAllocator<int>{}
-//         , std::move(v1s)};
-//
-//     CHECK(allocate_count==0);
-//     CHECK(v1.index()==0);
-//     CHECK(get<0>(v1).allocator_supplied);
-//     CHECK(get<0>(v1).was_moved);
-//
-//     variant<std::string,allocatable_no_arg> v2s{in_place_type_t<allocatable_no_arg>{}};
-//     variant<std::string,allocatable_no_arg> v2{std::allocator_arg_t{}
-//         , CountingAllocator<int>{}
-//         , std::move(v2s)};
-//
-//     CHECK(allocate_count==0);
-//     CHECK(v2.index()==1);
-//     CHECK(get<1>(v2).allocator_supplied);
-//     CHECK(get<1>(v2).was_moved);
-// }
+
+    variant<not_allocatable,std::string> v1{std::allocator_arg_t()
+        ,CountingAllocator<int>{}
+        , in_place_index_t<0>{}};
+
+    CHECK(allocate_count==0);
+    CHECK(v1.index()==0);
+    CHECK(!get<0>(v1).allocator_supplied);
+
+    variant<std::string,not_allocatable> v2{std::allocator_arg_t()
+        , CountingAllocator<int>{}
+        , in_place_index_t<1>{}};
+
+    CHECK(allocate_count==0);
+    CHECK(v2.index()==1);
+    CHECK(!get<1>(v2).allocator_supplied);
+#endif    
+}
+
+TEST_CASE("allocator_index_constructor_allocator_arg_support")
+{
+#if defined(PFS_NO_STD_VARIANT)    
+    variant<allocatable,std::string> v1{
+          std::allocator_arg_t()
+        , CountingAllocator<int>()
+        , in_place_index_t<0>{}};
+
+    CHECK(allocate_count==0);
+    CHECK(v1.index()==0);
+    CHECK(get<0>(v1).allocator_supplied);
+
+    variant<std::string,allocatable> v2 {
+          std::allocator_arg_t()
+        , CountingAllocator<int>()
+        , in_place_index_t<1>{}};
+
+    CHECK(allocate_count==0);
+    CHECK(v2.index()==1);
+    CHECK(get<1>(v2).allocator_supplied);
+#endif    
+}
+
+TEST_CASE("allocator_index_constructor_no_allocator_arg_support")
+{
+#if defined(PFS_NO_STD_VARIANT)
+    variant<allocatable_no_arg,std::string> v1{
+          std::allocator_arg_t{}
+        , CountingAllocator<int>{}
+        , in_place_index_t<0>{}};
+
+    CHECK(allocate_count==0);
+    CHECK(v1.index()==0);
+    CHECK(get<0>(v1).allocator_supplied);
+
+    variant<std::string,allocatable_no_arg> v2 {
+          std::allocator_arg_t{}
+        , CountingAllocator<int>{}
+        , in_place_index_t<1>{}};
+
+    CHECK(allocate_count==0);
+    CHECK(v2.index()==1);
+    CHECK(get<1>(v2).allocator_supplied);
+#endif    
+}
+
+TEST_CASE("allocator_type_constructor_no_allocator_support")
+{
+#if defined(PFS_NO_STD_VARIANT)
+    struct MyClass
+    {
+        int i;
+        MyClass (): i(42) {}
+    };
+
+    variant<MyClass,std::string> vi{std::allocator_arg_t()
+        , CountingAllocator<MyClass>{}
+        , in_place_type_t<MyClass>{}};
+
+    CHECK(allocate_count==0);
+    CHECK(vi.index()==0);
+    CHECK(get<0>(vi).i==42);
+
+    variant<std::string,MyClass> vi2{std::allocator_arg_t{}
+        , CountingAllocator<MyClass>{}
+        , in_place_type_t<MyClass>{}};
+
+    CHECK(allocate_count==0);
+    CHECK(vi2.index()==1);
+    CHECK(get<1>(vi2).i==42);
+
+    variant<not_allocatable,std::string> v1{std::allocator_arg_t{}
+        , CountingAllocator<int>{}
+        , in_place_type_t<not_allocatable>{}};
+
+    CHECK(allocate_count==0);
+    CHECK(v1.index()==0);
+    CHECK(!get<0>(v1).allocator_supplied);
+
+    variant<std::string,not_allocatable> v2{std::allocator_arg_t{}
+        , CountingAllocator<int>{}
+        , in_place_type_t<not_allocatable>{}};
+
+    CHECK(allocate_count==0);
+    CHECK(v2.index()==1);
+    CHECK(!get<1>(v2).allocator_supplied);
+#endif
+}
+
+TEST_CASE("allocator_type_constructor_allocator_arg_support")
+{
+#if defined(PFS_NO_STD_VARIANT)
+    variant<allocatable,std::string> v1 {std::allocator_arg_t{}
+        , CountingAllocator<int>{}
+        , in_place_type_t<allocatable>{}};
+
+    CHECK(allocate_count==0);
+    CHECK(v1.index()==0);
+    CHECK(get<0>(v1).allocator_supplied);
+
+    variant<std::string,allocatable> v2{std::allocator_arg_t{}
+        , CountingAllocator<int>{}
+        , in_place_type_t<allocatable>{}};
+
+    CHECK(allocate_count==0);
+    CHECK(v2.index()==1);
+    CHECK(get<1>(v2).allocator_supplied);
+#endif
+}
+
+TEST_CASE("allocator_type_constructor_no_allocator_arg_support")
+{
+#if defined(PFS_NO_STD_VARIANT)
+    variant<allocatable_no_arg,std::string> v1 {std::allocator_arg_t{}
+        , CountingAllocator<int>{}
+        , in_place_type_t<allocatable_no_arg>{}};
+
+    CHECK(allocate_count==0);
+    CHECK(v1.index()==0);
+    CHECK(get<0>(v1).allocator_supplied);
+
+    variant<std::string,allocatable_no_arg> v2{std::allocator_arg_t{}
+        , CountingAllocator<int>{}
+        , in_place_type_t<allocatable_no_arg>{}};
+
+    CHECK(allocate_count==0);
+    CHECK(v2.index()==1);
+    CHECK(get<1>(v2).allocator_supplied);
+#endif
+}
+
+TEST_CASE("allocator_copy_constructor_no_allocator_support")
+{
+#if defined(PFS_NO_STD_VARIANT)
+    struct MyClass
+    {
+        int i;
+        MyClass (): i(42) {}
+    };
+
+    variant<MyClass,std::string> vis{in_place_type_t<MyClass>{}};
+    variant<MyClass,std::string> vi{std::allocator_arg_t{}
+        , CountingAllocator<MyClass>{}
+        , vis};
+
+    CHECK(allocate_count==0);
+    CHECK(vi.index()==0);
+    CHECK(get<0>(vi).i==42);
+
+    variant<std::string,MyClass> vis2 {in_place_type_t<MyClass>{}};
+    variant<std::string,MyClass> vi2 {std::allocator_arg_t{}
+        , CountingAllocator<MyClass>{}
+        , vis2};
+
+    CHECK(allocate_count == 0);
+    CHECK(vi2.index() == 1);
+    CHECK(get<1>(vi2).i == 42);
+
+    variant<not_allocatable,std::string> v1s{in_place_type_t<not_allocatable>{}};
+    variant<not_allocatable,std::string> v1{std::allocator_arg_t{}
+        , CountingAllocator<int>{}
+        ,v1s };
+
+    CHECK(allocate_count==0);
+    CHECK(v1.index()==0);
+    CHECK(!get<0>(v1).allocator_supplied);
+
+    variant<std::string,not_allocatable> v2s{in_place_type_t<not_allocatable>{}};
+    variant<std::string,not_allocatable> v2{std::allocator_arg_t{}
+        , CountingAllocator<int>{}
+        , v2s};
+
+    CHECK(allocate_count==0);
+    CHECK(v2.index()==1);
+    CHECK(!get<1>(v2).allocator_supplied);
+#endif
+}
+
+TEST_CASE("allocator_copy_constructor_allocator_arg_support")
+{
+#if defined(PFS_NO_STD_VARIANT)
+    variant<allocatable,std::string> v1s{in_place_type_t<allocatable>{}};
+    variant<allocatable,std::string> v1{std::allocator_arg_t{}
+        , CountingAllocator<int>{}
+        ,v1s};
+
+    CHECK(allocate_count==0);
+    CHECK(v1.index()==0);
+    CHECK(get<0>(v1).allocator_supplied);
+
+    variant<std::string,allocatable> v2s{in_place_index_t<1>{}};
+    variant<std::string,allocatable> v2{std::allocator_arg_t{}
+        , CountingAllocator<int>{}
+        , v2s};
+
+    CHECK(allocate_count==0);
+    CHECK(v2.index()==1);
+    CHECK(get<1>(v2).allocator_supplied);
+#endif
+}
+
+TEST_CASE("allocator_copy_constructor_no_allocator_arg_support")
+{
+#if defined(PFS_NO_STD_VARIANT)    
+    variant<allocatable_no_arg,std::string> v1s{in_place_type_t<allocatable_no_arg>{}};
+    variant<allocatable_no_arg,std::string> v1{std::allocator_arg_t{}
+        , CountingAllocator<int>{}
+        , v1s};
+
+    CHECK(allocate_count==0);
+    CHECK(v1.index()==0);
+    CHECK(get<0>(v1).allocator_supplied);
+
+    variant<std::string,allocatable_no_arg> v2s{in_place_type_t<allocatable_no_arg>{}};
+    variant<std::string,allocatable_no_arg> v2{
+        std::allocator_arg_t(),CountingAllocator<int>(),v2s};
+
+    CHECK(allocate_count==0);
+    CHECK(v2.index()==1);
+    CHECK(get<1>(v2).allocator_supplied);
+#endif
+}
+
+TEST_CASE("allocator_move_constructor_no_allocator_support")
+{
+#if defined(PFS_NO_STD_VARIANT)    
+    struct MyClass
+    {
+        int i;
+        bool was_moved=false;
+
+        MyClass () : i(42) {}
+
+        MyClass(const MyClass&)=default;
+        MyClass(MyClass&&):
+            i(42),was_moved(true){}
+    };
+
+    variant<MyClass,std::string> vis{in_place_type_t<MyClass>{}};
+    variant<MyClass,std::string> vi{std::allocator_arg_t{}
+        , CountingAllocator<MyClass>{}
+        , std::move(vis)};
+
+    CHECK(allocate_count==0);
+    CHECK(vi.index()==0);
+    CHECK(get<0>(vi).i==42);
+    CHECK(get<0>(vi).was_moved);
+
+    variant<std::string,MyClass> vis2{in_place_type_t<MyClass>{}};
+    variant<std::string,MyClass> vi2{std::allocator_arg_t{}
+        , CountingAllocator<MyClass>{}
+        , std::move(vis2)};
+
+    CHECK(allocate_count==0);
+    CHECK(vi2.index()==1);
+    CHECK(get<1>(vi2).i==42);
+    CHECK(get<1>(vi2).was_moved);
+
+    variant<not_allocatable,std::string> v1s{in_place_type_t<not_allocatable>{}};
+    variant<not_allocatable,std::string> v1{std::allocator_arg_t{}
+        , CountingAllocator<int>{}
+        , std::move(v1s)};
+
+    CHECK(allocate_count==0);
+    CHECK(v1.index()==0);
+    CHECK(!get<0>(v1).allocator_supplied);
+    CHECK(get<0>(v1).was_moved);
+
+    variant<std::string,not_allocatable> v2s{in_place_type_t<not_allocatable>{}};
+    variant<std::string,not_allocatable> v2{std::allocator_arg_t{}
+        , CountingAllocator<int>{}
+        , std::move(v2s)};
+
+    CHECK(allocate_count==0);
+    CHECK(v2.index()==1);
+    CHECK(!get<1>(v2).allocator_supplied);
+    CHECK(get<1>(v2).was_moved);
+#endif
+}
+
+TEST_CASE("allocator_move_constructor_allocator_arg_support")
+{
+#if defined(PFS_NO_STD_VARIANT)
+    variant<allocatable,std::string> v1s{in_place_type_t<allocatable>{}};
+    variant<allocatable,std::string> v1{std::allocator_arg_t{}
+        , CountingAllocator<int>{}
+        , std::move(v1s)};
+
+    CHECK(allocate_count==0);
+    CHECK(v1.index()==0);
+    CHECK(get<0>(v1).allocator_supplied);
+    CHECK(get<0>(v1).was_moved);
+
+    variant<std::string,allocatable> v2s{in_place_index_t<1>{}};
+    variant<std::string,allocatable> v2{std::allocator_arg_t{}
+        , CountingAllocator<int>{}
+        , std::move(v2s)};
+
+    CHECK(allocate_count==0);
+    CHECK(v2.index()==1);
+    CHECK(get<1>(v2).allocator_supplied);
+    CHECK(get<1>(v2).was_moved);
+#endif
+}
+
+TEST_CASE("allocator_move_constructor_no_allocator_arg_support")
+{
+#if defined(PFS_NO_STD_VARIANT)
+    variant<allocatable_no_arg,std::string> v1s{in_place_type_t<allocatable_no_arg>{}};
+    variant<allocatable_no_arg,std::string> v1{std::allocator_arg_t{}
+        , CountingAllocator<int>{}
+        , std::move(v1s)};
+
+    CHECK(allocate_count==0);
+    CHECK(v1.index()==0);
+    CHECK(get<0>(v1).allocator_supplied);
+    CHECK(get<0>(v1).was_moved);
+
+    variant<std::string,allocatable_no_arg> v2s{in_place_type_t<allocatable_no_arg>{}};
+    variant<std::string,allocatable_no_arg> v2{std::allocator_arg_t{}
+        , CountingAllocator<int>{}
+        , std::move(v2s)};
+
+    CHECK(allocate_count==0);
+    CHECK(v2.index()==1);
+    CHECK(get<1>(v2).allocator_supplied);
+    CHECK(get<1>(v2).was_moved);
+#endif
+}

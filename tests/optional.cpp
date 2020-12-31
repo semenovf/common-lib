@@ -30,14 +30,12 @@
     using pfs::nullopt;
     using pfs::in_place;
     using pfs::make_optional;
-    using pfs::constexpr_move;
 #else
     using std::optional;
     using std::bad_optional_access;
     using std::nullopt;
     using std::in_place;
     using std::make_optional;
-    using std::constexpr_move;
 #endif
 
 TEST_CASE("basic") {
@@ -181,8 +179,13 @@ TEST_CASE("value_ctor")
     CHECK(oo1 == optional<Oracle>{v});
     CHECK(!!oo1);
     CHECK(bool(oo1));
-    // NA: CHECK(oo1->s == sValueCopyConstructed);
-//     CHECK(oo1->s == sMoveConstructed); // FIXME
+    
+#if !defined(PFS_NO_STD_OPTIONAL)    
+    CHECK(oo1->s == sValueCopyConstructed);
+#else
+    CHECK(oo1->s == sMoveConstructed); // FIXME
+#endif
+    
     CHECK(v.s == sValueConstructed);
 
     optional<Oracle> oo2(std::move(v));
@@ -191,8 +194,13 @@ TEST_CASE("value_ctor")
     CHECK(oo2 == oo1);
     CHECK(!!oo2);
     CHECK(bool(oo2));
-    // NA: CHECK(oo2->s == sValueMoveConstructed);
-//     CHECK(oo2->s == sMoveConstructed); // FIXME
+    
+#if !defined(PFS_NO_STD_OPTIONAL)
+    CHECK(oo2->s == sValueMoveConstructed);
+#else
+    CHECK(oo2->s == sMoveConstructed); // FIXME
+#endif
+    
     CHECK(v.s == sMovedFrom);
 
     {
@@ -341,7 +349,7 @@ TEST_CASE("optional_optional")
         CHECK(oi2 != nullopt);
         CHECK(bool(oi2));
         CHECK(*oi2 == nullopt);
-        //CHECK(!(*oi2));
+        CHECK(!(*oi2));
         //std::cout << typeid(**oi2).name() << std::endl;
     }
 
@@ -967,7 +975,6 @@ TEST_CASE("optional_ref")
     auto && oj = make_optional(std::ref(j));
     (*oj)++;
 
-//     CHECK((& *oj == & j));
     CHECK(j == 23);
 }
 
@@ -1407,34 +1414,6 @@ struct NothrowNone
     NothrowNone (NothrowNone &&) noexcept(false) {}
     void operator = (NothrowNone &&) noexcept(false) {}
 };
-
-// FIXME
-// TEST_CASE("test_noexcept")
-// {
-//     {
-//         optional<NothrowBoth> b1, b2;
-//         static_assert(noexcept(optional<NothrowBoth>{constexpr_move(b1)}), "bad noexcept!");
-//         static_assert(noexcept(b1 = constexpr_move(b2)), "bad noexcept!");
-//     }
-//
-//     {
-//         optional<NothrowCtor> c1, c2;
-//         static_assert(noexcept(optional<NothrowCtor>{constexpr_move(c1)}), "bad noexcept!");
-//         static_assert(!noexcept(c1 = constexpr_move(c2)), "bad noexcept!");
-//     }
-//
-//     {
-//         optional<NothrowAssign> a1, a2;
-//         static_assert(!noexcept(optional<NothrowAssign>{constexpr_move(a1)}), "bad noexcept!");
-//         static_assert(!noexcept(a1 = constexpr_move(a2)), "bad noexcept!");
-//     }
-//
-//     {
-//         optional<NothrowNone> n1, n2;
-//         static_assert(!noexcept(optional<NothrowNone>{constexpr_move(n1)}), "bad noexcept!");
-//         static_assert(!noexcept(n1 = constexpr_move(n2)), "bad noexcept!");
-//     }
-// }
 
 TEST_CASE("constexpr_test_disengaged")
 {
