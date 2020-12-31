@@ -20,7 +20,7 @@
 #include "unicode/test_data.hpp"
 
 template <typename HextetInputIt>
-bool decode (const char * itertype, bool little_endian)
+bool decode (const char * itertype, bool is_little_endian)
 {
     int ntests = sizeof(data) / sizeof(data[0]);
     bool result {true};
@@ -34,12 +34,13 @@ bool decode (const char * itertype, bool little_endian)
         for (decltype(data[i].len) j = 0, count = data[i].len; j < count; j += 2) {
 
             // NOTE This conversion algoritm depends on source byte order
-#if LITTLE_ENDIAN_PLATFORM
-            uint16_t value = (data[i].text[j + 1] << 8) | data[i].text[j];
-#else
-            uint16_t value = (data[i].text[j] << 8) | data[i].text[j + 1];
-#endif
-            d.push_back(value);
+            if (is_little_endian) {
+                uint16_t value = (data[i].text[j + 1] << 8) | data[i].text[j];
+                d.push_back(value);
+            } else {
+                uint16_t value = (data[i].text[j] << 8) | data[i].text[j + 1];
+                d.push_back(value);
+            }
         }
 
         HextetInputIt first(iter_cast<HextetInputIt>(d.data()));
@@ -47,8 +48,8 @@ bool decode (const char * itertype, bool little_endian)
 
         size_t count = 0;
         pfs::unicode::char_t uc = 0;
-        pfs::unicode::u16_input_iterator<HextetInputIt> inp_first(first, last, little_endian);
-        pfs::unicode::u16_input_iterator<HextetInputIt> inp_last(last, little_endian);
+        pfs::unicode::u16_input_iterator<HextetInputIt> inp_first(first, last, is_little_endian);
+        pfs::unicode::u16_input_iterator<HextetInputIt> inp_last(last, is_little_endian);
 
         while (inp_first != inp_last) {
             uc = *inp_first++;
@@ -59,7 +60,7 @@ bool decode (const char * itertype, bool little_endian)
 
         std::ostringstream msg;
         msg << "Decode UTF-16 using `" << itertype << "' as pointer. String `"
-                    << data[i].name << "`";
+                    << data[i].name << "`, endianess: " << (is_little_endian ? "little" : "big.");
 
         CHECK_MESSAGE(count == data[i].nchars, msg.str());
 
@@ -68,7 +69,8 @@ bool decode (const char * itertype, bool little_endian)
 
             desc << "Decode UTF-16 using `" << itertype << "' as pointer. String `"
                     << data[i].name
-                    << "'. Number of unicode chars "
+                    << "`, endianess: " << (is_little_endian ? "little" : "big.")
+                    << " Number of unicode chars "
                     << count
                     << ", expected "
                     << data[i].nchars;
@@ -82,53 +84,54 @@ bool decode (const char * itertype, bool little_endian)
 
 namespace std {
 
-template<>
-struct char_traits<uint16_t>
-{
-    typedef uint16_t char_type;
-    typedef uint32_t int_type;
-    typedef std::streamoff off_type;
-    typedef std::streampos pos_type;
-    typedef std::mbstate_t state_type;
-
-    static void assign (char_type & dst, char_type const src)
-    {
-        dst = src;
-    }
-
-    static constexpr char_type to_char_type (int_type const & c) noexcept
-    {
-        return static_cast<char_type>(c);
-    }
-
-    static constexpr int_type to_int_type (char_type const & c) noexcept
-    {
-        return static_cast<int_type>(c);
-    }
-
-    static constexpr bool eq_int_type (int_type const & c1
-            , int_type const & c2) noexcept
-    {
-        return c1 == c2;
-    }
-
-    static char_type * copy (char_type * s1, char_type const * s2, size_t n)
-    {
-        if (n == 0)
-            return s1;
-        return static_cast<char_type *>(std::memcpy(s1, s2, n * sizeof(char_type)));
-    }
-
-    static constexpr int_type eof () noexcept
-    {
-        return static_cast<int_type>(0xffffffffu);
-    }
-
-    static constexpr int_type not_eof (int_type const & c) noexcept
-    {
-        return (c == eof()) ? 0 : c;
-    }
-};
+    // FIXME
+// template<>
+// struct char_traits<uint16_t>
+// {
+//     typedef uint16_t char_type;
+//     typedef uint32_t int_type;
+//     typedef std::streamoff off_type;
+//     typedef std::streampos pos_type;
+//     typedef std::mbstate_t state_type;
+//
+//     static void assign (char_type & dst, char_type const src)
+//     {
+//         dst = src;
+//     }
+//
+//     static constexpr char_type to_char_type (int_type const & c) noexcept
+//     {
+//         return static_cast<char_type>(c);
+//     }
+//
+//     static constexpr int_type to_int_type (char_type const & c) noexcept
+//     {
+//         return static_cast<int_type>(c);
+//     }
+//
+//     static constexpr bool eq_int_type (int_type const & c1
+//             , int_type const & c2) noexcept
+//     {
+//         return c1 == c2;
+//     }
+//
+//     static char_type * copy (char_type * s1, char_type const * s2, size_t n)
+//     {
+//         if (n == 0)
+//             return s1;
+//         return static_cast<char_type *>(std::memcpy(s1, s2, n * sizeof(char_type)));
+//     }
+//
+//     static constexpr int_type eof () noexcept
+//     {
+//         return static_cast<int_type>(0xffffffffu);
+//     }
+//
+//     static constexpr int_type not_eof (int_type const & c) noexcept
+//     {
+//         return (c == eof()) ? 0 : c;
+//     }
+// };
 
 template<>
 struct ctype<uint16_t>
@@ -152,7 +155,7 @@ locale::id ctype<uint16_t>::id;// = 1234567;
 
 } // namespace std
 
-bool decode_files (bool little_endian)
+bool decode_files (bool is_little_endian)
 {
     int ntests = sizeof (data) / sizeof (data[0]);
     bool result {true};
@@ -172,8 +175,8 @@ bool decode_files (bool little_endian)
 
         size_t count = 0;
         pfs::unicode::char_t uc = 0;
-        pfs::unicode::u16_input_iterator<std::istreambuf_iterator<uint16_t>> inp_first(first, last, little_endian);
-        pfs::unicode::u16_input_iterator<std::istreambuf_iterator<uint16_t>> inp_last(last, little_endian);
+        pfs::unicode::u16_input_iterator<std::istreambuf_iterator<uint16_t>> inp_first(first, last, is_little_endian);
+        pfs::unicode::u16_input_iterator<std::istreambuf_iterator<uint16_t>> inp_last(last, is_little_endian);
 
         while (inp_first != inp_last) {
             uc = *inp_first++;

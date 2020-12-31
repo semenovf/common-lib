@@ -92,13 +92,6 @@ public:
                 return;
             }
 
-            ++*this->_p;
-
-            if (*this->_p == this->_last) {
-                base_class::broken_sequence();
-                return;
-            }
-
             w2 = code_point_cast<uint16_t>(**this->_p);
 
             // Valid unit sequence

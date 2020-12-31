@@ -11,11 +11,13 @@
 #include "utf16_decode.hpp"
 
 TEST_CASE("Decode utf16le") {
-//     decode<uint16_t *>("uint16 *", true);
-//     decode<uint16_t const *>("uint16_t const *", true);
-//     decode<int16_t *>("int16_t *", true);
-//     decode<int16_t const *>("int16_t const *", true);
-// //     decode<std::string::iterator>("std::string::iterator");
-// //     decode<std::string::const_iterator>("std::string::const_iterator");
-    decode_files(true);
+    decode<uint16_t *>("uint16 *", true);
+    decode<uint16_t const *>("uint16_t const *", true);
+    decode<int16_t *>("int16_t *", true);
+    decode<int16_t const *>("int16_t const *", true);
+    // FIXME
+//     decode<std::string::iterator>("std::string::iterator");
+//     decode<std::string::const_iterator>("std::string::const_iterator");
+    // FIXME
+//     decode_files(true);
 }

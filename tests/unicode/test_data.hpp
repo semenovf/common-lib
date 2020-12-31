@@ -106,3 +106,16 @@ inline int16_t const * iter_cast<int16_t const *> (uint16_t * it)
 {
     return reinterpret_cast<int16_t const *>(it);
 }
+
+// FIXME
+// template <>
+// inline std::basic_string<uint16_t>::iterator iter_cast<std::basic_string<uint16_t>::iterator> (uint16_t * it)
+// {
+//     return std::basic_string<uint16_t>::iterator(reinterpret_cast<uint16_t *>(it));
+// }
+//
+// template <>
+// inline std::basic_string<uint16_t>::const_iterator iter_cast<std::basic_string<uint16_t>::const_iterator> (uint16_t * it)
+// {
+//     return std::basic_string<uint16_t>::const_iterator(reinterpret_cast<uint16_t *>(it));
+// }
