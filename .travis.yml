@@ -14,7 +14,7 @@ matrix:
     addons:
       apt:
         sources: ['ubuntu-toolchain-r-test']
-        packages: ['g++-5', 'ninja-build']
+        packages: ['g++-5', 'gcc-5', 'ninja-build']
 
   - os: linux
     compiler: gcc
@@ -24,7 +24,7 @@ matrix:
     addons:
       apt:
         sources: ['ubuntu-toolchain-r-test']
-        packages: ['g++-5', 'ninja-build']
+        packages: ['g++-5', 'gcc-5', 'ninja-build']
 
   - os: linux
     compiler: gcc
@@ -34,7 +34,7 @@ matrix:
     addons:
       apt:
         sources: ['ubuntu-toolchain-r-test']
-        packages: ['g++-5', 'ninja-build']
+        packages: ['g++-5', 'gcc-5', 'ninja-build']
 
   - os: linux
     compiler: gcc
@@ -44,7 +44,7 @@ matrix:
     addons:
       apt:
         sources: ['ubuntu-toolchain-r-test']
-        packages: ['g++-6', 'ninja-build']
+        packages: ['g++-6', 'gcc-6', 'ninja-build']
 
   - os: linux
     compiler: gcc
@@ -54,7 +54,7 @@ matrix:
     addons:
       apt:
         sources: ['ubuntu-toolchain-r-test']
-        packages: ['g++-7', 'ninja-build']
+        packages: ['g++-7', 'gcc-7', 'ninja-build']
 
   - os: linux
     compiler: gcc
@@ -64,7 +64,7 @@ matrix:
     addons:
       apt:
         sources: ['ubuntu-toolchain-r-test']
-        packages: ['g++-8', 'ninja-build', 'libstdc++-8-dev']
+        packages: ['g++-8', 'gcc-8', 'ninja-build', 'libstdc++-8-dev']
 
     # Coveralls (TODO)
   #- os: linux
