@@ -21,6 +21,7 @@ if (CMAKE_CXX_STANDARD)
 
     if (__have_cxx_standard_flag)
         set(${FLAG} "${__cxx_standard_flag}" PARENT_SCOPE)
+        message(STATUS "C++ standard specific flag: ${__cxx_standard_flag}")
     else()
         message(WARNING "Unable to determine C++ standard specific flag")
     endif()

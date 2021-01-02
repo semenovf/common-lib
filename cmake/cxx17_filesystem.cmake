@@ -33,16 +33,23 @@ if (__have_std_filesystem_header)
     check_cxx_standard_flag(__cxx_standard_flag)
     set(CMAKE_REQUIRED_FLAGS "${CMAKE_REQUIRED_FLAGS} ${__cxx_standard_flag}")
 
-    # Try to compile a simple filesystem program without any linker flags
-    check_cxx_source_compiles("${__check_cxx_code}" __no_std_filesystem_link_required)
+    # Workaround on `std::filesystem::path segfault in destructor`
+    # (https://gcc.gnu.org/bugzilla/show_bug.cgi?id=90050) for g++8
+    if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 9.0)
+        unset(__no_std_filesystem_link_required)
+    else()
+        # Try to compile a simple filesystem program without any linker flags
+        check_cxx_source_compiles("${__check_cxx_code}" __no_std_filesystem_link_required)
+    endif()
 
     if (NOT __no_std_filesystem_link_required)
         set(CMAKE_REQUIRED_LIBRARIES -lstdc++fs)
-        check_cxx_source_compiles("${code}" __std_filesystem_required)
+
+        check_cxx_source_compiles("${__check_cxx_code}" __std_filesystem_required)
 
         if (NOT __std_filesystem_required)
             set(CMAKE_REQUIRED_LIBRARIES -lc++fs)
-            check_cxx_source_compiles("${code}" __std_filesystem_required)
+            check_cxx_source_compiles("${__check_cxx_code}" __std_filesystem_required)
 
             if (NOT __std_filesystem_required)
                 #message(FATAL_ERROR "Unable to select std::filesystem's library")
