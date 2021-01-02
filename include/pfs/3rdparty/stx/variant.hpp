@@ -40,49 +40,6 @@
 #define STX_NAMESPACE_NAME stx
 #endif
 
-
-#if defined(__has_include) && !defined(STX_NO_STD_VARIANT)
-#    if __has_include(<variant>) && (__cplusplus >= 201402L)
-        namespace STX_NAMESPACE_NAME {
-            using std::variant;
-            using std::visit;
-            using std::holds_alternative;
-            using std::get_if;
-            using std::monostate;
-            using std::bad_variant_access;
-            using std::variant_size;
-            using std::variant_size_v;
-            using std::variant_alternative;
-            using std::variant_alternative_t;
-#           ifndef STX_HAVE_IN_PLACE_T
-            using std::in_place_t;
-            using std::in_place;
-#           define STX_IN_PLACE_T 1
-#           endif
-            using std::in_place_type_t;
-            using std::in_place_type;
-            using std::in_place_index_t;
-            using std::in_place_index;
-
-            //--wladt--
-            using std::add_const;
-            using std::add_const_t;
-            using std::add_pointer;
-            using std::add_pointer_t;
-            using std::add_volatile;
-            using std::add_volatile_t;
-            using std::remove_cv;
-            using std::remove_cv_t;
-            using std::remove_reference;
-            using std::remove_reference_t;
-        }
-#       define STX_HAVE_STD_VARIANT 1
-#    endif // __hasinclude(any)
-#endif // defined(__hasinclude)
-
-
-#ifndef STX_HAVE_STD_VARIANT
-
 #include <stddef.h>
 #include <stdexcept>
 #include <string>
@@ -101,6 +58,14 @@
 #endif
 
 namespace STX_NAMESPACE_NAME {
+
+#if __cplusplus >= 201402L
+    using std::add_const_t;
+    using std::add_pointer_t;
+    using std::add_volatile_t;
+    using std::remove_cv_t;
+    using std::remove_reference_t;
+#endif
 
 // --wladt--:
 // g++ error: ‘add_const_t’ in namespace ‘std’ does not name a template type...
@@ -124,14 +89,12 @@ using remove_reference_t = typename std::remove_reference<T>::type;
 
 #endif
 
-#ifndef STX_HAVE_IN_PLACE_T
+#if __cplusplus < 201703L
 struct in_place_t {
     explicit in_place_t() = default;
 };
 
 constexpr in_place_t in_place{};
-#define STX_HAVE_IN_PLACE_T 1
-#endif
 
 template <class T> struct in_place_type_t {
     explicit in_place_type_t() = default;
@@ -141,16 +104,16 @@ template <size_t I> struct in_place_index_t {
     explicit in_place_index_t() = default;
 };
 
+#endif
+
 // --wladt--: Variable templates only available with C++14
 #if __cplusplus >= 201402L
 
-#   ifndef STX_HAVE_IN_PLACE_T
-template <class T>
+template <typename T>
 constexpr in_place_type_t<T> in_place_type{};
 
 template <size_t I>
 constexpr in_place_index_t<I> in_place_index{};
-#   endif
 
 #   define STX_IN_PLACE_INDEX(I) in_place_index<I>
 
@@ -168,7 +131,6 @@ inline constexpr in_place_index_t<I> in_place_index ()
     return in_place_index_t<I>{};
 }
 
-//#   define STX_IN_PLACE_TYPE(I)
 #   define STX_IN_PLACE_INDEX(I) in_place_index<I>()
 
 #endif
@@ -2719,7 +2681,5 @@ struct uses_allocator<STX_NAMESPACE_NAME::variant<_Args...>,_Alloc>:
 #ifdef _MSC_VER
 #pragma warning(pop)
 #endif
-
-#endif // STX_HAVE_STD_VARIANT
 
 #endif // STX_VARIANT_HPP_INCLUDED
