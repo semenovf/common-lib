@@ -21,6 +21,7 @@ set(TEST_NAMES
     calendar
     compare_op
     dynamic_library
+    emitter
     filesystem
     iterator_bidirectional
     iterator_forward
@@ -34,6 +35,7 @@ set(TEST_NAMES
     ring_buffer_mt
     safeformat
     string_view
+    type_traits
     variant
     utf8_decode
     utf8_encode
