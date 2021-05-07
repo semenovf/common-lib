@@ -1,7 +1,9 @@
-project(pfs_common_TESTS CXX C)
-option(ENABLE_COVERAGE "Build tests with coverage support" OFF)
-
-find_package(Threads REQUIRED)
+################################################################################
+# Copyright (c) 2019,2020 Vladislav Trifochkin
+#
+# This file is part of [pfs-common](https://github.com/semenovf/pfs-common) library.
+################################################################################
+project(pfs-common-TESTS CXX C)
 
 if (ENABLE_COVERAGE)
     message(STATUS "Coverage feature enabled")
@@ -23,6 +25,7 @@ set(TEST_NAMES
     dynamic_library
     emitter
     filesystem
+    function_queue
     iterator_bidirectional
     iterator_forward
     iterator_input
@@ -88,15 +91,20 @@ foreach (name ${TEST_NAMES})
         add_executable(${name} ${name}.cpp)
     endif()
 
+    # https://gcc.gnu.org/onlinedocs/gcc/Instrumentation-Options.html#Instrumentation-Options
+    #
+    # --coverage
+    #       This option is used to compile and link code instrumented for
+    #       coverage analysis. The option is a synonym for -fprofile-arcs
+    #       -ftest-coverage (when compiling) and -lgcov (when linking).
+    if (ENABLE_COVERAGE)
+        target_compile_options(${name} PRIVATE -g -O0 --coverage)
+        target_link_libraries(${name} PRIVATE -g -O0 --coverage)
+    endif()
+
     target_link_libraries(${name} PRIVATE pfs::common)
     add_test(NAME ${name} COMMAND ${name})
 endforeach()
-
-target_link_libraries(ring_buffer_mt PRIVATE Threads::Threads)
-
-if (UNIX)
-    target_link_libraries(dynamic_library PRIVATE dl)
-endif()
 
 # Helper library for test `dynamic_library`
 add_library(shared_object SHARED shared_object.c)
@@ -131,3 +139,8 @@ add_custom_command(TARGET utf16be_decode
         "${CMAKE_CURRENT_SOURCE_DIR}/unicode/utf16be/data"
         "$<TARGET_FILE_DIR:utf16be_decode>/unicode/utf16be/data"
     VERBATIM)
+
+if (ENABLE_COVERAGE)
+    include(${CMAKE_SOURCE_DIR}/cmake/Coverage.cmake)
+    coverage_target("'/usr/*';'*/doctest.h'")
+endif()
