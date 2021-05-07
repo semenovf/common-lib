@@ -1,5 +1,5 @@
 ////////////////////////////////////////////////////////////////////////////////
-// Copyright (c) 2020 Vladislav Trifochkin
+// Copyright (c) 2020,2021 Vladislav Trifochkin
 //
 // This file is part of [pfs-common](https://github.com/semenovf/pfs-common) library.
 //
@@ -11,17 +11,12 @@
 
 namespace pfs {
 
-#if __cplusplus < 201402L
 template <typename T>
 using remove_cv_t = typename std::remove_cv<T>::type;
-#endif
 
-#if __cplusplus < 201402L
 template <typename T>
 using remove_reference_t = typename std::remove_reference<T>::type;
-#endif
 
-#if __cplusplus <= 201703L
 template <typename T>
 struct remove_cvref
 {
@@ -30,7 +25,6 @@ struct remove_cvref
 
 template <typename T>
 using remove_cvref_t = typename remove_cvref<T>::type;
-#endif
 
 // Attempt to implement is_function_pointer
 // See https://stackoverflow.com/questions/6560590/is-function-pointer-for-type-traits
