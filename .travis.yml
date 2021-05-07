@@ -9,7 +9,8 @@ matrix:
   - os: linux
     compiler: gcc
     env:
-      - COMPILER=g++-5
+      - CXX_COMPILER=g++-5
+      - CC_COMPILER=gcc-5
       - CXX_STANDARD=11
     addons:
       apt:
@@ -19,7 +20,8 @@ matrix:
   - os: linux
     compiler: gcc
     env:
-      - COMPILER=g++-5
+      - CXX_COMPILER=g++-5
+      - CC_COMPILER=gcc-5
       - CXX_STANDARD=14
     addons:
       apt:
@@ -29,7 +31,8 @@ matrix:
   - os: linux
     compiler: gcc
     env:
-      - COMPILER=g++-5
+      - CXX_COMPILER=g++-5
+      - CC_COMPILER=gcc-5
       - CXX_STANDARD=17
     addons:
       apt:
@@ -39,7 +42,8 @@ matrix:
   - os: linux
     compiler: gcc
     env:
-      - COMPILER=g++-6
+      - CXX_COMPILER=g++-6
+      - CC_COMPILER=gcc-6
       - CXX_STANDARD=17
     addons:
       apt:
@@ -49,7 +53,8 @@ matrix:
   - os: linux
     compiler: gcc
     env:
-      - COMPILER=g++-7
+      - CXX_COMPILER=g++-7
+      - CC_COMPILER=gcc-7
       - CXX_STANDARD=17
     addons:
       apt:
@@ -59,7 +64,8 @@ matrix:
   - os: linux
     compiler: gcc
     env:
-      - COMPILER=g++-8
+      - CXX_COMPILER=g++-8
+      - CC_COMPILER=gcc-8
       - CXX_STANDARD=17
     addons:
       apt:
@@ -78,7 +84,8 @@ matrix:
 #    after_success:
 #      - coveralls --build-root build/tests --include include --gcov 'gcov-7' --gcov-options '\-lp'
 #    env:
-#      - COMPILER=g++-7
+#      - CXX_COMPILER=g++-7
+#      - CC_COMPILER=gcc-7
 #      - CXX_STANDARD=11
 #      - CMAKE_OPTIONS=-DENABLE_COVERAGE=ON
 #      - BUILD_TYPE=Debug
@@ -94,13 +101,15 @@ matrix:
       - cmake --build . --target Coverage
       - bash <(curl -s https://codecov.io/bash) -f Coverage.info || echo "Codecov did not collect coverage reports"
     env:
-      - COMPILER=g++-7
+      - CXX_COMPILER=g++-7
+      - CC_COMPILER=gcc-7
       - CXX_STANDARD=11
       - CMAKE_OPTIONS=-DENABLE_COVERAGE=ON
       - BUILD_TYPE=Debug
 
 before_script:
-  - if [[ "${COMPILER}" != "" ]]; then export CXX=${COMPILER}; fi
+  - if [[ "${CXX_COMPILER}" != "" ]]; then export CXX=${CXX_COMPILER}; fi
+  - if [[ "${CC_COMPILER}" != "" ]]; then export CC=${CC_COMPILER}; fi
   - if [[ "${BUILD_TYPE}" == "" ]]; then export BUILD_TYPE=Release; fi
   - uname -a
   - $CXX --version
