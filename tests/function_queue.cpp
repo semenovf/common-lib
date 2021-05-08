@@ -28,7 +28,7 @@ void func ()
 
 } // namespace t0
 
-TEST_CASE("Active Queue: using regular function") {
+TEST_CASE("Function Queue: using regular function") {
     using function_queue = pfs::function_queue<>;
 
     function_queue q;
@@ -77,7 +77,7 @@ size_t A::max_count = 100;
 
 } // namespace t1
 
-TEST_CASE("Active Queue: using method") {
+TEST_CASE("Function Queue: using method") {
     using function_queue = pfs::function_queue<>;
     using t1::A;
     function_queue q;
@@ -142,7 +142,7 @@ static size_t calc_threshold (size_t max)
 
 } // namespace t2
 
-TEST_CASE("Active Queue: 2") {
+TEST_CASE("Function Queue: 2") {
     using function_queue = pfs::function_queue<>;
 
     function_queue q;
@@ -291,7 +291,7 @@ public:
 
 } // namespace t3
 
-TEST_CASE("Active Queue: 3") {
+TEST_CASE("Function Queue: 3") {
 
     t3::consumer cons;
     t3::producer1 prod1;
@@ -381,7 +381,7 @@ class producer
 
 } // namespace t4
 
-TEST_CASE("Active Queue: 4") {
+TEST_CASE("Function Queue: 4") {
 
     t4::consumer cons;
     t4::producer prod;
@@ -453,7 +453,7 @@ public:
 
 } // namespace t5
 
-TEST_CASE("Active Queue: 5")
+TEST_CASE("Function Queue: 5")
 {
     using std::swap;
     t5::producer producers[t5::PRODUCER_COUNT];

@@ -33,14 +33,12 @@ inline auto active_bind (F && func, Args &&... args)
     return std::bind(std::forward<F>(func), std::forward<Args>(args)...);
 }
 
-template <
-      typename FunctionItem = std::function<void ()>
-    , template <typename> class QueueContainer = details::function_queue_container
+template <template <typename> class QueueContainer = details::function_queue_container
     , size_t capacity_increment = 256>
 class function_queue
 {
 public:
-    using value_type = FunctionItem;
+    using value_type = std::function<void ()>;
     using queue_container_type = QueueContainer<value_type>;
     using size_type = typename queue_container_type::size_type;
 
@@ -81,7 +79,7 @@ public:
         _q.clear();
     }
 
-    template <class F, typename ...Args>
+    template <typename F, typename ...Args>
     void push (F && f, Args &&... args)
     {
         auto result = _q.try_push(active_bind(std::forward<F>(f), std::forward<Args>(args)...)

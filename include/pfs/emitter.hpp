@@ -9,6 +9,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
 #include "type_traits.hpp"
+#include "function_queue.hpp"
 #include <functional>
 #include <list>
 #include <mutex>
@@ -55,6 +56,30 @@ public:
     iterator connect (Class & c, void (Class::*f) (Args...))
     {
         _detectors.emplace_back([& c, f] (Args... args) { (c.*f)(args...); });
+        return --_detectors.end();
+    }
+
+    template <template <typename> class QueueContainer, size_t capacity_increment>
+    iterator connect (function_queue<QueueContainer, capacity_increment> & q
+        , std::function<void(Args...)> && f)
+    {
+        std::function<void(Args...)> f1{std::move(f)};
+
+        _detectors.emplace_back([& q, f1] {
+            q.push(std::move(f1));
+        });
+
+        return --_detectors.end();
+    }
+
+    template <template <typename> class QueueContainer, size_t capacity_increment, typename Class>
+    iterator connect (function_queue<QueueContainer, capacity_increment> & q
+        , Class & c, void (Class::*f) (Args...))
+    {
+        _detectors.emplace_back([& q, & c, f] {
+            q.push(f, & c);
+        });
+
         return --_detectors.end();
     }
 

@@ -11,6 +11,7 @@
 #include "doctest.h"
 #include "nanobench.h"
 #include "pfs/emitter.hpp"
+#include "pfs/function_queue.hpp"
 #include <string>
 
 namespace t0 {
@@ -139,6 +140,46 @@ TEST_CASE("Emitter iterator and disconnect") {
     em(42);
     t0::check.clear();
     CHECK_EQ(t0::check, "");
+}
+
+// template <>
+// pfs::function_queue<>::push<void ()>();
+
+// typedef void (pfs::function_queue<>::* pushTFuncPtr)(void());
+
+namespace t1 {
+    void f ()
+    {
+        std::cout << "Viva la Function Queue from regular function\n";
+    }
+
+    class A {
+    public:
+        void f ()
+        {
+            std::cout << "Viva la Function Queue from member function\n";
+        }
+    };
+
+    auto lambda = [] { t1::f();
+        std::cout << "Viva la Function Queue from lambda\n";
+    };
+}
+
+TEST_CASE("Emitter with function_queue") {
+    pfs::function_queue<> q;
+    pfs::emitter<> em0;
+    t1::A a;
+
+    em0.connect(t1::f);
+    em0.connect(q, t1::f);
+    em0.connect(q, t1::lambda);
+    em0.connect(q, a, & t1::A::f);
+
+    // Nothing happened yet, but pushed into queue
+    em0();
+
+    q.call_all();
 }
 
 TEST_CASE("benchmark") {
