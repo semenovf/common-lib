@@ -1,10 +1,10 @@
 ////////////////////////////////////////////////////////////////////////////////
-// Copyright (c) 2019 Vladislav Trifochkin
+// Copyright (c) 2019-2021 Vladislav Trifochkin
 //
-// This file is part of [pfs-modulus](https://github.com/semenovf/pfs-modulus) library.
+// This file is part of [pfs-common](https://github.com/semenovf/pfs-modulus) library.
 //
 // Changelog:
-//      2019.12.19 Initial version (inhereted from https://github.com/semenovf/pfs)
+//      2021.04.25 Initial version (moved from https://github.com/semenovf/pfs-modulus)
 ////////////////////////////////////////////////////////////////////////////////
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #define ANKERL_NANOBENCH_IMPLEMENT

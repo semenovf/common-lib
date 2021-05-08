@@ -37,6 +37,7 @@ set(TEST_NAMES
     ring_buffer
     ring_buffer_mt
     safeformat
+    source_location
     string_view
     type_traits
     variant

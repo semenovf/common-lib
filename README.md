@@ -6,6 +6,7 @@
 
 namespace pfs {<br/>
     1. `dynamic_library` class<br/>
+    1. `function_queue` container class<br/>
     2. `filesystem` classes<br/>
     3. `fmt`<br/>
     4. `iterator` classes<br/>
