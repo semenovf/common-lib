@@ -335,8 +335,13 @@ struct stringifier : public base_stringifier<OutputIterator>
 
         // Was dynamically allocated
         //
-        if (bufsz > SNPRINTF_DEFAULT_BUFSZ)
+        if (bufsz > SNPRINTF_DEFAULT_BUFSZ) {
+#if __cplusplus >= 201703L
+            std::destroy_at(pbuf);
+#else
             std::allocator<char>().destroy(pbuf);
+#endif
+        }
     }
 };
 

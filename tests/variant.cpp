@@ -98,8 +98,14 @@ TEST_CASE("Variant Constructors")
         variant<int, std::string> v("42");
         CHECK("42" == get<std::string>(v));
 
+#if defined(__GNUC__) && __cplusplus > 201703L
+        // g++10 error: no matching function for call to ‘std::variant<int, const char*>::variant(double)’
+//         constexpr variant<int, const char *> cv(1.1);
+//         static_assert(1 == get<int>(cv), "");
+#else
         constexpr variant<int, const char *> cv(1.1);
         static_assert(1 == get<int>(cv), "");
+#endif
     }
 
     // CopyInitialization
@@ -116,8 +122,14 @@ TEST_CASE("Variant Constructors")
         variant<int, std::string> v = "42";
         CHECK("42" == get<std::string>(v));
 
+#if defined(__GNUC__) && __cplusplus > 201703L
+        // g++10 error: conversion from ‘double’ to non-scalar type ‘const std::variant<int, const char*>’ requested
+//         constexpr variant<int, const char *> cv = 1.1;
+//         static_assert(1 == get<int>(cv), "");
+#else
         constexpr variant<int, const char *> cv = 1.1;
         static_assert(1 == get<int>(cv), "");
+#endif
     }
 
     {
@@ -288,10 +300,18 @@ TEST_CASE("Variant Assignments") {
 
     // SameTypeFwd
     {
+#if defined(__GNUC__) && __cplusplus > 201703L
+        // g++10 error: no matching function for call to ‘std::variant<int, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >::variant(double)’
+//         variant<int, std::string> v(1.1);
+//         CHECK(1 == get<int>(v));
+//         v = 2.2;
+//         CHECK(2 == get<int>(v));
+#else
         variant<int, std::string> v(1.1);
         CHECK(1 == get<int>(v));
         v = 2.2;
         CHECK(2 == get<int>(v));
+#endif
     }
 
     // DiffType
@@ -341,8 +361,14 @@ TEST_CASE("Variant Assignments") {
     // Ambiguous
     {
 #ifndef PFS_NO_STD_VARIANT
+#   if defined(__GNUC__) && __cplusplus > 201703L
+        // g++ error: static assertion failed: variant<short, long> v; v = 42;
+//         static_assert(!std::is_assignable<variant<short, long>, int> {}
+//             , "variant<short, long> v; v = 42;");
+#   else
         static_assert(!std::is_assignable<variant<short, long>, int> {}
             , "variant<short, long> v; v = 42;");
+#   endif
 #endif
     }
 
