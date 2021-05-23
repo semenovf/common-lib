@@ -2,7 +2,7 @@
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![Build Status](https://travis-ci.com/semenovf/pfs-common.svg?branch=master)](https://travis-ci.com/semenovf/pfs-common)
 
-# pfs::common (Portable Foundation Structures)
+# common-lib (Common library for Portable Foundation Structures)
 
 namespace pfs {<br/>
     1. `dynamic_library` class<br/>
