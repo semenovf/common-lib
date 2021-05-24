@@ -63,10 +63,8 @@ public:
     iterator connect (function_queue<QueueContainer, capacity_increment> & q
         , std::function<void(Args...)> && f)
     {
-        std::function<void(Args...)> f1{std::move(f)};
-
-        _detectors.emplace_back([& q, f1] {
-            q.push(std::move(f1));
+        _detectors.emplace_back([& q, f] (Args... args) {
+            q.push(std::move(f), args...);
         });
 
         return --_detectors.end();
@@ -76,8 +74,8 @@ public:
     iterator connect (function_queue<QueueContainer, capacity_increment> & q
         , Class & c, void (Class::*f) (Args...))
     {
-        _detectors.emplace_back([& q, & c, f] {
-            q.push(f, & c);
+        _detectors.emplace_back([& q, & c, f] (Args... args) {
+            q.push(f, & c, args...);
         });
 
         return --_detectors.end();

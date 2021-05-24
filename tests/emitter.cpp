@@ -142,44 +142,52 @@ TEST_CASE("Emitter iterator and disconnect") {
     CHECK_EQ(t0::check, "");
 }
 
-// template <>
-// pfs::function_queue<>::push<void ()>();
-
-// typedef void (pfs::function_queue<>::* pushTFuncPtr)(void());
-
 namespace t1 {
-    void f ()
+    int counter = 4;
+
+    void f0 (bool)
+    {
+        std::cout << "Hello from regular function\n";
+        counter--;
+    }
+
+    void f (bool)
     {
         std::cout << "Viva la Function Queue from regular function\n";
+        counter--;
     }
 
     class A {
     public:
-        void f ()
+        void f (bool)
         {
             std::cout << "Viva la Function Queue from member function\n";
+            counter--;
         }
     };
 
-    auto lambda = [] { t1::f();
+    auto lambda = [] (bool) {
         std::cout << "Viva la Function Queue from lambda\n";
+        counter--;
     };
 }
 
 TEST_CASE("Emitter with function_queue") {
     pfs::function_queue<> q;
-    pfs::emitter<> em0;
+    pfs::emitter<bool> em;
     t1::A a;
 
-    em0.connect(t1::f);
-    em0.connect(q, t1::f);
-    em0.connect(q, t1::lambda);
-    em0.connect(q, a, & t1::A::f);
+    em.connect(t1::f0);
+    em.connect(q, t1::f);
+    em.connect(q, t1::lambda);
+    em.connect(q, a, & t1::A::f);
 
     // Nothing happened yet, but pushed into queue
-    em0();
+    em(true);
 
     q.call_all();
+
+    CHECK_EQ(t1::counter, 0);
 }
 
 TEST_CASE("benchmark") {
