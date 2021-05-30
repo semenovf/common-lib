@@ -20,7 +20,12 @@ namespace pfs {
 template <typename ...Args>
 class emitter
 {
-    using detector_list = std::list<std::function<void(Args...)>>;
+    using detector_type = std::function<void(Args...)>;
+
+    // Detector list type requirements:
+    //      * no iterators are invalidated while inserting and emplacing
+    //      * no iterators are invalidated while erasing (excluding erased)
+    using detector_list = std::list<detector_type>;
     using detector_iterator = typename detector_list::iterator;
 
     detector_list _detectors;
@@ -33,9 +38,7 @@ public:
      * Connect detector defined as ordinary function
      */
 
-    //iterator connect (void (* f) (Args...))
     template <typename F
-        //, typename = typename std::enable_if<is_function_pointer<F>::value, F>::type
         , typename = typename std::enable_if<std::is_same<void (*) (Args...), F>::value, F>::type>
     iterator connect (F f)
     {
