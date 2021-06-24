@@ -70,17 +70,26 @@ inline const char * iter_cast<const char *> (unsigned char * it)
     return reinterpret_cast<const char *>(it);
 }
 
-template <>
-inline std::string::iterator iter_cast<std::string::iterator> (unsigned char * it)
-{
-    return std::string::iterator(reinterpret_cast<char *>(it));
-}
-
-template <>
-inline std::string::const_iterator iter_cast<std::string::const_iterator> (unsigned char * it)
-{
-    return std::string::const_iterator(reinterpret_cast<char *>(it));
-}
+// FIXME std::string::iterator() constructor need 2 args: pointer and owner, but nullptr is not valid value
+// template <>
+// inline std::string::iterator iter_cast<std::string::iterator> (unsigned char * it)
+// {
+// #if _MSC_VER
+//     return std::string::iterator(reinterpret_cast<char *>(it), nullptr); // <=== FIXME nullptr is not valid value here
+// #else    
+//     return std::string::iterator(reinterpret_cast<char *>(it));
+// #endif
+// }
+//
+// template <>
+// inline std::string::const_iterator iter_cast<std::string::const_iterator> (unsigned char * it)
+// {
+// #if _MSC_VER
+//     return std::string::const_iterator(reinterpret_cast<char *>(it), nullptr); // <=== FIXME nullptr is not valid value here
+// #else
+//     return std::string::const_iterator(reinterpret_cast<char *>(it));
+// #endif    
+// }
 
 template <>
 inline uint16_t * iter_cast<uint16_t *> (uint16_t * it)

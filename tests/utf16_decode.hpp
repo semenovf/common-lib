@@ -133,13 +133,13 @@ namespace std {
 //     }
 // };
 
-template<>
-struct ctype<uint16_t>
-{
-    static locale::id id;
-};
+// template<>
+// struct ctype<uint16_t>
+// {
+//     static locale::id id;
+// };
 
-locale::id ctype<uint16_t>::id;// = 1234567;
+// locale::id ctype<uint16_t>::id;// = 1234567;
 
 // ctype<wchar_t> ct;
 

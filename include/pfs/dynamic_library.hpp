@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 // Copyright (c) 2019 Vladislav Trifochkin
 //
-// This file is part of [pfs-modulus](https://github.com/semenovf/pfs-modulus) library.
+// This file is part of [common-lib](https://github.com/semenovf/common-lib) library.
 //
 // Changelog:
 //      2019.12.20 Initial version (inhereted from https://github.com/semenovf/pfs)
@@ -12,9 +12,8 @@
 #include <string>
 #include <system_error>
 
-#if defined(_WIN32) || defined(_WIN64)
-#   include <windows.h>
-#   include <windef.h>
+#if _MSC_VER
+#   include "windows.hpp"
 #   include <cassert>
 #else
 #   include <dlfcn.h>
@@ -47,91 +46,10 @@ enum class dynamic_library_errc
     , symbol_not_found
 };
 
-#if defined(_WIN32) || defined(_WIN64)
-// https://stackoverflow.com/questions/215963/how-do-you-properly-use-widechartomultibyte
-inline std::string utf8_encode (wchar_t const * s, int nwchars)
-{
-    if (!s)
-        return std::string{};
-
-    if (!nwchars)
-        return std::string{};
-
-    int nbytes = WideCharToMultiByte(CP_UTF8, 0, s
-        , nwchars, nullptr, 0, nullptr, nullptr);
-
-    if (!nbytes)
-        return std::string{};
-
-    std::string result(nbytes, '\0');
-
-    nbytes = WideCharToMultiByte(CP_UTF8, 0, s
-        , nwchars, & result[0], nbytes, nullptr, nullptr);
-
-    if (!nbytes)
-        return std::string{};
-
-    return result;
-}
-
-// Convert an UTF8 string to a wide Unicode String
-inline std::wstring utf8_decode (char const * s, int nchars /*const std::string & str*/)
-{
-    if (!s)
-        return std::wstring{};
-
-    if (!nchars)
-        return std::wstring{};
-
-    int nwchars = MultiByteToWideChar(CP_UTF8, 0, s, nchars, nullptr, 0);
-
-    if (!nwchars)
-        return std::wstring{};
-
-    std::wstring result(nwchars, 0);
-
-    nwchars = MultiByteToWideChar(CP_UTF8, 0, s, nchars, & result[0], nwchars);
-
-    if (!nwchars)
-        return std::wstring{};
-
-    return result;
-}
-
-inline std::string dlerror_win (DWORD error_id)
-{
-    DWORD dwFlags = FORMAT_MESSAGE_ALLOCATE_BUFFER
-        | FORMAT_MESSAGE_FROM_SYSTEM
-        | FORMAT_MESSAGE_IGNORE_INSERTS;
-
-    wchar_t * pbuffer = nullptr;
-    std::string result;
-
-    do {
-        auto nwchars = FormatMessageW(dwFlags, nullptr, error_id, 0
-            , (wchar_t *)& pbuffer, 0, nullptr);
-
-        if (nwchars == 0) {
-            result = std::string{"Internal error: FormatMessageW() failed"};
-            break;
-        }
-
-        result = utf8_encode(pbuffer, (int)nwchars);
-
-        // Remove trailing '\r\n' symbols
-        while (result[result.size()-1] == '\n' || result[result.size() - 1] == '\r')
-            result.resize(result.size() - 1);
-    } while(false);
-
-    if (pbuffer)
-        LocalFree(pbuffer);
-
-    return result;
-}
-
+#if _MSC_VER
 inline std::string dlerror ()
 {
-    return dlerror_win(GetLastError());
+    return windows::utf8_error(GetLastError());
 }
 #else // POSIX
 inline std::string dlerror ()
@@ -240,7 +158,7 @@ public:
             return false;
         }
 
-#if defined(_WIN32) || defined(_WIN64)
+#if _MSC_VER
 
         DWORD dwFlags = 0;
 
@@ -282,7 +200,7 @@ public:
     {
         _native_error.clear();
 
-#if defined(_WIN32) || defined(_WIN64)
+#if _MSC_VER
         if (_handle != native_handle_type{0}) {
             FreeLibrary(_handle);
             _handle = native_handle_type{0};
@@ -300,7 +218,7 @@ public:
     {
         _native_error.clear();
 
-#if defined(_WIN32) || defined(_WIN64)
+#if _MSC_VER
         dynamic_library::symbol_type sym = GetProcAddress(_handle, symbol_name);
 
         if (!sym) {
@@ -333,7 +251,7 @@ public:
         if (! sym) {
             throw std::system_error(ec
                 , std::string("dynamic_library::resolve(): ")
-#if defined(_WIN32) || defined(_WIN64)
+#if _MSC_VER
                 //+ _path.c_str() + ": " // FIXME
 #else
                     + "path: " + _path.c_str() + "; "
@@ -359,7 +277,7 @@ public:
     {
         fs::path::string_type result;
 
-#if defined(_WIN32) || defined(_WIN64)
+#if _MSC_VER
 #   if defined(_UNICODE)
         result += name;
         result += L".dll";

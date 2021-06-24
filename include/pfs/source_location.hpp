@@ -10,7 +10,8 @@
 #include <cstdint>
 
 #if defined(__has_include) // C++17
-#   if __has_include(<source_location>)
+#   if __has_include(<source_location>) \
+            && ((defined(_WIN32) || defined(_WIN64)) && defined(__cpp_consteval))
 #       include <source_location>
 namespace pfs {
         using source_location = std::source_location;
@@ -34,7 +35,11 @@ namespace pfs {
 #ifndef PFS_NO_STD_SOURCE_LOCATION
 #   define PFS_NO_STD_SOURCE_LOCATION 1
 
-#   define PFS_CURRENT_SOURCE_LOCATION source_location{__LINE__, __FILE__, __PRETTY_FUNCTION__}
+#   if _MSC_VER 
+#       define PFS_CURRENT_SOURCE_LOCATION source_location{__LINE__, __FILE__, __FUNCSIG__}
+#   else
+#       define PFS_CURRENT_SOURCE_LOCATION source_location{__LINE__, __FILE__, __PRETTY_FUNCTION__}
+#   endif
 
 class source_location
 {

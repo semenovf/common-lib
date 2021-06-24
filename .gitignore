@@ -2,6 +2,7 @@
 
 .settings/
 .vs/
+.vscode/
 .build*/
 build*/
 .kdev4/

@@ -22,7 +22,7 @@ if (UNIX)
 endif()
 
 if (MSVC)
-    target_compile_options(${PROJECT_NAME} INTERFACE -D_UNICODE)
+    target_compile_options(${PROJECT_NAME} INTERFACE -D_UNICODE -DUNICODE)
 endif()
 
 set(__all_dependences_found ON)

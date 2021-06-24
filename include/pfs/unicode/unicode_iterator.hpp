@@ -1,9 +1,19 @@
+////////////////////////////////////////////////////////////////////////////////
+// Copyright (c) 20??-2021 Vladislav Trifochkin
+//
+// This file is part of [common-lib](https://github.com/semenovf/common-lib) library.
+//
+// References:
+//
+// Changelog:
+//      20??.??.?? Initial version.
+////////////////////////////////////////////////////////////////////////////////
 #pragma once
-#include <string>
-#include <pfs/unicode/u8_iterator.hpp>
-#include <pfs/unicode/u16_iterator.hpp>
-//#include <pfs/unicode/utf32_iterator.hpp>
+#include "pfs/unicode/u8_iterator.hpp"
+#include "pfs/unicode/u16_iterator.hpp"
+//#include "pfs/unicode/utf32_iterator.hpp"
 #include <limits>
+#include <string>
 
 namespace pfs {
 namespace unicode {
@@ -59,7 +69,7 @@ template <>
 struct unicode_iterator_traits<char const *>
     :  unicode_iterator_limits<char const *, char const *>
 {
-    typedef utf8_iterator<char const *> iterator;
+    //typedef utf16_iterator<char const *> iterator; // FIXME
     typedef u8_input_iterator<char const *> input_iterator;
 };
 
@@ -69,7 +79,7 @@ template <>
 struct unicode_iterator_traits<wchar_t *>
     :  unicode_iterator_limits<wchar_t *, wchar_t *>
 {
-    typedef utf16_iterator<wchar_t *> iterator;
+    //typedef utf16_iterator<wchar_t *> iterator; // FIXME
     typedef u8_output_iterator<wchar_t *> output_iterator;
     typedef u8_input_iterator<wchar_t *> input_iterator;
 };
@@ -79,7 +89,7 @@ struct unicode_iterator_traits<wchar_t const *>
     :  unicode_iterator_limits<wchar_t const *, wchar_t const *>
 
 {
-    typedef utf16_iterator<wchar_t const *> iterator;
+    //typedef utf16_iterator<wchar_t const *> iterator; // FIXME
     typedef u8_input_iterator<wchar_t const *> input_iterator;
 };
 
@@ -87,7 +97,7 @@ template <>
 struct unicode_iterator_traits<std::wstring::iterator>
     :  unicode_iterator_limits<std::wstring::iterator, wchar_t *>
 {
-    typedef utf16_iterator<std::wstring::iterator> iterator;
+    //typedef utf16_iterator<std::wstring::iterator> iterator; // FIXME
     typedef u8_output_iterator<std::wstring::iterator> output_iterator;
     typedef u8_input_iterator<std::wstring::iterator> input_iterator;
 };
@@ -96,7 +106,7 @@ template <>
 struct unicode_iterator_traits<std::wstring::const_iterator>
     :  unicode_iterator_limits<std::wstring::const_iterator, wchar_t const*>
 {
-    typedef utf16_iterator<std::wstring::const_iterator> iterator;
+    // typedef utf16_iterator<std::wstring::const_iterator> iterator; FIXME
     typedef u8_input_iterator<std::wstring::const_iterator> input_iterator;
 };
 
