@@ -1,10 +1,10 @@
 ################################################################################
 # Copyright (c) 2019,2020 Vladislav Trifochkin
 #
-# This file is part of [pfs-common](https://github.com/semenovf/pfs-common) library.
+# This file is part of [common-lib](https://github.com/semenovf/common-lib) library.
 ################################################################################
 cmake_minimum_required (VERSION 3.5)
-project(pfs-common-ALL CXX C)
+project(common-lib-ALL CXX C)
 
 option(BUILD_TESTS "Build tests" ON)
 option(ENABLE_COVERAGE "Build tests with coverage support" OFF)

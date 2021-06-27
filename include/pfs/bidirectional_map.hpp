@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 // Copyright (c) 2021 Vladislav Trifochkin
 //
-// This file is part of [pfs-common](https://github.com/semenovf/pfs-common) library.
+// This file is part of [common-lib](https://github.com/semenovf/common-lib) library.
 //
 // Changelog:
 //      2021.02.13 Initial version

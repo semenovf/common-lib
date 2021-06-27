@@ -1,9 +1,9 @@
 ################################################################################
 # Copyright (c) 2019,2020 Vladislav Trifochkin
 #
-# This file is part of [pfs-common](https://github.com/semenovf/pfs-common) library.
+# This file is part of [common-lib](https://github.com/semenovf/common-lib) library.
 ################################################################################
-project(pfs-common-TESTS CXX C)
+project(common-lib-TESTS CXX C)
 
 if (ENABLE_COVERAGE)
     message(STATUS "Coverage feature enabled")

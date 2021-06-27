@@ -1,11 +1,11 @@
 ////////////////////////////////////////////////////////////////////////////////
 // Copyright (c) 2019-2021 Vladislav Trifochkin
 //
-// This file is part of [pfs-common](https://github.com/semenovf/pfs-common) library.
+// This file is part of [common-lib](https://github.com/semenovf/common-lib) library.
 //
 // Changelog:
 //      2019.12.19 Initial version (inhereted from https://github.com/semenovf/pfs)
-//      2021.04.25 Moved from pfs-modulus into pfs-common
+//      2021.04.25 Moved from pfs-modulus into common-lib
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
 #include "type_traits.hpp"

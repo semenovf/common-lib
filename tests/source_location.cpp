@@ -5,7 +5,7 @@
 //
 // Changelog:
 //      2019.??.?? Initial version
-//      2021.04.25 Moved from pfs-modulus into pfs-common
+//      2021.04.25 Moved from pfs-modulus into common-lib
 ////////////////////////////////////////////////////////////////////////////////
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include "doctest.h"
