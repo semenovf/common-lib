@@ -25,6 +25,7 @@ set(TEST_NAMES
     dynamic_library
     emitter
     filesystem
+    find
     function_queue
     iterator_bidirectional
     iterator_forward
@@ -37,6 +38,7 @@ set(TEST_NAMES
     ring_buffer
     ring_buffer_mt
     source_location
+    split
     string_view
     type_traits
     variant
