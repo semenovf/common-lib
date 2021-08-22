@@ -288,26 +288,43 @@ public:
     // Capacity
     //
 
+    /**
+     * Checks if buffer has no elements.
+     */
     bool empty () const
     {
         return _size == 0;
     }
 
+    /**
+     * Capacity of ther buffer.
+     */
     size_type capacity () const
     {
         return bulk_size * _bulks.size();
     }
 
+    /**
+     * The number of elements in the buffer.
+     */
     size_type size () const
     {
         return _size;
     }
 
+    // For test purposes only
     size_type bulk_count () const
     {
         return _bulks.size();
     }
 
+    /**
+     * Increase the capacity of the buffer to a value that's greater or equal
+     * to @a new_capacity. If @a new_capacity is greater than the current
+     * ring_buffer::capacity(), new storage is allocated, otherwise the method
+     * does nothing.
+     * ring_buffer::reserve() does not change the size of the vector.
+     */
     void reserve (size_type new_capacity)
     {
         if (new_capacity <= capacity())
@@ -567,34 +584,42 @@ private:
 public:
     using base_class::base_class;
 
+    //
+    // Capacity
+    //
+
+    /**
+     * Checks if buffer has no elements.
+     */
     bool empty () const
     {
         std::unique_lock<mutex_type> locker{_mtx};
         return base_class::empty();
     }
 
+    /**
+     * Capacity of ther buffer.
+     */
     size_type capacity () const
     {
         std::unique_lock<mutex_type> locker{_mtx};
         return base_class::capacity();
     }
 
+    /**
+     * The number of elements in the buffer.
+     */
     size_type size () const
     {
         std::unique_lock<mutex_type> locker{_mtx};
         return base_class::size();
     }
 
+    // For test purposes only
     size_type bulk_count () const
     {
         std::unique_lock<mutex_type> locker{_mtx};
         return base_class::bulk_count();
-    }
-
-    void clear ()
-    {
-        std::unique_lock<mutex_type> locker{_mtx};
-        return base_class::clear();
     }
 
     void reserve (size_type new_capacity)
@@ -602,6 +627,54 @@ public:
         std::unique_lock<mutex_type> locker{_mtx};
         base_class::reserve(new_capacity);
     }
+
+    //
+    // Modifiers
+    //
+
+    void clear ()
+    {
+        std::unique_lock<mutex_type> locker{_mtx};
+        return base_class::clear();
+    }
+
+    /**
+     * @exception std::bad_alloc no more space available.
+     */
+    void push (value_type const & value)
+    {
+        std::unique_lock<mutex_type> locker{_mtx};
+        base_class::push(value);
+        _condvar.notify_one();
+    }
+
+    /**
+     * @exception std::bad_alloc no more space available.
+     */
+    void push (value_type && value)
+    {
+        std::unique_lock<mutex_type> locker{_mtx};
+        base_class::push(std::move(value));
+        _condvar.notify_one();
+    }
+
+    template <typename ...Args>
+    void emplace (Args &&... args)
+    {
+        std::unique_lock<mutex_type> locker{_mtx};
+        base_class::emplace(std::forward<Args>(args)...);
+        _condvar.notify_one();
+    }
+
+    void pop ()
+    {
+        std::unique_lock<mutex_type> locker{_mtx};
+        base_class::pop();
+    }
+
+    //
+    // Multithread-specific convenient methods
+    //
 
     bool try_push (value_type const & value, size_type capacity_inc = 0)
     {
@@ -684,7 +757,7 @@ public:
     {
         std::unique_lock<mutex_type> locker{_mtx};
 
-        if (base_class::empty()) {
+        while (base_class::empty()) {
             _condvar.wait(locker, [this] {
                 return !base_class::empty();
             });
