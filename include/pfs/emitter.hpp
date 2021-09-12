@@ -107,6 +107,16 @@ public:
             f(args...);
         }
     }
+
+    inline std::size_t size () const
+    {
+        return _detectors.size();
+    }
+
+    inline bool has_detectors () const
+    {
+        return size() > 0;
+    }
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -118,7 +128,7 @@ class emitter_mt: protected emitter<Args...>
     using base_class = emitter<Args...>;
     using mutex_type = std::mutex;
 
-    mutex_type _mtx;
+    mutable mutex_type _mtx;
 
 public:
     using iterator = typename base_class::iterator;
@@ -188,6 +198,18 @@ public:
     {
         std::unique_lock<mutex_type> locker{_mtx};
         base_class::operator()(args...);
+    }
+
+    inline std::size_t size () const
+    {
+        std::unique_lock<mutex_type> locker{_mtx};
+        return base_class::size();
+    }
+
+    inline bool has_detectors () const
+    {
+        std::unique_lock<mutex_type> locker{_mtx};
+        return base_class::has_detectors();
     }
 };
 
