@@ -190,6 +190,56 @@ TEST_CASE("Emitter with function_queue") {
     CHECK_EQ(t1::counter, 0);
 }
 
+namespace t2 {
+    class A {
+    public:
+        pfs::emitter<bool> em;
+    };
+
+    class B {
+    public:
+        pfs::emitter<bool> em;
+
+    public:
+        void f (bool b)
+        {
+            em(b);
+        }
+    };
+}
+
+TEST_CASE("Call emitter from detector") {
+    {
+        pfs::emitter<bool> outer_em;
+        pfs::emitter<bool> inner_em;
+
+        inner_em.connect([] (bool b) {
+            CHECK(b);
+        });
+
+        outer_em.connect([& inner_em] (bool b) {
+            inner_em(b);
+        });
+
+        outer_em(true);
+    }
+
+    {
+        t2::A a;
+        t2::B b;
+
+        a.em.connect([& b] (bool) {
+            b.f(true);
+        });
+
+        b.em.connect([] (bool v) {
+            CHECK(v);
+        });
+
+        a.em(true);
+    }
+}
+
 TEST_CASE("benchmark") {
     ankerl::nanobench::Bench().run("emitter ST", [] {
         t0::A a;
