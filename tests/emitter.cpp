@@ -8,11 +8,13 @@
 ////////////////////////////////////////////////////////////////////////////////
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #define ANKERL_NANOBENCH_IMPLEMENT
+#define PFS_COMMON__TEST_ENABLED
 #include "doctest.h"
 #include "nanobench.h"
 #include "pfs/emitter.hpp"
 #include "pfs/function_queue.hpp"
 #include <string>
+#include <thread>
 
 namespace t0 {
     std::string check;
@@ -25,19 +27,19 @@ namespace t0 {
 
     void (*fptr) () = f;
 
-    void f (int x)
+    void f (int /*x*/)
     {
         //std::cout << "t0::f(" << x << ")\n";
         check.push_back('b');
     }
 
-    void f (int x, std::string const & s)
+    void f (int /*x*/, std::string const & s)
     {
         //std::cout << "t0::f(" << x << ", \"" << s << "\")\n";
         check.push_back('c');
     }
 
-    void benchmark (int x, std::string const & s) {}
+    void benchmark (int /*x*/, std::string const & s) {}
 
     class A {
     public:
@@ -47,13 +49,13 @@ namespace t0 {
             check.push_back('A');
         }
 
-        void f (int x)
+        void f (int /*x*/)
         {
             //std::cout << "t0::A::f(" << x << ")\n";
             check.push_back('B');
         }
 
-        void f (int x, std::string const & s)
+        void f (int /*x*/, std::string const & /*s*/)
         {
             //std::cout << "t0::A::f(" << x << ", \"" << s << "\")\n";
             check.push_back('C');
@@ -240,27 +242,144 @@ TEST_CASE("Call emitter from detector") {
     }
 }
 
+template <template <typename ...> class EmitterType>
+void check_copy_move_constructors_assignments ()
+{
+    // Copy and move constructors
+    {
+        int accumulator {0};
+        auto detector = [& accumulator] { accumulator++; };
+
+        EmitterType<> em_orig;
+
+        em_orig.connect(detector);
+
+        em_orig(); // +1
+        CHECK_EQ(accumulator, 1);
+
+        EmitterType<> em_copy{em_orig};
+
+        em_copy(); // +1
+        CHECK_EQ(accumulator, 2);
+
+        EmitterType<> em_moved{std::move(em_orig)};
+
+        em_orig();  // nothing done, no detectors
+        em_copy();  // +1
+        em_moved(); // +1
+        CHECK_FALSE(em_orig.has_detectors());
+        CHECK(em_copy.has_detectors());
+        CHECK_EQ(accumulator, 4);
+    }
+
+    // Copy and move assignments
+    {
+        int accumulator {0};
+        auto detector = [& accumulator] { accumulator++; };
+
+        EmitterType<> em_orig;
+        EmitterType<> em_copy;
+        EmitterType<> em_moved;
+
+        em_orig.connect(detector);
+
+        em_orig(); // +1
+        CHECK_EQ(accumulator, 1);
+
+        em_copy = em_orig;
+
+        em_copy(); // +1
+        CHECK_EQ(accumulator, 2);
+
+        em_moved = std::move(em_orig);
+
+        em_orig();  // nothing done, no detectors
+        em_copy();  // +1
+        em_moved(); // +1
+        CHECK_FALSE(em_orig.has_detectors());
+        CHECK(em_copy.has_detectors());
+        CHECK_EQ(accumulator, 4);
+    }
+}
+
+TEST_CASE("Emitter copy and move constructors/assignments") {
+    check_copy_move_constructors_assignments<pfs::emitter>();
+    check_copy_move_constructors_assignments<pfs::emitter_mt>();
+    check_copy_move_constructors_assignments<pfs::emitter_mt_atomic>();
+    check_copy_move_constructors_assignments<pfs::emitter_mt_spinlock>();
+}
+
+template <template <typename ...> class EmitterType>
+void check_multithreading ()
+{
+    std::atomic<int> accumulator {0};
+    std::thread th1;
+    std::thread th2;
+
+    EmitterType<> em_orig;
+    EmitterType<> em_moved;// = std::move(em_orig); // Check movable constructor
+    EmitterType<> em;
+    em = std::move(em_moved); // Check movable assignment
+
+    auto worker = [& em, & accumulator] {
+        for (int i = 0; i < 1000; i++) {
+            auto it = em.connect([& accumulator] {
+                ++accumulator;
+            });
+
+            em();
+
+            REQUIRE(em.size() > 0);
+
+            em.disconnect(it);
+        }
+    };
+
+    th1 = std::thread([worker] {
+        worker();
+    });
+
+    th2 = std::thread([worker] {
+        worker();
+    });
+
+    th1.join();
+    th2.join();
+
+    std::cout << "Accumulator: " << accumulator << std::endl;
+}
+
+TEST_CASE("Emitter in multithreading environment") {
+    check_multithreading<pfs::emitter_mt>();
+    check_multithreading<pfs::emitter_mt_atomic>();
+    check_multithreading<pfs::emitter_mt_atomic_mod>();
+    check_multithreading<pfs::emitter_mt_spinlock>();
+    check_multithreading<pfs::emitter_mt_fast>();
+}
+
+template <template <typename ...> class EmitterType>
+void benchmark_op ()
+{
+    t0::A a;
+    EmitterType<int, std::string const &> em;
+    em.connect(a, & t0::A::benchmark);
+
+    for (int i = 0, count = std::numeric_limits<uint16_t>::max(); i < count; i++) {
+        em(42, "Viva la PFS");
+    }
+}
+
+// |               ns/op |                op/s |    err% |     total | benchmark
+// |--------------------:|--------------------:|--------:|----------:|:----------
+// |        2,193,590.00 |              455.87 |    4.7% |      0.03 | `direct`
+// |        6,408,245.00 |              156.05 |    1.6% |      0.07 | `emitter ST`
+// |        8,305,328.00 |              120.40 |    1.5% |      0.09 | `emitter MT (std::mutex based)`
+// |       11,417,780.00 |               87.58 |    1.0% |      0.13 | `emitter MT (atomic-based)`
+// |        9,057,392.00 |              110.41 |    0.6% |      0.10 | `emitter MT (atomic-based modified)`
+// |        8,741,734.00 |              114.39 |    1.0% |      0.10 | `emitter MT (spinlock-based)`
+// |        9,905,949.00 |              100.95 |    1.5% |      0.11 | `emitter MT (fast_mutex-based)`
+//
 TEST_CASE("benchmark") {
-    ankerl::nanobench::Bench().run("emitter ST", [] {
-        t0::A a;
-        pfs::emitter<int, std::string const &> em;
-        em.connect(a, & t0::A::benchmark);
-
-        for (int i = 0, count = std::numeric_limits<uint16_t>::max(); i < count; i++) {
-            em(42, "Viva la PFS");
-        }
-    });
-
-    ankerl::nanobench::Bench().run("emitter MT", [] {
-        t0::A a;
-        pfs::emitter_mt<int, std::string const &> em;
-        em.connect(a, & t0::A::benchmark);
-
-        for (int i = 0, count = std::numeric_limits<uint16_t>::max(); i < count; i++) {
-            em(42, "Viva la PFS");
-        }
-    });
-
     ankerl::nanobench::Bench().run("direct", [] {
         t0::A a;
 
@@ -268,5 +387,11 @@ TEST_CASE("benchmark") {
             a.benchmark(42, "Viva la PFS");
         }
     });
-}
 
+    ankerl::nanobench::Bench().run("emitter ST", benchmark_op<pfs::emitter>); //[] {
+    ankerl::nanobench::Bench().run("emitter MT (std::mutex based)", benchmark_op<pfs::emitter_mt>);
+    ankerl::nanobench::Bench().run("emitter MT (atomic-based)", benchmark_op<pfs::emitter_mt_atomic>);
+    ankerl::nanobench::Bench().run("emitter MT (atomic-based modified)", benchmark_op<pfs::emitter_mt_atomic_mod>);
+    ankerl::nanobench::Bench().run("emitter MT (spinlock-based)", benchmark_op<pfs::emitter_mt_spinlock>);
+    ankerl::nanobench::Bench().run("emitter MT (fast_mutex-based)", benchmark_op<pfs::emitter_mt_fast>);
+}
