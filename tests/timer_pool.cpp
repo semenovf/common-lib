@@ -19,7 +19,7 @@ TEST_CASE("Basic timer") {
     std::atomic_int t3{0};
 
     // Timer fires once, one second from now
-    tm.create(1, 0, [& t0]() { ++t0; });
+    tm.create(1, [& t0]() { ++t0; });
 
     // Timer fires every second, starting one seconds from now
     tm.create(1, 1, [& t1]() { ++t1; });
@@ -33,7 +33,14 @@ TEST_CASE("Basic timer") {
     std::this_thread::sleep_for(std::chrono::seconds(3));
 
     CHECK(t0 == 1);
-    CHECK(t1 > 2);
-    CHECK(t2 > 3);
+    CHECK(t1 >= 2);
+    CHECK(t2 >= 3);
     CHECK(t3 > 10);
+
+    // Single shot timers destroyed automatically
+    CHECK_EQ(tm.size(), 3);
+
+    tm.destroy_all();
+
+    CHECK_EQ(tm.size(), 0);
 }

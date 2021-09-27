@@ -165,7 +165,9 @@ public:
 
       @return  Id used to identify the timer for later use
     */
-    timer_id create (double delay, double period, callback_type && func)
+    timer_id create (std::chrono::milliseconds delay
+        , std::chrono::milliseconds period
+        , callback_type && callback)
     {
         locker_type locker(_mtx);
 
@@ -176,17 +178,12 @@ public:
         // Assign an ID and insert it into function storage
         auto id = _next_id++;
 
-        assert(delay * 1000 <= static_cast<decltype(delay)>(std::numeric_limits<intmax_t>::max()));
-        assert(period * 1000 <= static_cast<decltype(period)>(std::numeric_limits<intmax_t>::max()));
-        auto delay_millis = duration_millis_type(static_cast<intmax_t>(delay * 1000));
-        auto period_millis = duration_millis_type(static_cast<intmax_t>(period * 1000));
-
         // Insert a reference to the Timer into ordering queue
         auto iter = _active.emplace(id
             , timer_item(id
-                , clock_type::now() + delay_millis
-                , period_millis
-                , std::forward<callback_type>(func)));
+                , clock_type::now() + delay
+                , period
+                , std::move(callback)));
 
         // Insert a reference to the Timer into ordering queue
         typename timer_queue::iterator place = _queue.emplace(iter.first->second);
@@ -201,6 +198,33 @@ public:
             _wakeup_cv.notify_all();
 
         return id;
+    }
+
+    timer_id create (double delay, double period, callback_type && callback)
+    {
+        assert(delay * 1000 <= static_cast<decltype(delay)>(std::numeric_limits<intmax_t>::max()));
+        assert(period * 1000 <= static_cast<decltype(period)>(std::numeric_limits<intmax_t>::max()));
+        auto delay_millis = duration_millis_type(static_cast<intmax_t>(delay * 1000));
+        auto period_millis = duration_millis_type(static_cast<intmax_t>(period * 1000));
+
+        return create(delay_millis, period_millis, std::move(callback));
+    }
+
+    /**
+     * Overloaded method. Creates singleshot timer
+     */
+    inline timer_id create (std::chrono::milliseconds timeout
+        , callback_type && callback)
+    {
+        return create(timeout, std::chrono::milliseconds{0}, std::move(callback));
+    }
+
+    /**
+     * Overloaded method. Creates singleshot timer
+     */
+    inline timer_id create (double timeout, callback_type && callback)
+    {
+        return create(timeout, double{0}, std::move(callback));
     }
 
     /**
@@ -221,7 +245,7 @@ public:
     {
         locker_type locker(_mtx);
         auto it = _active.find(id);
-        return destroy_impl(locker, it, true);
+        return destroy_helper(locker, it, true);
     }
 
     /**
@@ -234,7 +258,7 @@ public:
         locker_type locker(_mtx);
 
         while (!_active.empty())
-            destroy_impl(locker, _active.begin(), _queue.size() == 1);
+            destroy_helper(locker, _active.begin(), _queue.size() == 1);
     }
 
     std::size_t size () const noexcept
@@ -309,7 +333,7 @@ private:
         }
     }
 
-    bool destroy_impl (locker_type & locker, typename timer_map::iterator it, bool notify)
+    bool destroy_helper (locker_type & locker, typename timer_map::iterator it, bool notify)
     {
         assert(locker.owns_lock());
 
