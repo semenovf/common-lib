@@ -53,3 +53,12 @@ inline uuid_t from_string<uuid_t> (std::string const & str)
 }
 
 } // namespace pfs
+
+namespace std {
+
+inline std::string to_string (pfs::uuid_t const & value)
+{
+    return pfs::to_string(value);
+}
+
+} // namespace std
