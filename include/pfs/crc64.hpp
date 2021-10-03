@@ -22,7 +22,7 @@ namespace pfs {
  *
  * @see http://en.wikipedia.org/wiki/Cyclic_redundancy_check
  */
-inline int64_t crc64_of (void const * pdata, size_t nbytes, int64_t initial = 0)
+inline int64_t crc64_of_ptr (void const * pdata, size_t nbytes, int64_t initial = 0)
 {
 #   ifdef PFS_INT64_C
 #       undef PFS_INT64_C
@@ -130,15 +130,20 @@ inline int64_t crc64_of (void const * pdata, size_t nbytes, int64_t initial = 0)
     return static_cast<int64_t>(r);
 }
 
-inline int64_t crc64_of (std::string const & pdata, int64_t initial = 0)
+template <typename T>
+int64_t crc64_of (T const & pdata, int64_t initial = 0);
+
+template <>
+inline int64_t crc64_of<std::string> (std::string const & pdata, int64_t initial)
 {
-    return crc64_of(pdata.data(), pdata.size(), initial);
+    return crc64_of_ptr(pdata.data(), pdata.size(), initial);
 }
 
-#define PFS_CRC64_FOR_SCALAR_OVERLOADED(type)                                  \
-    inline int64_t crc64_of (type data, int64_t initial = 0)                   \
+#define PFS_CRC64_FOR_SCALAR_OVERLOADED(T)                                     \
+    template <>                                                                \
+    inline int64_t crc64_of<T> (T const & data, int64_t initial)               \
     {                                                                          \
-        return crc64_of(& data, sizeof(data), initial);                        \
+        return crc64_of_ptr(& data, sizeof(data), initial);                    \
     }
 
 PFS_CRC64_FOR_SCALAR_OVERLOADED(bool)
@@ -153,17 +158,10 @@ PFS_CRC64_FOR_SCALAR_OVERLOADED(std::uint64_t)
 PFS_CRC64_FOR_SCALAR_OVERLOADED(float)
 PFS_CRC64_FOR_SCALAR_OVERLOADED(double)
 
-namespace details {
-    template <typename T>
-    inline int64_t crc64_of_helper (int64_t initial, T const & data)
-    {
-        return crc64_of(data, initial);
-    }
-}
-
 template <typename ...Ts>
 int64_t crc64_all_of (int64_t initial, Ts const &... args);
 
+template <>
 inline int64_t crc64_all_of (int64_t initial)
 {
     return initial;
@@ -172,7 +170,7 @@ inline int64_t crc64_all_of (int64_t initial)
 template <typename T, typename ...Ts>
 inline int64_t crc64_all_of (int64_t initial, T const & first, Ts const &... args)
 {
-    return crc64_all_of(details::crc64_of_helper(initial, first), args...);
+    return crc64_all_of<Ts...>(crc64_of<T>(first, initial), args...);
 }
 
 } // pfs

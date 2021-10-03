@@ -27,7 +27,7 @@ namespace pfs {
  *
  * @see http://en.wikipedia.org/wiki/Cyclic_redundancy_check
  */
-inline int32_t crc32_of (void const * pdata, std::size_t nbytes, int32_t initial = 0)
+inline int32_t crc32_of_ptr (void const * pdata, std::size_t nbytes, int32_t initial = 0)
 {
     static std::uint32_t __crc32_lookup_table[] = {
         0x00000000, 0x77073096, 0xee0e612c, 0x990951ba, 0x076dc419, 0x706af48f, 0xe963a535, 0x9e6495a3
@@ -76,15 +76,20 @@ inline int32_t crc32_of (void const * pdata, std::size_t nbytes, int32_t initial
     return static_cast<std::int32_t>(r);
 }
 
-inline int32_t crc32_of (std::string const & pdata, int32_t initial = 0)
+template <typename T>
+int32_t crc32_of (T const & pdata, int32_t initial = 0);
+
+template <>
+inline int32_t crc32_of<std::string> (std::string const & pdata, int32_t initial)
 {
-    return crc32_of(pdata.data(), pdata.size(), initial);
+    return crc32_of_ptr(pdata.data(), pdata.size(), initial);
 }
 
-#define PFS_CRC32_FOR_SCALAR_OVERLOADED(type)                                  \
-    inline int32_t crc32_of (type data, int32_t initial = 0)                   \
+#define PFS_CRC32_FOR_SCALAR_OVERLOADED(T)                                     \
+    template <>                                                                \
+    inline int32_t crc32_of<T> (T const & data, int32_t initial)               \
     {                                                                          \
-        return crc32_of(& data, sizeof(data), initial);                        \
+        return crc32_of_ptr(& data, sizeof(data), initial);                    \
     }
 
 PFS_CRC32_FOR_SCALAR_OVERLOADED(bool)
@@ -99,17 +104,10 @@ PFS_CRC32_FOR_SCALAR_OVERLOADED(std::uint64_t)
 PFS_CRC32_FOR_SCALAR_OVERLOADED(float)
 PFS_CRC32_FOR_SCALAR_OVERLOADED(double)
 
-namespace details {
-    template <typename T>
-    inline int32_t crc32_of_helper (int32_t initial, T const & data)
-    {
-        return crc32_of(data, initial);
-    }
-}
-
 template <typename ...Ts>
 int32_t crc32_all_of (int32_t initial, Ts const &... args);
 
+template <>
 inline int32_t crc32_all_of (int32_t initial)
 {
     return initial;
@@ -118,7 +116,7 @@ inline int32_t crc32_all_of (int32_t initial)
 template <typename T, typename ...Ts>
 inline int32_t crc32_all_of (int32_t initial, T const & first, Ts const &... args)
 {
-    return crc32_all_of(details::crc32_of_helper(initial, first), args...);
+    return crc32_all_of<Ts...>(crc32_of<T>(first, initial), args...);
 }
 
 } // pfs
