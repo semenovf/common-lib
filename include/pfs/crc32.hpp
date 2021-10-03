@@ -99,4 +99,26 @@ PFS_CRC32_FOR_SCALAR_OVERLOADED(std::uint64_t)
 PFS_CRC32_FOR_SCALAR_OVERLOADED(float)
 PFS_CRC32_FOR_SCALAR_OVERLOADED(double)
 
+namespace details {
+    template <typename T>
+    inline int32_t crc32_helper (int32_t initial, T const & data)
+    {
+        return crc32(data, initial);
+    }
+}
+
+template <typename ...Ts>
+int32_t crc32_of (int32_t initial, Ts const &... args);
+
+inline int32_t crc32_of (int32_t initial)
+{
+    return initial;
+}
+
+template <typename T, typename ...Ts>
+inline int32_t crc32_of (int32_t initial, T const & first, Ts const &... args)
+{
+    return crc32_of(details::crc32_helper(initial, first), args...);
+}
+
 } // pfs

@@ -153,4 +153,26 @@ PFS_CRC64_FOR_SCALAR_OVERLOADED(std::uint64_t)
 PFS_CRC64_FOR_SCALAR_OVERLOADED(float)
 PFS_CRC64_FOR_SCALAR_OVERLOADED(double)
 
+namespace details {
+    template <typename T>
+    inline int64_t crc64_helper (int64_t initial, T const & data)
+    {
+        return crc64(data, initial);
+    }
+}
+
+template <typename ...Ts>
+int64_t crc64_of (int64_t initial, Ts const &... args);
+
+inline int64_t crc64_of (int64_t initial)
+{
+    return initial;
+}
+
+template <typename T, typename ...Ts>
+inline int64_t crc64_of (int64_t initial, T const & first, Ts const &... args)
+{
+    return crc64_of(details::crc64_helper(initial, first), args...);
+}
+
 } // pfs

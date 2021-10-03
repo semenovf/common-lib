@@ -22,6 +22,7 @@ set(TEST_NAMES
     any
     calendar
     compare_op
+    crc32_64
     dynamic_library
     emitter
     filesystem
