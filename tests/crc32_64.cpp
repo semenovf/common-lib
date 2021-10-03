@@ -12,6 +12,11 @@
 #include "pfs/crc64.hpp"
 
 TEST_CASE("crc32_64_of") {
+    using pfs::crc32_of;
+    using pfs::crc32_all_of;
+    using pfs::crc64_of;
+    using pfs::crc64_all_of;
+
     bool v1 = true;
     std::int8_t v2 = 42;
     std::int16_t v3 = 4242;
@@ -19,19 +24,19 @@ TEST_CASE("crc32_64_of") {
     std::int64_t v5 = 42424242LL;
 
     {
-        auto a32 = pfs::crc32(v5
-            , pfs::crc32(v4
-                , pfs::crc32(v3
-                    , pfs::crc32(v2
-                        , pfs::crc32(v1, 0)))));
+        auto a32 = crc32_of(v5
+            , crc32_of(v4
+                , crc32_of(v3
+                    , crc32_of(v2
+                        , crc32_of(v1, 0)))));
 
-        auto b32 = pfs::crc32(v1, 0);
-        b32 = pfs::crc32(v2, b32);
-        b32 = pfs::crc32(v3, b32);
-        b32 = pfs::crc32(v4, b32);
-        b32 = pfs::crc32(v5, b32);
+        auto b32 = crc32_of(v1, 0);
+        b32 = crc32_of(v2, b32);
+        b32 = crc32_of(v3, b32);
+        b32 = crc32_of(v4, b32);
+        b32 = crc32_of(v5, b32);
 
-        auto c32 = pfs::crc32_of(0, v1, v2, v3, v4, v5);
+        auto c32 = crc32_all_of(0, v1, v2, v3, v4, v5);
 
         CHECK_NE(a32, 0);
         CHECK_EQ(a32, b32);
@@ -39,19 +44,19 @@ TEST_CASE("crc32_64_of") {
     }
 
     {
-        auto a64 = pfs::crc64(v5
-            , pfs::crc64(v4
-                , pfs::crc64(v3
-                    , pfs::crc64(v2
-                        , pfs::crc64(v1, 0)))));
+        auto a64 = crc64_of(v5
+            , crc64_of(v4
+                , crc64_of(v3
+                    , crc64_of(v2
+                        , crc64_of(v1, 0)))));
 
-        auto b64 = pfs::crc64(v1, 0);
-        b64 = pfs::crc64(v2, b64);
-        b64 = pfs::crc64(v3, b64);
-        b64 = pfs::crc64(v4, b64);
-        b64 = pfs::crc64(v5, b64);
+        auto b64 = crc64_of(v1, 0);
+        b64 = crc64_of(v2, b64);
+        b64 = crc64_of(v3, b64);
+        b64 = crc64_of(v4, b64);
+        b64 = crc64_of(v5, b64);
 
-        auto c64 = pfs::crc64_of(0, v1, v2, v3, v4, v5);
+        auto c64 = crc64_all_of(0, v1, v2, v3, v4, v5);
 
         CHECK_NE(a64, 0);
         CHECK_EQ(a64, b64);

@@ -12,8 +12,8 @@
 
 TEST_CASE("crc32_64") {
     auto uuid = pfs::from_string<pfs::uuid_t>("01D78XYFJ1PRM1WPBCBT3VHMNV");
-    auto crc32 = pfs::crc32(uuid);
-    auto crc64 = pfs::crc64(uuid);
+    auto crc32 = pfs::crc32_of(uuid);
+    auto crc64 = pfs::crc64_of(uuid);
 
     CHECK_EQ(crc32, -1726445405);
     CHECK_EQ(crc64, PFS_INT64_C(531026194733399318));
