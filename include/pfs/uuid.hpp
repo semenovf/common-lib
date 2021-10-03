@@ -6,8 +6,11 @@
 // Changelog:
 //      2021.08.14 Initial version (in `chat-lib`).
 //      2021.10.01 Moved from `chat-lib`.
+//      2021.10.03 Added calculation CRC32 and CRC64.
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
+#include "crc32.hpp"
+#include "crc64.hpp"
 #include "3rdparty/ulid/ulid.hh"
 #include <random>
 
@@ -51,6 +54,9 @@ inline uuid_t from_string<uuid_t> (std::string const & str)
 {
     return ulid::Unmarshal(str);
 }
+
+PFS_CRC32_FOR_SCALAR_OVERLOADED(uuid_t)
+PFS_CRC64_FOR_SCALAR_OVERLOADED(uuid_t)
 
 } // namespace pfs
 

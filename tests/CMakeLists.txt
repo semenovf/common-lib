@@ -49,6 +49,7 @@ set(TEST_NAMES
 #     utf16le_encode
     utf16be_decode
 #     utf16be_encode
+    uuid
     )
 
 set(utf8_resource_SOURCES
