@@ -135,4 +135,22 @@ inline int64_t crc64 (std::string const & pdata, int64_t initial = 0)
     return crc64(pdata.data(), pdata.size(), initial);
 }
 
+#define PFS_CRC64_FOR_SCALAR_OVERLOADED(type)                                  \
+    inline int64_t crc64 (type data, int64_t initial = 0)                      \
+    {                                                                          \
+        return crc64(& data, sizeof(data), initial);                           \
+    }
+
+PFS_CRC64_FOR_SCALAR_OVERLOADED(bool)
+PFS_CRC64_FOR_SCALAR_OVERLOADED(std::int8_t)
+PFS_CRC64_FOR_SCALAR_OVERLOADED(std::uint8_t)
+PFS_CRC64_FOR_SCALAR_OVERLOADED(std::int16_t)
+PFS_CRC64_FOR_SCALAR_OVERLOADED(std::uint16_t)
+PFS_CRC64_FOR_SCALAR_OVERLOADED(std::int32_t)
+PFS_CRC64_FOR_SCALAR_OVERLOADED(std::uint32_t)
+PFS_CRC64_FOR_SCALAR_OVERLOADED(std::int64_t)
+PFS_CRC64_FOR_SCALAR_OVERLOADED(std::uint64_t)
+PFS_CRC64_FOR_SCALAR_OVERLOADED(float)
+PFS_CRC64_FOR_SCALAR_OVERLOADED(double)
+
 } // pfs

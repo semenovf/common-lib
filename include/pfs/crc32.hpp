@@ -81,4 +81,22 @@ inline int32_t crc32 (std::string const & pdata, int32_t initial = 0)
     return crc32(pdata.data(), pdata.size(), initial);
 }
 
+#define PFS_CRC32_FOR_SCALAR_OVERLOADED(type)                                  \
+    inline int32_t crc32 (type data, int32_t initial = 0)                      \
+    {                                                                          \
+        return crc32(& data, sizeof(data), initial);                           \
+    }
+
+PFS_CRC32_FOR_SCALAR_OVERLOADED(bool)
+PFS_CRC32_FOR_SCALAR_OVERLOADED(std::int8_t)
+PFS_CRC32_FOR_SCALAR_OVERLOADED(std::uint8_t)
+PFS_CRC32_FOR_SCALAR_OVERLOADED(std::int16_t)
+PFS_CRC32_FOR_SCALAR_OVERLOADED(std::uint16_t)
+PFS_CRC32_FOR_SCALAR_OVERLOADED(std::int32_t)
+PFS_CRC32_FOR_SCALAR_OVERLOADED(std::uint32_t)
+PFS_CRC32_FOR_SCALAR_OVERLOADED(std::int64_t)
+PFS_CRC32_FOR_SCALAR_OVERLOADED(std::uint64_t)
+PFS_CRC32_FOR_SCALAR_OVERLOADED(float)
+PFS_CRC32_FOR_SCALAR_OVERLOADED(double)
+
 } // pfs
