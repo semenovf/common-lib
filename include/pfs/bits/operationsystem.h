@@ -1,3 +1,12 @@
+////////////////////////////////////////////////////////////////////////////////
+// Copyright (c) 2021 Vladislav Trifochkin
+//
+// This file is part of [common-lib](https://github.com/semenovf/pfs-modulus) library.
+//
+// Changelog:
+//      2018.05.11 Initial version (as part of https://github.com/semenovf/pfs).
+//      2021.09.23 Included in common-lib.
+////////////////////////////////////////////////////////////////////////////////
 #pragma once
 
 #if defined(WIN64) || defined(_WIN64)
