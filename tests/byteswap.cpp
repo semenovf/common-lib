@@ -16,14 +16,51 @@
 #include <cstdint>
 
 #if PFS_COMPILER_MSC
-#   include "intrin.h"
+//#   include "intrin.h"
+#   include <stdlib.h>
 #endif
+
+#include "pfs/fmt.hpp"
 
 #if __cplusplus >= 201402L
 #   define PFS_BYTESWAP_CONSTEXPR constexpr
 #else
 #   define PFS_BYTESWAP_CONSTEXPR
 #endif
+
+inline constexpr __uint128_t construct_uint128 (std::uint64_t hi
+    , std::uint64_t low) noexcept
+{
+    return (static_cast<__uint128_t>(hi) << 64) | low;
+}
+
+inline constexpr __uint128_t construct_uint128 (std::uint32_t a
+    , std::uint32_t b
+    , std::uint32_t c
+    , std::uint32_t d) noexcept
+{
+    return (static_cast<__uint128_t>(a) << 96)
+        | (static_cast<__uint128_t>(b) << 64)
+        | (static_cast<__uint128_t>(c) << 32)
+        | d;
+}
+
+TEST_CASE("construct_uint128")
+{
+    CHECK_EQ(construct_uint128(0,0), __uint128_t(0));
+    CHECK_EQ(construct_uint128(0,1), __uint128_t(1));
+    CHECK_EQ(construct_uint128(0xFFFFFFFFFFFFFFFFull
+        , 0xFFFFFFFFFFFFFFFFull), __uint128_t(-1));
+    CHECK_EQ(construct_uint128(0xFFFFFFFFul
+        , 0xFFFFFFFFul
+        , 0xFFFFFFFFul
+        , 0xFFFFFFFFul), __uint128_t(-1));
+
+//     fmt::print("-- '{:X}'\n", __uint128_t(-1));
+//     fmt::print("-- '{:X}'\n", __uint128_t(-1) - __uint128_t(-1)/128);
+    fmt::print("-- '{:X}'\n", __uint128_t(-1) - __uint128_t(-1)/128);
+    fmt::print("-- '{:X}'\n", construct_uint128(0x1234567890ABCDEFull, 0x1234567890ABCDEFull));
+}
 
 namespace classic {
 
@@ -62,6 +99,16 @@ std::uint64_t byteswap<std::uint64_t> (std::uint64_t x) noexcept
     return x;
 }
 
+//#if defined(__SIZEOF_INT128__)
+template <>
+inline PFS_BYTESWAP_CONSTEXPR
+__uint128_t byteswap<__uint128_t> (__uint128_t x) noexcept
+{
+    return construct_uint128(byteswap(static_cast<std::uint64_t>(x >> 64))
+        , byteswap(static_cast<std::uint64_t>(x)));
+}
+//#endif
+
 template <typename T>
 struct byteswap_helper
 {
@@ -78,13 +125,16 @@ namespace intrinsics {
 template <typename T>
 PFS_BYTESWAP_CONSTEXPR T byteswap (T n) noexcept;
 
-#if PFS_COMPILER_GNUC
 template <>
 inline PFS_BYTESWAP_CONSTEXPR
 std::uint8_t byteswap<std::uint8_t> (std::uint8_t x) noexcept
 {
     return x;
 }
+
+#if PFS_COMPILER_GNUC
+
+#   define PFS_BYTESWAP_HAS_INTRINSICS 1
 
 template <>
 inline PFS_BYTESWAP_CONSTEXPR
@@ -107,14 +157,44 @@ std::uint64_t byteswap<std::uint64_t> (std::uint64_t x) noexcept
     return __builtin_bswap64(x);
 }
 
-// template <>
-// inline PFS_BYTESWAP_CONSTEXPR unsigned __int128 byteswap<unsigned __int128> (unsigned __int128 x) noexcept
-// {
-//     return __builtin_bswap128(x);
-// }
-
 #elif PFS_COMPILER_MSC
+#   define PFS_BYTESWAP_HAS_INTRINSICS 1
+
+// https://docs.microsoft.com/en-us/cpp/c-runtime-library/reference
+//      /byteswap-uint64-byteswap-ulong-byteswap-ushort?view=msvc-160
+
+template <>
+inline PFS_BYTESWAP_CONSTEXPR
+std::uint16_t byteswap<std::uint16_t> (std::uint16_t x) noexcept
+{
+    return _byteswap_ushort(x);
+}
+
+template <>
+inline PFS_BYTESWAP_CONSTEXPR
+std::uint32_t byteswap<std::uint32_t> (std::uint32_t x) noexcept
+{
+    return _byteswap_ulong(x);
+}
+
+template <>
+inline PFS_BYTESWAP_CONSTEXPR
+std::uint64_t byteswap<std::uint64_t> (std::uint64_t x) noexcept
+{
+    return _byteswap_uint64(x);
+}
+
 #endif
+
+//#if defined(__SIZEOF_INT128__)
+template <>
+inline PFS_BYTESWAP_CONSTEXPR
+__uint128_t byteswap<__uint128_t> (__uint128_t x) noexcept
+{
+    return construct_uint128(byteswap(static_cast<std::uint64_t>(x >> 64))
+        , byteswap(static_cast<std::uint64_t>(x)));
+}
+//#endif
 
 template <typename T>
 struct byteswap_helper
@@ -167,6 +247,17 @@ void benchmark_op ()
     }
 }
 
+TEST_CASE("byteswap_uint128") {
+    auto x = construct_uint128(0x1234567890ABCDEFull, 0x1234567890ABCDEFull);
+    auto y = construct_uint128(0xEFCDAB9078563412ull, 0xEFCDAB9078563412ull);
+
+    auto y1 = modern::byteswap(x);
+    auto y2 = intrinsics::byteswap(x);
+
+    CHECK_EQ(y, y1);
+    CHECK_EQ(y, y2);
+}
+
 //       |      ns/op |      op/s |    err% |     total | std::uint16_t
 //       |-----------:|----------:|--------:|----------:|:--------------
 // best  |  63,680.00 | 15,703.52 |    0.1% |      0.00 | `classic`
@@ -185,27 +276,57 @@ void benchmark_op ()
 // best  |  69,673.00 | 14,352.76 |    0.1% |      0.00 | `intrinsics`
 // worst | 660,905.00 |  1,513.08 |    2.2% |      0.01 | `modern`
 
+//==============================================================================
+// Ubuntu 20.04.3 LTS
+// Intel(R) Core(TM) i5-2500K CPU @ 3.30GHz
+// RAM 16 Gb
+//==============================================================================
+//       |        ns/op |     op/s |    err% |     total | std::uint16_t
+//       |-------------:|---------:|--------:|----------:|:--------------
+//       |   258,033.00 | 3,875.47 |    0.1% |      0.00 | `classic`
+// worst   818,143.00 | 1,222.28 |    0.5% |      0.01 | `modern`
+// best  |   131,936.00 | 7,579.43 |    0.1% |      0.00 | `intrinsics`
+//
+//       |        ns/op |     op/s |    err% |     total | std::uint32_t
+//       |-------------:|---------:|--------:|----------:|:--------------
+//       |   152,698.00 | 6,548.87 |    0.0% |      0.00 | `classic`
+// worst |   780,683.00 | 1,280.93 |    3.3% |      0.01 | `modern`
+// best  |   109,393.00 | 9,141.35 |    4.2% |      0.00 | `intrinsics`
+//
+//       |        ns/op |     op/s |    err% |     total | std::uint64_t
+//       |-------------:|---------:|--------:|----------:|:--------------
+//       |   184,616.00 | 5,416.65 |    0.0% |      0.00 | `classic`
+// worst |   945,372.00 | 1,057.78 |    0.9% |      0.01 | `modern`
+// best  |   108,610.00 | 9,207.26 |    0.0% |      0.00 | `intrinsics`
+//
+//       |        ns/op |     op/s |    err% |     total | __uint128_t
+//       |-------------:|---------:|--------:|----------:|:------------
+//       |   463,018.00 | 2,159.74 |    0.1% |      0.01 | `classic`
+// worst | 1,317,091.00 |   759.25 |    3.5% |      0.01 | `modern`
+// best  |   286,796.00 | 3,486.80 |    1.5% |      0.00 | `intrinsics`
+
 TEST_CASE("benchmark") {
     ankerl::nanobench::Bench().title("std::uint16_t").name("classic").run(benchmark_op<std::uint16_t, classic::byteswap_helper>);
     ankerl::nanobench::Bench().title("std::uint16_t").name("modern").run(benchmark_op<std::uint16_t, modern::byteswap_helper>);
-#if PFS_COMPILER_GNUC //|| PFS_COMPILER_MSC
+#if PFS_BYTESWAP_HAS_INTRINSICS
     ankerl::nanobench::Bench().title("std::uint16_t").name("intrinsics").run(benchmark_op<std::uint16_t, intrinsics::byteswap_helper>);
 #endif
 
     ankerl::nanobench::Bench().title("std::uint32_t").name("classic").run(benchmark_op<std::uint32_t, classic::byteswap_helper>);
     ankerl::nanobench::Bench().title("std::uint32_t").name("modern").run(benchmark_op<std::uint32_t, modern::byteswap_helper>);
-#if PFS_COMPILER_GNUC //|| PFS_COMPILER_MSC
+#if PFS_BYTESWAP_HAS_INTRINSICS
     ankerl::nanobench::Bench().title("std::uint32_t").name("intrinsics").run(benchmark_op<std::uint32_t, intrinsics::byteswap_helper>);
 #endif
 
     ankerl::nanobench::Bench().title("std::uint64_t").name("classic").run(benchmark_op<std::uint64_t, classic::byteswap_helper>);
     ankerl::nanobench::Bench().title("std::uint64_t").name("modern").run(benchmark_op<std::uint64_t, modern::byteswap_helper>);
-#if PFS_COMPILER_GNUC //|| PFS_COMPILER_MSC
+#if PFS_BYTESWAP_HAS_INTRINSICS
     ankerl::nanobench::Bench().title("std::uint64_t").name("intrinsics").run(benchmark_op<std::uint64_t, intrinsics::byteswap_helper>);
 #endif
 
-#if defined(__SIZEOF_INT128__)
-    ankerl::nanobench::Bench().title("__int128").name("modern").run(benchmark_op<__int128, modern::byteswap_helper>);
-    ankerl::nanobench::Bench().title("unsigned __int128").name("modern").run(benchmark_op<unsigned __int128, modern::byteswap_helper>);
+    ankerl::nanobench::Bench().title("__uint128_t").name("classic").run(benchmark_op<__uint128_t, classic::byteswap_helper>);
+    ankerl::nanobench::Bench().title("__uint128_t").name("modern").run(benchmark_op<__uint128_t, modern::byteswap_helper>);
+#if PFS_BYTESWAP_HAS_INTRINSICS
+    ankerl::nanobench::Bench().title("__uint128_t").name("intrinsics").run(benchmark_op<__uint128_t, intrinsics::byteswap_helper>);
 #endif
 }
