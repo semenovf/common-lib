@@ -8,6 +8,7 @@
 //      2021.10.03 Included from old `pfs` library.
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
+#include <cstdint>
 #include <string>
 
 namespace pfs {
@@ -27,10 +28,10 @@ namespace pfs {
  *
  * @see http://en.wikipedia.org/wiki/Cyclic_redundancy_check
  */
-inline int32_t crc32_of_ptr (void const * pdata, std::size_t nbytes, int32_t initial = 0)
+inline std::int32_t crc32_of_ptr (void const * pdata, std::size_t nbytes, std::int32_t initial = 0)
 {
     static std::uint32_t __crc32_lookup_table[] = {
-        0x00000000, 0x77073096, 0xee0e612c, 0x990951ba, 0x076dc419, 0x706af48f, 0xe963a535, 0x9e6495a3
+          0x00000000, 0x77073096, 0xee0e612c, 0x990951ba, 0x076dc419, 0x706af48f, 0xe963a535, 0x9e6495a3
         , 0x0edb8832, 0x79dcb8a4, 0xe0d5e91e, 0x97d2d988, 0x09b64c2b, 0x7eb17cbd, 0xe7b82d07, 0x90bf1d91
         , 0x1db71064, 0x6ab020f2, 0xf3b97148, 0x84be41de, 0x1adad47d, 0x6ddde4eb, 0xf4d4b551, 0x83d385c7
         , 0x136c9856, 0x646ba8c0, 0xfd62f97a, 0x8a65c9ec, 0x14015c4f, 0x63066cd9, 0xfa0f3d63, 0x8d080df5
@@ -77,17 +78,17 @@ inline int32_t crc32_of_ptr (void const * pdata, std::size_t nbytes, int32_t ini
 }
 
 template <typename T>
-int32_t crc32_of (T const & pdata, int32_t initial = 0);
+std::int32_t crc32_of (T const & pdata, std::int32_t initial = 0);
 
 template <>
-inline int32_t crc32_of<std::string> (std::string const & pdata, int32_t initial)
+inline std::int32_t crc32_of<std::string> (std::string const & pdata, std::int32_t initial)
 {
     return crc32_of_ptr(pdata.data(), pdata.size(), initial);
 }
 
 #define PFS_CRC32_FOR_SCALAR_OVERLOADED(T)                                     \
     template <>                                                                \
-    inline int32_t crc32_of<T> (T const & data, int32_t initial)               \
+    inline std::int32_t crc32_of<T> (T const & data, std::int32_t initial)     \
     {                                                                          \
         return crc32_of_ptr(& data, sizeof(data), initial);                    \
     }
@@ -105,16 +106,16 @@ PFS_CRC32_FOR_SCALAR_OVERLOADED(float)
 PFS_CRC32_FOR_SCALAR_OVERLOADED(double)
 
 template <typename ...Ts>
-int32_t crc32_all_of (int32_t initial, Ts const &... args);
+std::int32_t crc32_all_of (std::int32_t initial, Ts const &... args);
 
 template <>
-inline int32_t crc32_all_of (int32_t initial)
+inline std::int32_t crc32_all_of (std::int32_t initial)
 {
     return initial;
 }
 
 template <typename T, typename ...Ts>
-inline int32_t crc32_all_of (int32_t initial, T const & first, Ts const &... args)
+inline std::int32_t crc32_all_of (std::int32_t initial, T const & first, Ts const &... args)
 {
     return crc32_all_of<Ts...>(crc32_of<T>(first, initial), args...);
 }

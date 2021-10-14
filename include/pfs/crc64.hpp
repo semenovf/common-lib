@@ -8,6 +8,7 @@
 //      2021.10.03 Included from old `pfs` library.
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
+#include <cstdint>
 #include <string>
 
 namespace pfs {
@@ -22,13 +23,13 @@ namespace pfs {
  *
  * @see http://en.wikipedia.org/wiki/Cyclic_redundancy_check
  */
-inline int64_t crc64_of_ptr (void const * pdata, size_t nbytes, int64_t initial = 0)
+inline std::int64_t crc64_of_ptr (void const * pdata, size_t nbytes, std::int64_t initial = 0)
 {
 #   ifdef PFS_INT64_C
 #       undef PFS_INT64_C
 #   endif
 
-#   define PFS_INT64_C(x) x##LL
+#   define PFS_INT64_C(x) (x##ULL)
 
     static std::uint64_t __crc64_lookup_table[] = {
         PFS_INT64_C(0x0000000000000000), PFS_INT64_C(0x01b0000000000000), PFS_INT64_C(0x0360000000000000),
@@ -122,26 +123,26 @@ inline int64_t crc64_of_ptr (void const * pdata, size_t nbytes, int64_t initial 
 
     // #define CRC64(oldcrc, curByte) (crc64table[BYTE(oldcrc)^BYTE(curByte)]^(QWORD(oldcrc)>>8))
     auto pbytes = static_cast<std::uint8_t const *>(pdata);
-    uint64_t r = initial;
+    std::uint64_t r = initial;
 
     while( nbytes-- )
         r = __crc64_lookup_table[(r ^ *pbytes++) & 0xff ] ^ (r >> 8);
 
-    return static_cast<int64_t>(r);
+    return static_cast<std::int64_t>(r);
 }
 
 template <typename T>
-int64_t crc64_of (T const & pdata, int64_t initial = 0);
+std::int64_t crc64_of (T const & pdata, std::int64_t initial = 0);
 
 template <>
-inline int64_t crc64_of<std::string> (std::string const & pdata, int64_t initial)
+inline std::int64_t crc64_of<std::string> (std::string const & pdata, std::int64_t initial)
 {
     return crc64_of_ptr(pdata.data(), pdata.size(), initial);
 }
 
 #define PFS_CRC64_FOR_SCALAR_OVERLOADED(T)                                     \
     template <>                                                                \
-    inline int64_t crc64_of<T> (T const & data, int64_t initial)               \
+    inline std::int64_t crc64_of<T> (T const & data, std::int64_t initial)     \
     {                                                                          \
         return crc64_of_ptr(& data, sizeof(data), initial);                    \
     }
@@ -159,16 +160,16 @@ PFS_CRC64_FOR_SCALAR_OVERLOADED(float)
 PFS_CRC64_FOR_SCALAR_OVERLOADED(double)
 
 template <typename ...Ts>
-int64_t crc64_all_of (int64_t initial, Ts const &... args);
+std::int64_t crc64_all_of (std::int64_t initial, Ts const &... args);
 
 template <>
-inline int64_t crc64_all_of (int64_t initial)
+inline std::int64_t crc64_all_of (std::int64_t initial)
 {
     return initial;
 }
 
 template <typename T, typename ...Ts>
-inline int64_t crc64_all_of (int64_t initial, T const & first, Ts const &... args)
+inline std::int64_t crc64_all_of (std::int64_t initial, T const & first, Ts const &... args)
 {
     return crc64_all_of<Ts...>(crc64_of<T>(first, initial), args...);
 }
