@@ -36,6 +36,10 @@ TEST_CASE("byteswap") {
 
     CHECK_EQ(z1, y);
     CHECK_EQ(z2, x);
+
+    __int128_t a = -1;
+
+    CHECK_EQ(pfs::byteswap(pfs::byteswap(a)), a);
 #endif
 }
 

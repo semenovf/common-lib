@@ -26,6 +26,7 @@ set(TEST_NAMES
     crc32_64
     dynamic_library
     emitter
+    endian
     filesystem
     find
     function_queue

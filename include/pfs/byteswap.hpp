@@ -47,6 +47,13 @@ std::uint8_t byteswap<std::uint8_t> (std::uint8_t x) noexcept
     return x;
 }
 
+template <>
+inline PFS_BYTESWAP_CONSTEXPR
+std::int8_t byteswap<std::int8_t> (std::int8_t x) noexcept
+{
+    return x;
+}
+
 #if PFS_COMPILER_GNUC
 
 #   define PFS_BYTESWAP_USE_INTRINSICS 1
@@ -128,6 +135,27 @@ std::uint64_t byteswap<std::uint64_t> (std::uint64_t x) noexcept
 }
 #endif // ! PFS_BYTESWAP_USE_INTRINSICS
 
+template <>
+inline PFS_BYTESWAP_CONSTEXPR
+std::int16_t byteswap<std::int16_t> (std::int16_t x) noexcept
+{
+    return static_cast<std::int16_t>(byteswap(static_cast<std::uint16_t>(x)));
+}
+
+template <>
+inline PFS_BYTESWAP_CONSTEXPR
+std::int32_t byteswap<std::int32_t> (std::int32_t x) noexcept
+{
+    return static_cast<std::int32_t>(byteswap(static_cast<std::uint32_t>(x)));
+}
+
+template <>
+inline PFS_BYTESWAP_CONSTEXPR
+std::int64_t byteswap<std::int64_t> (std::int64_t x) noexcept
+{
+    return static_cast<std::int64_t>(byteswap(static_cast<std::uint64_t>(x)));
+}
+
 #if defined(PFS_HAS_INT128)
 template <>
 inline PFS_BYTESWAP_CONSTEXPR
@@ -136,6 +164,14 @@ __uint128_t byteswap<__uint128_t> (__uint128_t x) noexcept
     return construct_uint128(byteswap(static_cast<std::uint64_t>(x >> 64))
         , byteswap(static_cast<std::uint64_t>(x)));
 }
+
+template <>
+inline PFS_BYTESWAP_CONSTEXPR
+__int128_t byteswap<__int128_t> (__int128_t x) noexcept
+{
+    return static_cast<__int128_t>(byteswap(static_cast<__uint128_t>(x)));
+}
+
 #endif
 
 } // namespace pfs

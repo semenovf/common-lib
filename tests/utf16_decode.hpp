@@ -10,7 +10,6 @@
 #pragma once
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include "doctest.h"
-#include <pfs/endian.hpp>
 #include <pfs/unicode/unicode_iterator.hpp>
 #include <pfs/unicode/u16_iterator.hpp>
 #include <fstream>
