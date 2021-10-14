@@ -15,6 +15,6 @@ TEST_CASE("crc32_64") {
     auto crc32 = pfs::crc32_of(uuid);
     auto crc64 = pfs::crc64_of(uuid);
 
-    CHECK_EQ(crc32, -1726445405);
-    CHECK_EQ(crc64, PFS_INT64_C(531026194733399318));
+    CHECK_EQ(crc32, -495931481);
+    CHECK_EQ(crc64, PFS_INT64_C(-8818850263932298065));
 }

@@ -4,34 +4,40 @@
 // This file is part of [common-lib](https://github.com/semenovf/common-lib) library.
 //
 // Changelog:
-//      2021.10.03 Initial version.
+//      2021.10.13 Initial version.
 ////////////////////////////////////////////////////////////////////////////////
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #define ANKERL_NANOBENCH_IMPLEMENT
 #include "doctest.h"
 #include "nanobench.h"
-#include "pfs/bits/compiler.h"
+#include "pfs/byteswap.hpp"
 #include <algorithm>
 #include <array>
 #include <cassert>
 #include <cstdint>
 
-#if PFS_COMPILER_MSC
-//#   include "intrin.h"
-#   include <stdlib.h>
-#endif
+TEST_CASE("byteswap") {
+    CHECK_EQ(pfs::byteswap(std::uint16_t{0xCAFE}), std::uint16_t{0xFECA});
+    CHECK_EQ(pfs::byteswap(std::uint32_t{0xDEADBEEFu}), std::uint32_t{0xEFBEADDEu});
+    CHECK_EQ(pfs::byteswap(std::uint64_t{0x0123456789ABCDEFull})
+        , std::uint64_t{0xEFCDAB8967452301ull});
 
-#include "pfs/fmt.hpp"
+    CHECK_EQ(pfs::byteswap(pfs::byteswap(std::uint16_t{0xCAFE})), std::uint16_t{0xCAFE});
+    CHECK_EQ(pfs::byteswap(pfs::byteswap(std::uint32_t{0xDEADBEEFu})), std::uint32_t{0xDEADBEEFu});
+    CHECK_EQ(pfs::byteswap(pfs::byteswap(std::uint64_t{0x0123456789ABCDEFull}))
+        , std::uint64_t{0x0123456789ABCDEFull});
 
-#if __cplusplus >= 201402L
-#   define PFS_BYTESWAP_CONSTEXPR constexpr
-#else
-#   define PFS_BYTESWAP_CONSTEXPR
-#endif
+#if defined(PFS_HAS_INT128)
+    auto x = pfs::construct_uint128(0x1234567890ABCDEFull, 0x1234567890ABCDEFull);
+    auto y = pfs::construct_uint128(0xEFCDAB9078563412ull, 0xEFCDAB9078563412ull);
 
-#if defined(__SIZEOF_INT128__)
-#   define PFS_HAS_INT128 1
+    auto z1 = pfs::byteswap(x);
+    auto z2 = pfs::byteswap(pfs::byteswap(x));
+
+    CHECK_EQ(z1, y);
+    CHECK_EQ(z2, x);
 #endif
+}
 
 #if defined(PFS_HAS_INT128)
 inline constexpr __uint128_t construct_uint128 (std::uint64_t hi
