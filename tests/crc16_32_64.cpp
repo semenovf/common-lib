@@ -8,10 +8,13 @@
 ////////////////////////////////////////////////////////////////////////////////
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include "doctest.h"
+#include "pfs/crc16.hpp"
 #include "pfs/crc32.hpp"
 #include "pfs/crc64.hpp"
 
-TEST_CASE("crc32_64_of") {
+TEST_CASE("crc16_32_64_of") {
+    using pfs::crc16_of;
+    using pfs::crc16_all_of;
     using pfs::crc32_of;
     using pfs::crc32_all_of;
     using pfs::crc64_of;
@@ -22,6 +25,34 @@ TEST_CASE("crc32_64_of") {
     std::int16_t v3 = 4242;
     std::int32_t v4 = 424242;
     std::int64_t v5 = 42424242LL;
+
+    {
+        CHECK_EQ(pfs::crc16_of_ptr("", 0), static_cast<std::int16_t>(0));
+        CHECK_EQ(pfs::crc16_of_ptr(" ", 1), static_cast<std::int16_t>(0x2462));
+        CHECK_EQ(pfs::crc16_of_ptr("123456789", 9), static_cast<std::int16_t>(0x31C3));
+
+        CHECK_EQ(pfs::crc16_of_ptr("", 0, 0xFFFF), static_cast<std::int16_t>(0xFFFF));
+        CHECK_EQ(pfs::crc16_of_ptr(" ", 1, 0xFFFF), static_cast<std::int16_t>(0xC592));
+        CHECK_EQ(pfs::crc16_of_ptr("123456789", 9, 0xFFFF), static_cast<std::int16_t>(0x29B1));
+
+        auto a16 = crc16_of(v5
+            , crc16_of(v4
+                , crc16_of(v3
+                    , crc16_of(v2
+                        , crc16_of(v1, 0)))));
+
+        auto b16 = crc16_of(v1, 0);
+        b16 = crc16_of(v2, b16);
+        b16 = crc16_of(v3, b16);
+        b16 = crc16_of(v4, b16);
+        b16 = crc16_of(v5, b16);
+
+        auto c16 = crc16_all_of(0, v1, v2, v3, v4, v5);
+
+        CHECK_NE(a16, 0);
+        CHECK_EQ(a16, b16);
+        CHECK_EQ(c16, b16);
+    }
 
     {
         auto a32 = crc32_of(v5

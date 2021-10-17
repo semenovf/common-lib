@@ -125,8 +125,10 @@ inline std::int64_t crc64_of_ptr (void const * pdata, size_t nbytes, std::int64_
     auto pbytes = static_cast<std::uint8_t const *>(pdata);
     std::uint64_t r = initial;
 
-    while( nbytes-- )
-        r = __crc64_lookup_table[(r ^ *pbytes++) & 0xff ] ^ (r >> 8);
+    if (pdata) {
+        while( nbytes-- )
+            r = __crc64_lookup_table[(r ^ *pbytes++) & 0xff ] ^ (r >> 8);
+    }
 
     return static_cast<std::int64_t>(r);
 }

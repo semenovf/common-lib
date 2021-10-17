@@ -70,9 +70,11 @@ inline std::int32_t crc32_of_ptr (void const * pdata, std::size_t nbytes, std::i
     auto pbytes = static_cast<std::uint8_t const *>(pdata);
     std::uint32_t r = initial ^ 0xFFFFFFFF;
 
-    while( nbytes-- )
-        r =  __crc32_lookup_table[(r ^ *pbytes++) & 0xff ] ^ (r >> 8);
-    r = r ^ 0xFFFFFFFF;
+    if (pdata) {
+        while( nbytes-- )
+            r =  __crc32_lookup_table[(r ^ *pbytes++) & 0xff ] ^ (r >> 8);
+        r = r ^ 0xFFFFFFFF;
+    }
 
     return static_cast<std::int32_t>(r);
 }

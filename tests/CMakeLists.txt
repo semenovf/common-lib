@@ -23,7 +23,7 @@ set(TEST_NAMES
     byteswap
     calendar
     compare_op
-    crc32_64
+    crc16_32_64
     dynamic_library
     emitter
     endian
