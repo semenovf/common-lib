@@ -8,13 +8,15 @@
 ////////////////////////////////////////////////////////////////////////////////
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include "doctest.h"
-#include "pfs/uuid.hpp"
+#include "pfs/uuid_crc.hpp"
 
 TEST_CASE("crc32_64") {
     auto uuid = pfs::from_string<pfs::uuid_t>("01D78XYFJ1PRM1WPBCBT3VHMNV");
+    auto crc16 = pfs::crc16_of(uuid);
     auto crc32 = pfs::crc32_of(uuid);
     auto crc64 = pfs::crc64_of(uuid);
 
+    CHECK_EQ(crc16, -20569);
     CHECK_EQ(crc32, -495931481);
     CHECK_EQ(crc64, PFS_INT64_C(-8818850263932298065));
 }
