@@ -63,3 +63,10 @@ inline std::string to_string (pfs::uuid_t const & value)
 }
 
 } // namespace std
+
+pfs::uuid_t operator ""_uuid (char const * str, std::size_t)
+{
+    pfs::uuid_t result;
+    ulid::UnmarshalFrom(str, result);
+    return result;
+}
