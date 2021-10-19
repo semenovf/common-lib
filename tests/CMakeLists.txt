@@ -5,7 +5,7 @@
 ################################################################################
 project(common-lib-TESTS CXX C)
 
-if (ENABLE_COVERAGE)
+if (PFS_COMMON_LIB__ENABLE_COVERAGE)
     message(STATUS "Coverage feature enabled")
     if (NOT "${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
         message(FATAL_ERROR "Coverage feature requires GCC")
@@ -147,7 +147,7 @@ add_custom_command(TARGET utf16be_decode
         "$<TARGET_FILE_DIR:utf16be_decode>/unicode/utf16be/data"
     VERBATIM)
 
-if (ENABLE_COVERAGE)
+if (PFS_COMMON_LIB__ENABLE_COVERAGE)
     include(${CMAKE_SOURCE_DIR}/cmake/Coverage.cmake)
     coverage_target("'/usr/*';'*/doctest.h'")
 endif()
