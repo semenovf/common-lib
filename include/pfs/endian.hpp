@@ -9,6 +9,7 @@
 #pragma once
 #include "bits/endian.h"
 #include "byteswap.hpp"
+#include <type_traits>
 
 namespace pfs {
 

@@ -24,3 +24,11 @@
 #       define PFS_HAVE_STD_OPTIONAL 1
 #   endif
 #endif
+
+#if PFS_HAVE_STD_OPTIONAL
+    template <typename T>
+    using optional_t = std::optional<T>;
+#else
+    template <typename T>
+    using optional_t = pfs::optional<T>;
+#endif
