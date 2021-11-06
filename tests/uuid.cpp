@@ -17,7 +17,7 @@ TEST_CASE("literal") {
 }
 
 
-TEST_CASE("crc32_64") {
+TEST_CASE("crc16_32_64") {
     auto uuid = pfs::from_string<pfs::uuid_t>("01D78XYFJ1PRM1WPBCBT3VHMNV");
     auto crc16 = pfs::crc16_of(uuid);
     auto crc32 = pfs::crc32_of(uuid);
