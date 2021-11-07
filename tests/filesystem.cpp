@@ -64,21 +64,21 @@ TEST_CASE("Filesystem path") {
         //fmt::print(_STR("*** [{}] ***\n"), p1.c_str());
 
         // where "//host" is a root-name
-#if !defined(PFS_NO_STD_FILESYSTEM)        
+#if !defined(PFS_NO_STD_FILESYSTEM)
         CHECK((fs::path(_STR("//host")) /= _STR("foo")) == fs::path::string_type(_STR("//host/foo")));
 #else
-        CHECK((fs::path(_STR("//host")) /= _STR("foo")) == fs::path::string_type(_STR("//hostfoo"))); // FIXME
+        CHECK((fs::path(_STR("//host")) /= _STR("foo")) == fs::path::string_type(_STR("//hostfoo"))); // FIXME for GHC version
 #endif
-        
+
         CHECK((fs::path(_STR("//host/")) /= _STR("foo")) == fs::path::string_type(_STR("//host/foo")));
 
         // Non-member function
-#if !defined(PFS_NO_STD_FILESYSTEM)                
+#if !defined(PFS_NO_STD_FILESYSTEM)
         CHECK(fs::path(_STR("//host")) / _STR("foo")  == fs::path::string_type(_STR("//host/foo")));
 #else
-        CHECK(fs::path(_STR("//host")) / _STR("foo")  == fs::path::string_type(_STR("//hostfoo")));
+        CHECK(fs::path(_STR("//host")) / _STR("foo")  == fs::path::string_type(_STR("//hostfoo"))); // FIXME for GHC version
 #endif
-        
+
         CHECK(fs::path(_STR("//host/")) / _STR("foo") == fs::path::string_type(_STR("//host/foo"))); // appends without separator
 
 #if defined(_WIN32) || defined(_WIN64)
@@ -223,19 +223,19 @@ TEST_CASE("Filesystem path") {
         CHECK(fs::path(_STR("//server/path/to/file")).relative_path() == fs::path(_STR("path/to/file")));
         //CHECK(fs::path(_STR("/")).parent_path() == fs::path(_STR(""))); // FIXME for GHC version
 #else
-#   if !defined(PFS_NO_STD_FILESYSTEM)        
+#   if !defined(PFS_NO_STD_FILESYSTEM)
         CHECK(fs::path(_STR("//server/path/to/file")).root_name() == fs::path());
         CHECK(fs::path(_STR("//server/path/to/file")).root_path() == fs::path(_STR("/")));
         CHECK(fs::path(_STR("//server/path/to/file")).relative_path() == fs::path(_STR("server/path/to/file")));
-#   else        
+#   else
         CHECK(fs::path(_STR("//server/path/to/file")).root_name() == fs::path(_STR("//server")));
         CHECK(fs::path(_STR("//server/path/to/file")).root_path() == fs::path(_STR("//server/")));
         CHECK(fs::path(_STR("//server/path/to/file")).relative_path() == fs::path(_STR("path/to/file")));
 #   endif
-        
+
         CHECK(fs::path(_STR("/")).parent_path() == fs::path(_STR("/")));
 #endif
-        
+
         CHECK(fs::path(_STR("//server/path/to/file")).root_directory() == fs::path(_STR("/")));
         CHECK(fs::path(_STR("//server/path/to/file")).parent_path() == fs::path(_STR("//server/path/to")));
         CHECK(fs::path(_STR("/path/to/.")).parent_path() == fs::path(_STR("/path/to")));
@@ -260,13 +260,13 @@ TEST_CASE("Filesystem path") {
         CHECK(fs::path(_STR("/foo/bar.txt/bar.")).extension() == fs::path::string_type(_STR(".")));
         CHECK(fs::path(_STR("/foo/bar.txt/bar")).extension() == fs::path::string_type(_STR("")));
         CHECK(fs::path(_STR("/foo/.")).extension() == fs::path::string_type(_STR("")));
-        
-#   if !defined(PFS_NO_STD_FILESYSTEM)                
+
+#   if !defined(PFS_NO_STD_FILESYSTEM)
         CHECK(fs::path(_STR("/foo/..")).extension() == fs::path::string_type(_STR("")));
 #   else
-        CHECK(fs::path(_STR("/foo/..")).extension() == fs::path::string_type(_STR("."))); // FIXME
+        CHECK(fs::path(_STR("/foo/..")).extension() == fs::path::string_type(_STR("."))); // FIXME for GHC version
 #   endif
-        
+
         CHECK(fs::path(_STR(".hidden")).extension() == fs::path::string_type(_STR("")));
         CHECK(fs::path(_STR("/foo/.hidden")).extension() == fs::path::string_type(_STR("")));
         CHECK(fs::path(_STR("/foo/..bar")).extension() == fs::path::string_type(_STR(".bar")));
@@ -293,13 +293,13 @@ TEST_CASE("Filesystem path") {
 
 #if defined(_WIN32) || defined(_WIN64)
         CHECK(fs::path("//server/path/to/file").has_root_name());
-#else        
-#   if !defined(PFS_NO_STD_FILESYSTEM)        
+#else
+#   if !defined(PFS_NO_STD_FILESYSTEM)
         CHECK_FALSE(fs::path("//server/path/to/file").has_root_name());
 #   else
-        CHECK(fs::path("//server/path/to/file").has_root_name()); // FIXME
-#   endif        
-#endif        
+        CHECK(fs::path("//server/path/to/file").has_root_name()); // FIXME for GHC version
+#   endif
+#endif
         CHECK(fs::path("//server/path/to/file").has_root_path());
         CHECK(fs::path("//server/path/to/file").has_root_directory());
         CHECK(fs::path("//server/path/to/file").has_relative_path());
@@ -329,13 +329,13 @@ TEST_CASE("Filesystem path") {
         CHECK(fs::path("/foo/bar.txt/bar.").has_extension());
         CHECK(!fs::path("/foo/bar.txt/bar").has_extension());
         CHECK(!fs::path("/foo/.").has_extension());
-        
-#   if !defined(PFS_NO_STD_FILESYSTEM)        
-        CHECK(!fs::path("/foo/..").has_extension());
+
+#   if !defined(PFS_NO_STD_FILESYSTEM)
+        CHECK_FALSE(fs::path("/foo/..").has_extension());
 #   else
-        CHECK_FALSE(!fs::path("/foo/..").has_extension()); // FIXME
+        CHECK(fs::path("/foo/..").has_extension()); // FIXME for GHC version
 #   endif
-        
+
         CHECK(!fs::path(".hidden").has_extension());
 
         CHECK_FALSE(fs::path("/foo/.hidden").has_extension());

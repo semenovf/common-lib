@@ -104,7 +104,7 @@ foreach (name ${TEST_NAMES})
     #       This option is used to compile and link code instrumented for
     #       coverage analysis. The option is a synonym for -fprofile-arcs
     #       -ftest-coverage (when compiling) and -lgcov (when linking).
-    if (ENABLE_COVERAGE)
+    if (PFS_COMMON_LIB__ENABLE_COVERAGE)
         target_compile_options(${name} PRIVATE -g -O0 --coverage)
         target_link_libraries(${name} PRIVATE -g -O0 --coverage)
     endif()

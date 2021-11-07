@@ -1,6 +1,7 @@
 #!/bin/sh
 
 BASE_URL=https://raw.githubusercontent.com/semenovf/scripts/master
+BAK_SUFFIX=`date +%Y_%m_%d_%H_%M_%S`
 
 SCRIPTS="build.sh \
     build-windows.cmd"
@@ -18,6 +19,11 @@ curl_copy()
     FILENAME=$1
     SOURCE=$2
     TARGET=$3
+
+    if [ -e $TARGET ] ; then
+        echo "Target already exists: $TARGET, new one will be renamed into: $TARGET.$BAK_SUFFIX"
+        TARGET="$TARGET.$BAK_SUFFIX"
+    fi
 
     LAST_COMMAND="curl -s $SOURCE -o $TARGET"
     echo -n "Coping $FILENAME ... "
@@ -39,7 +45,7 @@ for f in $SCRIPTS ; do
 done
 
 for f in $CONFIGS ; do
-    curl_copy $f $BASE_URL/configs/${f}  $f
+    curl_copy $f $BASE_URL/configs/${f} $f
     [ $LAST_STATUS -ne 0 ] && exit 1
 done
 
