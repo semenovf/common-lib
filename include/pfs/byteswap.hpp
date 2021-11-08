@@ -8,6 +8,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
 #include "pfs/bits/compiler.h"
+#include "pfs/i128.hpp"
 #include <cstdint>
 
 #if PFS_COMPILER_MSC
@@ -23,19 +24,7 @@
 #   endif
 #endif // ! PFS_BYTESWAP_CONSTEXPR
 
-#if !defined(PFS_HAS_INT128) && defined(__SIZEOF_INT128__)
-#   define PFS_HAS_INT128 1
-#endif
-
 namespace pfs {
-
-#if defined(PFS_HAS_INT128)
-inline constexpr __uint128_t construct_uint128 (std::uint64_t hi
-    , std::uint64_t low) noexcept
-{
-    return (static_cast<__uint128_t>(hi) << 64) | low;
-}
-#endif
 
 template <typename T>
 PFS_BYTESWAP_CONSTEXPR T byteswap (T n) noexcept;
@@ -159,19 +148,18 @@ std::int64_t byteswap<std::int64_t> (std::int64_t x) noexcept
 #if defined(PFS_HAS_INT128)
 template <>
 inline PFS_BYTESWAP_CONSTEXPR
-__uint128_t byteswap<__uint128_t> (__uint128_t x) noexcept
+uint128_type byteswap<uint128_type> (uint128_type x) noexcept
 {
-    return construct_uint128(byteswap(static_cast<std::uint64_t>(x >> 64))
-        , byteswap(static_cast<std::uint64_t>(x)));
+    return construct_uint128(byteswap(static_cast<std::uint64_t>(x))
+        , byteswap(static_cast<std::uint64_t>(x >> 64)));
 }
 
 template <>
 inline PFS_BYTESWAP_CONSTEXPR
-__int128_t byteswap<__int128_t> (__int128_t x) noexcept
+int128_type byteswap<int128_type> (int128_type x) noexcept
 {
-    return static_cast<__int128_t>(byteswap(static_cast<__uint128_t>(x)));
+    return static_cast<int128_type>(byteswap(static_cast<uint128_type>(x)));
 }
-
-#endif
+#endif // PFS_HAS_INT128
 
 } // namespace pfs

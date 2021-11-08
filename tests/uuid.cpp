@@ -16,7 +16,6 @@ TEST_CASE("literal") {
     CHECK_EQ(uuid, pfs::from_string<pfs::uuid_t>("01D78XYFJ1PRM1WPBCBT3VHMNV"));
 }
 
-
 TEST_CASE("crc16_32_64") {
     auto uuid = pfs::from_string<pfs::uuid_t>("01D78XYFJ1PRM1WPBCBT3VHMNV");
     auto crc16 = pfs::crc16_of(uuid);

@@ -35,7 +35,7 @@ enum class endian
  */
 template <typename T>
 inline PFS_BYTESWAP_CONSTEXPR
-T to_native_order (T x, typename std::enable_if<std::is_arithmetic<T>::value
+T to_native_order (T const & x, typename std::enable_if<std::is_arithmetic<T>::value
 #if defined(PFS_HAS_INT128)
         || std::is_same<T, __int128>::value
         || std::is_same<T, unsigned __int128>::value
@@ -54,7 +54,7 @@ T to_native_order (T x, typename std::enable_if<std::is_arithmetic<T>::value
  */
 template <typename T>
 inline PFS_BYTESWAP_CONSTEXPR
-T to_network_order (T x, typename std::enable_if<std::is_arithmetic<T>::value
+T to_network_order (T const & x, typename std::enable_if<std::is_arithmetic<T>::value
 #if defined(PFS_HAS_INT128)
         || std::is_same<T, __int128>::value
         || std::is_same<T, unsigned __int128>::value

@@ -6,6 +6,8 @@
 cmake_minimum_required (VERSION 3.5)
 project(pfs-common CXX C)
 
+option(FORCE_ULID_STRUCT "Enable ULID struct representation (UUID backend)" ON)
+
 find_package(Threads REQUIRED)
 
 include(${CMAKE_CURRENT_LIST_DIR}/cmake/cxx17_filesystem.cmake)
@@ -22,8 +24,12 @@ if (UNIX)
 endif()
 
 if (MSVC)
-    target_compile_options(${PROJECT_NAME} INTERFACE -D_UNICODE -DUNICODE)
+    target_compile_definitions(${PROJECT_NAME} INTERFACE -D_UNICODE -DUNICODE)
 endif()
+
+if (FORCE_ULID_STRUCT)
+    target_compile_definitions(${PROJECT_NAME} INTERFACE -DPFS_COMMON__FORCE_ULID_STRUCT=1)
+endif(FORCE_ULID_STRUCT)
 
 set(__all_dependences_found ON)
 

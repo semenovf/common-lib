@@ -16,6 +16,8 @@
 #include <cassert>
 #include <cstdint>
 
+#include "pfs/fmt.hpp"
+
 TEST_CASE("byteswap") {
     CHECK_EQ(pfs::byteswap(std::uint16_t{0xCAFE}), std::uint16_t{0xFECA});
     CHECK_EQ(pfs::byteswap(std::uint32_t{0xDEADBEEFu}), std::uint32_t{0xEFBEADDEu});
@@ -28,18 +30,82 @@ TEST_CASE("byteswap") {
         , std::uint64_t{0x0123456789ABCDEFull});
 
 #if defined(PFS_HAS_INT128)
-    auto x = pfs::construct_uint128(0x1234567890ABCDEFull, 0x1234567890ABCDEFull);
-    auto y = pfs::construct_uint128(0xEFCDAB9078563412ull, 0xEFCDAB9078563412ull);
+    {
+        auto x = pfs::construct_uint128(0x1234567890ABCDEFull, 0x1234567890ABCDEFull);
+        auto y = pfs::construct_uint128(0xEFCDAB9078563412ull, 0xEFCDAB9078563412ull);
 
-    auto z1 = pfs::byteswap(x);
-    auto z2 = pfs::byteswap(pfs::byteswap(x));
+        auto z1 = pfs::byteswap(x);
+        auto z2 = pfs::byteswap(pfs::byteswap(x));
 
-    CHECK_EQ(z1, y);
-    CHECK_EQ(z2, x);
+        CHECK_EQ(z1, y);
+        CHECK_EQ(z2, x);
 
-    __int128_t a = -1;
+        int128_type a = -1;
 
-    CHECK_EQ(pfs::byteswap(pfs::byteswap(a)), a);
+        CHECK_EQ(pfs::byteswap(pfs::byteswap(a)), a);
+    }
+
+    {
+        union u128 {
+            uint128_type x;
+            std::uint8_t b[sizeof(int128_type)];
+        };
+
+        u128 a;
+        a.x = pfs::construct_uint128(0x1234567890ABCDEFull, 0xAB12CD34EF56BA78ull);
+
+        u128 b;
+        b.x = pfs::byteswap(a.x);
+
+        fmt::print("a.x = {:X}\n", a.x);
+        fmt::print("a.b = {:X}{:X}{:X}{:X}{:X}{:X}{:X}{:X}"
+            "{:X}{:X}{:X}{:X}{:X}{:X}{:X}{:X}\n"
+            , a.b[0], a.b[1], a.b[2], a.b[3], a.b[4], a.b[5], a.b[6], a.b[7]
+            , a.b[8], a.b[9], a.b[10], a.b[11], a.b[12], a.b[13], a.b[14], a.b[15]);
+
+        fmt::print("b.x = {:X}\n", b.x);
+        fmt::print("b.b = {:X}{:X}{:X}{:X}{:X}{:X}{:X}{:X}"
+            "{:X}{:X}{:X}{:X}{:X}{:X}{:X}{:X}\n"
+            , b.b[0], b.b[1], b.b[2], b.b[3], b.b[4], b.b[5], b.b[6], b.b[7]
+            , b.b[8], b.b[9], b.b[10], b.b[11], b.b[12], b.b[13], b.b[14], b.b[15]);
+
+        CHECK_EQ(a.b[0] , 0x78);
+        CHECK_EQ(a.b[1] , 0xBA);
+        CHECK_EQ(a.b[2] , 0x56);
+        CHECK_EQ(a.b[3] , 0xEF);
+        CHECK_EQ(a.b[4] , 0x34);
+        CHECK_EQ(a.b[5] , 0xCD);
+        CHECK_EQ(a.b[6] , 0x12);
+        CHECK_EQ(a.b[7] , 0xAB);
+        CHECK_EQ(a.b[8] , 0xEF);
+        CHECK_EQ(a.b[9] , 0xCD);
+        CHECK_EQ(a.b[10], 0xAB);
+        CHECK_EQ(a.b[11], 0x90);
+        CHECK_EQ(a.b[12], 0x78);
+        CHECK_EQ(a.b[13], 0x56);
+        CHECK_EQ(a.b[14], 0x34);
+        CHECK_EQ(a.b[15], 0x12);
+
+        CHECK_EQ(b.b[0] , 0x12);
+        CHECK_EQ(b.b[1] , 0x34);
+        CHECK_EQ(b.b[2] , 0x56);
+        CHECK_EQ(b.b[3] , 0x78);
+        CHECK_EQ(b.b[4] , 0x90);
+        CHECK_EQ(b.b[5] , 0xAB);
+        CHECK_EQ(b.b[6] , 0xCD);
+        CHECK_EQ(b.b[7] , 0xEF);
+        CHECK_EQ(b.b[8] , 0xAB);
+        CHECK_EQ(b.b[9] , 0x12);
+        CHECK_EQ(b.b[10], 0xCD);
+        CHECK_EQ(b.b[11], 0x34);
+        CHECK_EQ(b.b[12], 0xEF);
+        CHECK_EQ(b.b[13], 0x56);
+        CHECK_EQ(b.b[14], 0xBA);
+        CHECK_EQ(b.b[15], 0x78);
+
+        CHECK_EQ(pfs::byteswap(pfs::byteswap(a.x)), a.x);
+    }
+
 #endif
 }
 
