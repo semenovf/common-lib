@@ -7,6 +7,7 @@
 //      2021.11.08 Initial version.
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
+#include <cstdint>
 
 // See https://stackoverflow.com/questions/16088282/is-there-a-128-bit-integer-in-gcc
 #if !defined(PFS_HAS_INT128) && defined(__SIZEOF_INT128__)
