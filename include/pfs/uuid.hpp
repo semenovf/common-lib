@@ -26,14 +26,10 @@ namespace pfs {
 // See https://github.com/suyash/ulid
 // NOTE! Struct-based implementation assumes big-endian order.
 
-#ifdef ULIDUINT128
-    struct uuid_t
-    {
-        ulid::ULID u;
-    };
-#else // ULIDUINT128
-    using uuid_t = ulid::ULID;
-#endif // ! ULIDUINT128
+struct uuid_t
+{
+    ulid::ULID u;
+};
 
 using random_engine_t = std::mt19937;
 
@@ -50,28 +46,16 @@ inline uuid_t generate_uuid ()
 
     // Encode first 6 bytes with the timestamp in milliseconds using
     // std::chrono::system_clock::now()
-#ifdef ULIDUINT128
     ulid::EncodeTimeSystemClockNow(result.u);
-#else
-    ulid::EncodeTimeSystemClockNow(result);
-#endif
 
-#ifdef ULIDUINT128
     ulid::EncodeEntropyMt19937(random_engine(), result.u);
-#else
-    ulid::EncodeEntropyMt19937(random_engine(), result);
-#endif
 
     return result;
 }
 
 inline std::string to_string (uuid_t const & value)
 {
-#ifdef ULIDUINT128
     return ulid::Marshal(value.u);
-#else
-    return ulid::Marshal(value);
-#endif
 }
 
 template <typename T>
@@ -80,11 +64,7 @@ T from_string (std::string const & str);
 template <>
 inline uuid_t from_string<uuid_t> (std::string const & str)
 {
-#ifdef ULIDUINT128
     return uuid_t {ulid::Unmarshal(str)};
-#else
-    return ulid::Unmarshal(str);
-#endif
 }
 
 #ifdef ULIDUINT128
@@ -137,7 +117,7 @@ inline std::array<std::uint8_t, 16> to_array (uuid_t const & u
 inline pfs::uuid_t make_uuid (std::uint64_t hi, std::uint64_t lo)
 {
     pfs::uuid_t result;
-    std::uint8_t * a = & result.data[0];
+    std::uint8_t * a = & result.u.data[0];
 
     a[15] = static_cast<std::uint8_t>(hi);
 
@@ -199,10 +179,10 @@ inline pfs::uuid_t make_uuid (std::array<std::uint8_t, 16> const & a
     // See NOTE at beginning of source
     if (e == endian::little) {
         for (int i = 0, j = a.size() - 1; i < a.size(); i++, j--)
-            result.data[i] = a[j];
+            result.u.data[i] = a[j];
     } else {
         for (int i = 0; i < a.size(); i++)
-            result.data[i] = a[i];
+            result.u.data[i] = a[i];
     }
 
     return result;
@@ -219,10 +199,10 @@ inline std::array<std::uint8_t, 16> to_array (uuid_t const & u
     // See NOTE at beginning of source
     if (e == endian::little) {
         for (int i = 0, j = result.size() - 1; i < result.size(); i++, j--)
-            result[i] = u.data[j];
+            result[i] = u.u.data[j];
     } else {
         for (int i = 0; i < result.size(); i++)
-            result[i] = u.data[i];
+            result[i] = u.u.data[i];
     }
 
     return result;
@@ -230,13 +210,39 @@ inline std::array<std::uint8_t, 16> to_array (uuid_t const & u
 
 #endif // !ULIDUINT128
 
-inline int compare (pfs::uuid_t const & u1, pfs::uuid_t const & u2)
+inline int compare (uuid_t const & u1, uuid_t const & u2)
 {
-#ifdef ULIDUINT128
     return ulid::CompareULIDs(u1.u, u2.u);
-#else
-    return ulid::CompareULIDs(u1, u2);
-#endif
+}
+
+inline bool operator == (uuid_t const & u1, uuid_t const & u2)
+{
+    return compare(u1, u2) == 0;
+}
+
+inline bool operator != (uuid_t const & u1, uuid_t const & u2)
+{
+    return compare(u1, u2) != 0;
+}
+
+inline bool operator < (uuid_t const & u1, uuid_t const & u2)
+{
+    return compare(u1, u2) < 0;
+}
+
+inline bool operator <= (uuid_t const & u1, uuid_t const & u2)
+{
+    return compare(u1, u2) <= 0;
+}
+
+inline bool operator > (uuid_t const & u1, uuid_t const & u2)
+{
+    return compare(u1, u2) > 0;
+}
+
+inline bool operator >= (uuid_t const & u1, uuid_t const & u2)
+{
+    return compare(u1, u2) >= 0;
 }
 
 } // namespace pfs
@@ -250,43 +256,9 @@ inline std::string to_string (pfs::uuid_t const & value)
 
 } // namespace std
 
-inline bool operator == (pfs::uuid_t const & u1, pfs::uuid_t const & u2)
-{
-    return pfs::compare(u1, u2) == 0;
-}
-
-inline bool operator != (pfs::uuid_t const & u1, pfs::uuid_t const & u2)
-{
-    return pfs::compare(u1, u2) != 0;
-}
-
-inline bool operator < (pfs::uuid_t const & u1, pfs::uuid_t const & u2)
-{
-    return pfs::compare(u1, u2) < 0;
-}
-
-inline bool operator <= (pfs::uuid_t const & u1, pfs::uuid_t const & u2)
-{
-    return pfs::compare(u1, u2) <= 0;
-}
-
-inline bool operator > (pfs::uuid_t const & u1, pfs::uuid_t const & u2)
-{
-    return pfs::compare(u1, u2) > 0;
-}
-
-inline bool operator >= (pfs::uuid_t const & u1, pfs::uuid_t const & u2)
-{
-    return pfs::compare(u1, u2) >= 0;
-}
-
 pfs::uuid_t operator ""_uuid (char const * str, std::size_t)
 {
     pfs::uuid_t result;
-#ifdef ULIDUINT128
     ulid::UnmarshalFrom(str, result.u);
-#else
-    ulid::UnmarshalFrom(str, result);
-#endif
     return result;
 }

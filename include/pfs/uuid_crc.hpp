@@ -85,66 +85,66 @@ template <>
 inline std::int16_t crc16_of<uuid_t> (uuid_t const & data, std::int16_t initial)
 {
     return crc16_all_of(initial
-        , data.data[0]
-        , data.data[1]
-        , data.data[2]
-        , data.data[3]
-        , data.data[4]
-        , data.data[5]
-        , data.data[6]
-        , data.data[7]
-        , data.data[8]
-        , data.data[9]
-        , data.data[10]
-        , data.data[11]
-        , data.data[12]
-        , data.data[13]
-        , data.data[14]
-        , data.data[15]);
+        , data.u.data[0]
+        , data.u.data[1]
+        , data.u.data[2]
+        , data.u.data[3]
+        , data.u.data[4]
+        , data.u.data[5]
+        , data.u.data[6]
+        , data.u.data[7]
+        , data.u.data[8]
+        , data.u.data[9]
+        , data.u.data[10]
+        , data.u.data[11]
+        , data.u.data[12]
+        , data.u.data[13]
+        , data.u.data[14]
+        , data.u.data[15]);
 }
 
 template <>
 inline std::int32_t crc32_of<uuid_t> (uuid_t const & data, std::int32_t initial)
 {
     return crc32_all_of(initial
-        , data.data[0]
-        , data.data[1]
-        , data.data[2]
-        , data.data[3]
-        , data.data[4]
-        , data.data[5]
-        , data.data[6]
-        , data.data[7]
-        , data.data[8]
-        , data.data[9]
-        , data.data[10]
-        , data.data[11]
-        , data.data[12]
-        , data.data[13]
-        , data.data[14]
-        , data.data[15]);
+        , data.u.data[0]
+        , data.u.data[1]
+        , data.u.data[2]
+        , data.u.data[3]
+        , data.u.data[4]
+        , data.u.data[5]
+        , data.u.data[6]
+        , data.u.data[7]
+        , data.u.data[8]
+        , data.u.data[9]
+        , data.u.data[10]
+        , data.u.data[11]
+        , data.u.data[12]
+        , data.u.data[13]
+        , data.u.data[14]
+        , data.u.data[15]);
 }
 
 template <>
 inline std::int64_t crc64_of<uuid_t> (uuid_t const & data, std::int64_t initial)
 {
     return crc64_all_of(initial
-        , data.data[0]
-        , data.data[1]
-        , data.data[2]
-        , data.data[3]
-        , data.data[4]
-        , data.data[5]
-        , data.data[6]
-        , data.data[7]
-        , data.data[8]
-        , data.data[9]
-        , data.data[10]
-        , data.data[11]
-        , data.data[12]
-        , data.data[13]
-        , data.data[14]
-        , data.data[15]);
+        , data.u.data[0]
+        , data.u.data[1]
+        , data.u.data[2]
+        , data.u.data[3]
+        , data.u.data[4]
+        , data.u.data[5]
+        , data.u.data[6]
+        , data.u.data[7]
+        , data.u.data[8]
+        , data.u.data[9]
+        , data.u.data[10]
+        , data.u.data[11]
+        , data.u.data[12]
+        , data.u.data[13]
+        , data.u.data[14]
+        , data.u.data[15]);
 }
 
 #endif // ! ULIDUINT128

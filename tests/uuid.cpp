@@ -22,7 +22,7 @@ TEST_CASE ("") {
 
 TEST_CASE("literal") {
     auto uuid = "01D78XYFJ1PRM1WPBCBT3VHMNV"_uuid;
-    CHECK(uuid == pfs::from_string<pfs::uuid_t>("01D78XYFJ1PRM1WPBCBT3VHMNV"));
+    CHECK_EQ(uuid, pfs::from_string<pfs::uuid_t>("01D78XYFJ1PRM1WPBCBT3VHMNV"));
 }
 
 TEST_CASE("crc16_32_64") {
@@ -41,22 +41,22 @@ TEST_CASE("serialize")
     auto u = pfs::from_string<pfs::uuid_t>("01D78XYFJ1PRM1WPBCBT3VHMNV");
 
 #ifndef ULIDUINT128
-    CHECK_EQ(u.data[0], 0x01);
-    CHECK_EQ(u.data[1], 0x69);
-    CHECK_EQ(u.data[2], 0xD1);
-    CHECK_EQ(u.data[3], 0xDF);
-    CHECK_EQ(u.data[4], 0x3E);
-    CHECK_EQ(u.data[5], 0x41);
-    CHECK_EQ(u.data[6], 0xB6);
-    CHECK_EQ(u.data[7], 0x28);
-    CHECK_EQ(u.data[8], 0x1E);
-    CHECK_EQ(u.data[9], 0x59);
-    CHECK_EQ(u.data[10], 0x6C);
-    CHECK_EQ(u.data[11], 0x5E);
-    CHECK_EQ(u.data[12], 0x87);
-    CHECK_EQ(u.data[13], 0xB8);
-    CHECK_EQ(u.data[14], 0xD2);
-    CHECK_EQ(u.data[15], 0xBB);
+    CHECK_EQ(u.u.data[0], 0x01);
+    CHECK_EQ(u.u.data[1], 0x69);
+    CHECK_EQ(u.u.data[2], 0xD1);
+    CHECK_EQ(u.u.data[3], 0xDF);
+    CHECK_EQ(u.u.data[4], 0x3E);
+    CHECK_EQ(u.u.data[5], 0x41);
+    CHECK_EQ(u.u.data[6], 0xB6);
+    CHECK_EQ(u.u.data[7], 0x28);
+    CHECK_EQ(u.u.data[8], 0x1E);
+    CHECK_EQ(u.u.data[9], 0x59);
+    CHECK_EQ(u.u.data[10], 0x6C);
+    CHECK_EQ(u.u.data[11], 0x5E);
+    CHECK_EQ(u.u.data[12], 0x87);
+    CHECK_EQ(u.u.data[13], 0xB8);
+    CHECK_EQ(u.u.data[14], 0xD2);
+    CHECK_EQ(u.u.data[15], 0xBB);
 #endif
 
     std::array<std::uint8_t, 16> a_little = {
@@ -72,8 +72,8 @@ TEST_CASE("serialize")
     auto u1 = pfs::make_uuid(a_little, pfs::endian::little);
     auto u2 = pfs::make_uuid(a_big, pfs::endian::big);
 
-    CHECK(u == u1);
-    CHECK(u == u2);
+    CHECK_EQ(u, u1);
+    CHECK_EQ(u, u2);
 
     auto a1 = pfs::to_array(u1, pfs::endian::little);
     auto a2 = pfs::to_array(u2, pfs::endian::big);
