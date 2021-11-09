@@ -84,3 +84,18 @@ TEST_CASE("serialize")
     for (int i = 0; i < 16; i++)
         CHECK_EQ(a2[i], a_big[i]);
 }
+
+TEST_CASE("comparison")
+{
+    auto u1 = pfs::from_string<pfs::uuid_t>("01D78XYFJ1PRM1WPBCBT3VHMNV");
+    auto u2 = pfs::from_string<pfs::uuid_t>("01D78XYFJ1PRM1WPBCBT3VHMNV");
+    auto u3 = pfs::from_string<pfs::uuid_t>("02D78XYFJ1PRM1WPBCBT3VHMNV");
+
+    CHECK(u1 == u2);
+    CHECK(u1 <= u2);
+    CHECK(u1 != u3);
+    CHECK(u1 < u3);
+    CHECK(u1 <= u3);
+    CHECK(u3 > u1);
+    CHECK(u3 >= u1);
+}
