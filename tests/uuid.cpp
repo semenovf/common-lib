@@ -11,6 +11,8 @@
 #include "pfs/fmt.hpp"
 #include "pfs/uuid.hpp"
 #include "pfs/uuid_crc.hpp"
+#include "pfs/uuid_hash.hpp"
+#include <unordered_map>
 
 TEST_CASE ("") {
 #ifdef ULIDUINT128
@@ -98,4 +100,17 @@ TEST_CASE("comparison")
     CHECK(u1 <= u3);
     CHECK(u3 > u1);
     CHECK(u3 >= u1);
+}
+
+TEST_CASE("hash")
+{
+    auto u1 = pfs::from_string<pfs::uuid_t>("01D78XYFJ1PRM1WPBCBT3VHMNV");
+    auto u2 = pfs::from_string<pfs::uuid_t>("02D78XYFJ1PRM1WPBCBT3VHMNV");
+
+    std::unordered_map<pfs::uuid_t, int> m;
+    m[u1] = 42;
+    m[u2] = 43;
+
+    CHECK_EQ(m[u1], 42);
+    CHECK_EQ(m[u2], 43);
 }
