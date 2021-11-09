@@ -5,7 +5,7 @@
 ################################################################################
 project(common-lib-TESTS CXX C)
 
-if (PFS_COMMON_LIB__ENABLE_COVERAGE)
+if (PFS_COMMON__ENABLE_COVERAGE)
     message(STATUS "Coverage feature enabled")
     if (NOT "${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
         message(FATAL_ERROR "Coverage feature requires GCC")
@@ -104,7 +104,7 @@ foreach (name ${TEST_NAMES})
     #       This option is used to compile and link code instrumented for
     #       coverage analysis. The option is a synonym for -fprofile-arcs
     #       -ftest-coverage (when compiling) and -lgcov (when linking).
-    if (PFS_COMMON_LIB__ENABLE_COVERAGE)
+    if (PFS_COMMON__ENABLE_COVERAGE)
         target_compile_options(${name} PRIVATE -g -O0 --coverage)
         target_link_libraries(${name} PRIVATE -g -O0 --coverage)
     endif()
@@ -147,7 +147,7 @@ add_custom_command(TARGET utf16be_decode
         "$<TARGET_FILE_DIR:utf16be_decode>/unicode/utf16be/data"
     VERBATIM)
 
-if (PFS_COMMON_LIB__ENABLE_COVERAGE)
+if (PFS_COMMON__ENABLE_COVERAGE)
     include(${CMAKE_SOURCE_DIR}/cmake/Coverage.cmake)
     coverage_target("'/usr/*';'*/doctest.h'")
 endif()

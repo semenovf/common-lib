@@ -17,7 +17,7 @@ enum class endian
 {
       little = __ORDER_LITTLE_ENDIAN__
     , big    = __ORDER_BIG_ENDIAN__
-    , pdp    = __ORDER_PDP_ENDIAN__ // Unsupported
+//  , pdp    = __ORDER_PDP_ENDIAN__ // Unsupported
 #if defined(__BYTE_ORDER__)
 #   if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
     , native = little

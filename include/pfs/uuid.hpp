@@ -11,6 +11,8 @@
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
 #include "endian.hpp"
+#include "i128.hpp"
+#include <array>
 #include <random>
 
 #if PFS_COMMON__FORCE_ULID_STRUCT
@@ -22,6 +24,7 @@
 namespace pfs {
 
 // See https://github.com/suyash/ulid
+// NOTE! Struct-based implementation assumes big-endian order.
 
 using uuid_t = ulid::ULID;
 using random_engine_t = std::mt19937;
@@ -60,12 +63,53 @@ inline uuid_t from_string<uuid_t> (std::string const & str)
     return ulid::Unmarshal(str);
 }
 
-#ifdef ULID_UINT128_HH
-inline pfs::uuid_t make_uuid (std::uint64_t hi, std::uint64_t lo)
+#ifdef ULIDUINT128
+
+inline uuid_t make_uuid (std::uint64_t hi, std::uint64_t lo)
 {
     return pfs::uuid_t{construct_uint128(hi, lo)};
 }
-#else
+
+/**
+ * Makes UUID from array @a a that contains bytes in order specified by @a e.
+ */
+inline pfs::uuid_t make_uuid (std::array<std::uint8_t, 16> const & a
+    , endian e = endian::network)
+{
+    pfs::uuid_t result {0};
+
+    if (e == endian::little) {
+        for (int i = 0, j = 0; i < 16; i++, j += 8)
+            result = result | static_cast<int128_type>(a[i]) << j;
+    } else {
+        for (int i = 15, j = 0; i >= 0; i--, j += 8)
+            result = result | static_cast<int128_type>(a[i]) << j;
+    }
+
+    return result;
+}
+
+/**
+ * Converts UUID into array that will contains bytes in order specified by @a e.
+ */
+inline std::array<std::uint16_t, 16> to_array (uuid_t const & u
+    , endian e = endian::network)
+{
+    std::array<std::uint16_t, 16> result;
+
+    if (e == endian::little) {
+        for (int i = 0, j = 0; i < 16; i++, j += 8)
+            result[i] = static_cast<std::uint8_t>(u >> j);
+    } else {
+        for (int i = 0, j = 120; i < 16; i++, j -= 8)
+            result[i] = static_cast<std::uint8_t>(u >> j);
+    }
+
+    return result;
+}
+
+#else // ULIDUINT128
+
 inline pfs::uuid_t make_uuid (std::uint64_t hi, std::uint64_t lo)
 {
     pfs::uuid_t result;
@@ -120,38 +164,48 @@ inline pfs::uuid_t make_uuid (std::uint64_t hi, std::uint64_t lo)
     return result;
 }
 
-// NOTE! int128 and struct -based implementations of ULID are not fully
-//       interchangeable. An exception is representaion at big-endian
-//       architechture, where struct-based implementations will still remain
-//       little-endian.
-//       So, for compatibility (e.g. when need transfer UUID over network) it is
-//       the better to use struct-based implementation.
-//       Or use string representation (to_string() / from_string()).
-
 /**
- * Convert from network to native order
+ * Makes UUID from array @a a that contains bytes in order specified by @a e.
  */
-template <typename T>
-inline PFS_BYTESWAP_CONSTEXPR
-T to_native_order (T const & x, typename std::enable_if<
-          std::is_same<T, uuid_t>::value
-        , std::nullptr_t>::type = nullptr)
+inline pfs::uuid_t make_uuid (std::array<std::uint8_t, 16> const & a
+    , endian e = endian::network)
 {
-    return x;
+    pfs::uuid_t result;
+
+    // See NOTE at beginning of source
+    if (e == endian::little) {
+        for (int i = 0, j = a.size() - 1; i < a.size(); i++, j--)
+            result.data[i] = a[j];
+    } else {
+        for (int i = 0; i < a.size(); i++)
+            result.data[i] = a[i];
+    }
+
+    return result;
 }
 
 /**
- * Convert from native to network order
+ * Converts UUID into array that will contains bytes in order specified by @a e.
  */
-template <typename T>
-inline PFS_BYTESWAP_CONSTEXPR
-T to_network_order (T const & x, typename std::enable_if<
-          std::is_same<T, uuid_t>::value
-        , std::nullptr_t>::type = nullptr)
+inline std::array<std::uint16_t, 16> to_array (uuid_t const & u
+    , endian e = endian::network)
 {
-    return x;
+    std::array<std::uint16_t, 16> result;
+
+    // See NOTE at beginning of source
+    if (e == endian::little) {
+        for (int i = 0, j = result.size() - 1; i < result.size(); i++, j--)
+            result[i] = u.data[j];
+    } else {
+        for (int i = 0; i < result.size(); i++)
+            result[i] = u.data[i];
+    }
+
+    return result;
 }
-#endif // ULID_STRUCT_HH
+
+
+#endif // !ULIDUINT128
 
 } // namespace pfs
 
@@ -164,7 +218,7 @@ inline std::string to_string (pfs::uuid_t const & value)
 
 } // namespace std
 
-#ifdef ULID_STRUCT_HH
+#ifndef ULIDUINT128
 namespace ulid {
     inline bool operator == (pfs::uuid_t const & u1, pfs::uuid_t const & u2)
     {

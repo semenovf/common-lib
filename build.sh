@@ -7,9 +7,10 @@
 # Changelog:
 #      2021.05.20 Initial version.
 #      2021.11.07 Added PROJECT_OPT_PREFIX variable.
+#      2021.11.08 SOURCE_DIR recognition modified.
 ################################################################################
 
-CMAKE_OPTIONS=
+CMAKE_OPTIONS="${CMAKE_OPTIONS}"
 
 if [ -z "$PROJECT_OPT_PREFIX" ] ; then
     echo "ERROR: PROJECT_OPT_PREFIX is mandatory." >&2
@@ -25,7 +26,7 @@ if [ -z "$BUILD_GENERATOR" ] ; then
     fi
 fi
 
-if [ -n "$BUILD_STRICT" ] ; then
+if [ -n $BUILD_STRICT ] ; then
     case $BUILD_STRICT in
         [Oo][Nn])
             BUILD_STRICT=ON
@@ -58,7 +59,7 @@ fi
 
 CMAKE_OPTIONS="$CMAKE_OPTIONS -DCMAKE_BUILD_TYPE=$BUILD_TYPE"
 
-if [ -n "$BUILD_TESTS" ] ; then
+if [ -n $BUILD_TESTS ] ; then
     case $BUILD_TESTS in
         [Oo][Nn])
             BUILD_TESTS=ON
@@ -73,7 +74,7 @@ if [ -n "$BUILD_TESTS" ] ; then
     CMAKE_OPTIONS="$CMAKE_OPTIONS -D${PROJECT_OPT_PREFIX}BUILD_TESTS=$BUILD_TESTS"
 fi
 
-if [ -n "$BUILD_DEMO" ] ; then
+if [ -n $BUILD_DEMO ] ; then
     case $BUILD_DEMO in
         [Oo][Nn])
             BUILD_DEMO=ON
@@ -88,7 +89,7 @@ if [ -n "$BUILD_DEMO" ] ; then
     CMAKE_OPTIONS="$CMAKE_OPTIONS -D${PROJECT_OPT_PREFIX}BUILD_DEMO=$BUILD_DEMO"
 fi
 
-if [ -n "$ENABLE_COVERAGE" ] ; then
+if [ -n $ENABLE_COVERAGE ] ; then
     case $ENABLE_COVERAGE in
         [Oo][Nn])
             ENABLE_COVERAGE=ON
@@ -110,19 +111,19 @@ if [ -d .git ] ; then
     if [ -z "$ENABLE_COVERAGE" ] ; then
         SOURCE_DIR=`pwd`
     fi
-    cd ..
+    BUILD_DIR="../$BUILD_DIR"
 fi
 
 if [ -z "$SOURCE_DIR" ] ; then
-    if [ -d src/.git ] ; then
-        SOURCE_DIR=`pwd`/src
+    # We are inside subdirectory (usually from scripts directory)
+    if [ -d ../.git ] ; then
+        SOURCE_DIR=`pwd`/..
+        BUILD_DIR="../../$BUILD_DIR"
     else
         echo "ERROR: SOURCE_DIR must be specified" >&2
         exit 1
     fi
 fi
-
-echo "@@@ CMAKE_OPTIONS=[$CMAKE_OPTIONS] @@@"
 
 mkdir -p ${BUILD_DIR} \
     && cd ${BUILD_DIR} \

@@ -18,7 +18,7 @@ namespace pfs {
 template <>
 inline std::int16_t crc16_of<uuid_t> (uuid_t const & data, std::int16_t initial)
 {
-    return crc32_all_of(initial
+    return crc16_all_of(initial
         , static_cast<std::uint8_t>(data >> 120)
         , static_cast<std::uint8_t>(data >> 112)
         , static_cast<std::uint8_t>(data >> 104)
@@ -80,7 +80,7 @@ inline std::int64_t crc64_of<uuid_t> (uuid_t const & data, std::int64_t initial)
         , static_cast<std::uint8_t>(data >> 8)
         , static_cast<std::uint8_t>(data >> 0));
 }
-#else
+#else // ULIDUINT128
 template <>
 inline std::int16_t crc16_of<uuid_t> (uuid_t const & data, std::int16_t initial)
 {
@@ -147,6 +147,6 @@ inline std::int64_t crc64_of<uuid_t> (uuid_t const & data, std::int64_t initial)
         , data.data[15]);
 }
 
-#endif
+#endif // ! ULIDUINT128
 
 } // namespace pfs
