@@ -26,7 +26,15 @@ namespace pfs {
 // See https://github.com/suyash/ulid
 // NOTE! Struct-based implementation assumes big-endian order.
 
-using uuid_t = ulid::ULID;
+#ifdef ULIDUINT128
+    struct uuid_t
+    {
+        ulid::ULID u;
+    };
+#else // ULIDUINT128
+    using uuid_t = ulid::ULID;
+#endif // ! ULIDUINT128
+
 using random_engine_t = std::mt19937;
 
 inline auto random_engine () -> random_engine_t &
@@ -42,16 +50,28 @@ inline uuid_t generate_uuid ()
 
     // Encode first 6 bytes with the timestamp in milliseconds using
     // std::chrono::system_clock::now()
+#ifdef ULIDUINT128
+    ulid::EncodeTimeSystemClockNow(result.u);
+#else
     ulid::EncodeTimeSystemClockNow(result);
+#endif
 
+#ifdef ULIDUINT128
+    ulid::EncodeEntropyMt19937(random_engine(), result.u);
+#else
     ulid::EncodeEntropyMt19937(random_engine(), result);
+#endif
 
     return result;
 }
 
 inline std::string to_string (uuid_t const & value)
 {
+#ifdef ULIDUINT128
+    return ulid::Marshal(value.u);
+#else
     return ulid::Marshal(value);
+#endif
 }
 
 template <typename T>
@@ -60,7 +80,11 @@ T from_string (std::string const & str);
 template <>
 inline uuid_t from_string<uuid_t> (std::string const & str)
 {
+#ifdef ULIDUINT128
+    return uuid_t {ulid::Unmarshal(str)};
+#else
     return ulid::Unmarshal(str);
+#endif
 }
 
 #ifdef ULIDUINT128
@@ -80,10 +104,10 @@ inline pfs::uuid_t make_uuid (std::array<std::uint8_t, 16> const & a
 
     if (e == endian::little) {
         for (int i = 0, j = 0; i < 16; i++, j += 8)
-            result = result | static_cast<int128_type>(a[i]) << j;
+            result.u = result.u | static_cast<int128_type>(a[i]) << j;
     } else {
         for (int i = 15, j = 0; i >= 0; i--, j += 8)
-            result = result | static_cast<int128_type>(a[i]) << j;
+            result.u = result.u | static_cast<int128_type>(a[i]) << j;
     }
 
     return result;
@@ -99,10 +123,10 @@ inline std::array<std::uint8_t, 16> to_array (uuid_t const & u
 
     if (e == endian::little) {
         for (int i = 0, j = 0; i < 16; i++, j += 8)
-            result[i] = static_cast<std::uint8_t>(u >> j);
+            result[i] = static_cast<std::uint8_t>(u.u >> j);
     } else {
         for (int i = 0, j = 120; i < 16; i++, j -= 8)
-            result[i] = static_cast<std::uint8_t>(u >> j);
+            result[i] = static_cast<std::uint8_t>(u.u >> j);
     }
 
     return result;
@@ -204,8 +228,16 @@ inline std::array<std::uint8_t, 16> to_array (uuid_t const & u
     return result;
 }
 
-
 #endif // !ULIDUINT128
+
+inline int compare (pfs::uuid_t const & u1, pfs::uuid_t const & u2)
+{
+#ifdef ULIDUINT128
+    return ulid::CompareULIDs(u1.u, u2.u);
+#else
+    return ulid::CompareULIDs(u1, u2);
+#endif
+}
 
 } // namespace pfs
 
@@ -218,23 +250,43 @@ inline std::string to_string (pfs::uuid_t const & value)
 
 } // namespace std
 
-#ifndef ULIDUINT128
-namespace ulid {
-    inline bool operator == (pfs::uuid_t const & u1, pfs::uuid_t const & u2)
-    {
-        return ulid::CompareULIDs(u1, u2) == 0;
-    }
+inline bool operator == (pfs::uuid_t const & u1, pfs::uuid_t const & u2)
+{
+    return pfs::compare(u1, u2) == 0;
+}
 
-    inline bool operator != (pfs::uuid_t const & u1, pfs::uuid_t const & u2)
-    {
-        return ulid::CompareULIDs(u1, u2) != 0;
-    }
-} // namespace ulid
-#endif
+inline bool operator != (pfs::uuid_t const & u1, pfs::uuid_t const & u2)
+{
+    return pfs::compare(u1, u2) != 0;
+}
+
+inline bool operator < (pfs::uuid_t const & u1, pfs::uuid_t const & u2)
+{
+    return pfs::compare(u1, u2) < 0;
+}
+
+inline bool operator <= (pfs::uuid_t const & u1, pfs::uuid_t const & u2)
+{
+    return pfs::compare(u1, u2) <= 0;
+}
+
+inline bool operator > (pfs::uuid_t const & u1, pfs::uuid_t const & u2)
+{
+    return pfs::compare(u1, u2) > 0;
+}
+
+inline bool operator >= (pfs::uuid_t const & u1, pfs::uuid_t const & u2)
+{
+    return pfs::compare(u1, u2) >= 0;
+}
 
 pfs::uuid_t operator ""_uuid (char const * str, std::size_t)
 {
     pfs::uuid_t result;
+#ifdef ULIDUINT128
+    ulid::UnmarshalFrom(str, result.u);
+#else
     ulid::UnmarshalFrom(str, result);
+#endif
     return result;
 }

@@ -22,7 +22,7 @@ TEST_CASE ("") {
 
 TEST_CASE("literal") {
     auto uuid = "01D78XYFJ1PRM1WPBCBT3VHMNV"_uuid;
-    CHECK_EQ(uuid, pfs::from_string<pfs::uuid_t>("01D78XYFJ1PRM1WPBCBT3VHMNV"));
+    CHECK(uuid == pfs::from_string<pfs::uuid_t>("01D78XYFJ1PRM1WPBCBT3VHMNV"));
 }
 
 TEST_CASE("crc16_32_64") {
@@ -72,8 +72,8 @@ TEST_CASE("serialize")
     auto u1 = pfs::make_uuid(a_little, pfs::endian::little);
     auto u2 = pfs::make_uuid(a_big, pfs::endian::big);
 
-    CHECK_EQ(u, u1);
-    CHECK_EQ(u, u2);
+    CHECK(u == u1);
+    CHECK(u == u2);
 
     auto a1 = pfs::to_array(u1, pfs::endian::little);
     auto a2 = pfs::to_array(u2, pfs::endian::big);
