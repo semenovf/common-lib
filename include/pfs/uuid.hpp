@@ -92,10 +92,10 @@ inline pfs::uuid_t make_uuid (std::array<std::uint8_t, 16> const & a
 /**
  * Converts UUID into array that will contains bytes in order specified by @a e.
  */
-inline std::array<std::uint16_t, 16> to_array (uuid_t const & u
+inline std::array<std::uint8_t, 16> to_array (uuid_t const & u
     , endian e = endian::network)
 {
-    std::array<std::uint16_t, 16> result;
+    std::array<std::uint8_t, 16> result;
 
     if (e == endian::little) {
         for (int i = 0, j = 0; i < 16; i++, j += 8)
@@ -187,10 +187,10 @@ inline pfs::uuid_t make_uuid (std::array<std::uint8_t, 16> const & a
 /**
  * Converts UUID into array that will contains bytes in order specified by @a e.
  */
-inline std::array<std::uint16_t, 16> to_array (uuid_t const & u
+inline std::array<std::uint8_t, 16> to_array (uuid_t const & u
     , endian e = endian::network)
 {
-    std::array<std::uint16_t, 16> result;
+    std::array<std::uint8_t, 16> result;
 
     // See NOTE at beginning of source
     if (e == endian::little) {
