@@ -126,6 +126,7 @@ inline pfs::uuid_t make_uuid (std::uint64_t hi, std::uint64_t lo)
 //       little-endian.
 //       So, for compatibility (e.g. when need transfer UUID over network) it is
 //       the better to use struct-based implementation.
+//       Or use string representation (to_string() / from_string()).
 
 /**
  * Convert from network to native order
