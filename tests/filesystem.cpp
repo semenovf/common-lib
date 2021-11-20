@@ -11,18 +11,14 @@
 #include "pfs/fmt.hpp"
 #include "pfs/filesystem.hpp"
 
-#if (defined(_WIN32) || defined(_WIN64)) && defined(_UNICODE)
+#if defined(_MSC_VER) && defined(_UNICODE)
 #   define _STR(str) L##str
 #else
 #   define _STR(str) str
 #endif
 
 TEST_CASE("Filesystem path") {
-#if defined(PFS_NO_STD_FILESYSTEM)
     namespace fs = pfs::filesystem;
-#else
-    namespace fs = std::filesystem;
-#endif
 
 ////////////////////////////////////////////////////////////////////////////////
 // Constructors                                                               //
@@ -64,7 +60,7 @@ TEST_CASE("Filesystem path") {
         //fmt::print(_STR("*** [{}] ***\n"), p1.c_str());
 
         // where "//host" is a root-name
-#if !defined(PFS_NO_STD_FILESYSTEM)
+#if PFS_STD_FILESYSTEM_ENABLED
         CHECK((fs::path(_STR("//host")) /= _STR("foo")) == fs::path::string_type(_STR("//host/foo")));
 #else
         CHECK((fs::path(_STR("//host")) /= _STR("foo")) == fs::path::string_type(_STR("//hostfoo"))); // FIXME for GHC version
@@ -73,7 +69,7 @@ TEST_CASE("Filesystem path") {
         CHECK((fs::path(_STR("//host/")) /= _STR("foo")) == fs::path::string_type(_STR("//host/foo")));
 
         // Non-member function
-#if !defined(PFS_NO_STD_FILESYSTEM)
+#if PFS_STD_FILESYSTEM_ENABLED
         CHECK(fs::path(_STR("//host")) / _STR("foo")  == fs::path::string_type(_STR("//host/foo")));
 #else
         CHECK(fs::path(_STR("//host")) / _STR("foo")  == fs::path::string_type(_STR("//hostfoo"))); // FIXME for GHC version
@@ -81,7 +77,7 @@ TEST_CASE("Filesystem path") {
 
         CHECK(fs::path(_STR("//host/")) / _STR("foo") == fs::path::string_type(_STR("//host/foo"))); // appends without separator
 
-#if defined(_WIN32) || defined(_WIN64)
+#if defined(_MSC_VER)
         CHECK((fs::path("foo") /= "C:/bar") == fs::path::string_type(_STR("C:/bar")));     // the result is "C:/bar" (replaces)
         CHECK((fs::path("foo") /= "C:") == fs::path::string_type(_STR("C:")));             // the result is "C:"     (replaces)
         CHECK((fs::path("C:") /= "") == fs::path::string_type(_STR("C:")));                // the result is "C:"     (appends, without separator)
@@ -223,7 +219,7 @@ TEST_CASE("Filesystem path") {
         CHECK(fs::path(_STR("//server/path/to/file")).relative_path() == fs::path(_STR("path/to/file")));
         //CHECK(fs::path(_STR("/")).parent_path() == fs::path(_STR(""))); // FIXME for GHC version
 #else
-#   if !defined(PFS_NO_STD_FILESYSTEM)
+#   if PFS_STD_FILESYSTEM_ENABLED
         CHECK(fs::path(_STR("//server/path/to/file")).root_name() == fs::path());
         CHECK(fs::path(_STR("//server/path/to/file")).root_path() == fs::path(_STR("/")));
         CHECK(fs::path(_STR("//server/path/to/file")).relative_path() == fs::path(_STR("server/path/to/file")));
@@ -261,7 +257,7 @@ TEST_CASE("Filesystem path") {
         CHECK(fs::path(_STR("/foo/bar.txt/bar")).extension() == fs::path::string_type(_STR("")));
         CHECK(fs::path(_STR("/foo/.")).extension() == fs::path::string_type(_STR("")));
 
-#   if !defined(PFS_NO_STD_FILESYSTEM)
+#   if PFS_STD_FILESYSTEM_ENABLED
         CHECK(fs::path(_STR("/foo/..")).extension() == fs::path::string_type(_STR("")));
 #   else
         CHECK(fs::path(_STR("/foo/..")).extension() == fs::path::string_type(_STR("."))); // FIXME for GHC version
@@ -271,7 +267,7 @@ TEST_CASE("Filesystem path") {
         CHECK(fs::path(_STR("/foo/.hidden")).extension() == fs::path::string_type(_STR("")));
         CHECK(fs::path(_STR("/foo/..bar")).extension() == fs::path::string_type(_STR(".bar")));
 
-#if defined(_WIN32) || defined(_WIN64)
+#if defined(_MSC_VER)
         CHECK(fs::path(_STR("c:\\path\\to\\file")).root_name() == fs::path(_STR("c:")));
         CHECK(fs::path(_STR("c:\\path\\to\\file")).root_directory() == fs::path(_STR("\\")));
         CHECK(fs::path(_STR("c:\\path\\to\\file")).root_path() == fs::path(_STR("c:\\")));
@@ -291,10 +287,10 @@ TEST_CASE("Filesystem path") {
         CHECK(fs::path("").empty());
         CHECK(fs::path().empty());
 
-#if defined(_WIN32) || defined(_WIN64)
+#if defined(_MSC_VER)
         CHECK(fs::path("//server/path/to/file").has_root_name());
 #else
-#   if !defined(PFS_NO_STD_FILESYSTEM)
+#   if PFS_STD_FILESYSTEM_ENABLED
         CHECK_FALSE(fs::path("//server/path/to/file").has_root_name());
 #   else
         CHECK(fs::path("//server/path/to/file").has_root_name()); // FIXME for GHC version
@@ -330,7 +326,7 @@ TEST_CASE("Filesystem path") {
         CHECK(!fs::path("/foo/bar.txt/bar").has_extension());
         CHECK(!fs::path("/foo/.").has_extension());
 
-#   if !defined(PFS_NO_STD_FILESYSTEM)
+#   if PFS_STD_FILESYSTEM_ENABLED
         CHECK_FALSE(fs::path("/foo/..").has_extension());
 #   else
         CHECK(fs::path("/foo/..").has_extension()); // FIXME for GHC version
@@ -343,7 +339,7 @@ TEST_CASE("Filesystem path") {
 
         CHECK(fs::path("path/to").is_relative());
 
-#if defined(_WIN32) || defined(_WIN64)
+#if defined(_MSC_VER)
         // The path "/" is absolute on a POSIX OS, but is relative on Windows.
         CHECK(fs::path("/").is_relative());
 #else
@@ -356,7 +352,7 @@ TEST_CASE("Filesystem path") {
 // Iterators
 ////////////////////////////////////////////////////////////////////////////////
     {
-#if defined(_WIN32) || defined(_WIN64)
+#if defined(_MSC_VER)
         fs::path p = "C:\\users\\abcdef\\AppData\\Local\\Temp\\";
         fs::path::iterator it = p.begin();
 
@@ -424,17 +420,13 @@ TEST_CASE("Filesystem path") {
 // directory_entry
 ////////////////////////////////////////////////////////////////////////////////
 TEST_CASE("Filesystem directory_entry") {
-#if defined(PFS_NO_STD_FILESYSTEM)
     namespace fs = pfs::filesystem;
-#else
-    namespace fs = std::filesystem;
-#endif
 
     // Constructors
     {
 //         fs::directory_entry p1("/usr/lib"); // portable format
 //         fs::directory_entry p2("C:\\users\\abcdef\\AppData\\Local\\Temp\\"); // native format
-// #if defined(_WIN32) || defined(_WIN64)
+// #if defined(_MSC_VER)
 //         fs::directory_entry p3(L"D:/猫.txt"); // wide string
 // #else
 //         fs::directory_entry p3("D:/猫.txt");

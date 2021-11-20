@@ -26,12 +26,7 @@
 // [Dynamically Loaded C++ Objects](http://www.drdobbs.com/dynamically-loaded-c-objects/184401900?pgno=1)
 
 namespace pfs {
-
-#if defined(PFS_NO_STD_FILESYSTEM)
-    namespace fs = pfs::filesystem;
-#else
-    namespace fs = std::filesystem;
-#endif
+    namespace fs = filesystem;
 
 ////////////////////////////////////////////////////////////////////////////////
 // dynamic_library_errc
