@@ -11,7 +11,7 @@ option(PFS_COMMON__FORCE_ULID_STRUCT "Enable ULID struct representation (UUID ba
 find_package(Threads REQUIRED)
 
 #include(${CMAKE_CURRENT_LIST_DIR}/cmake/cxx17_filesystem.cmake)
-include(${CMAKE_CURRENT_LIST_DIR}/cmake/cxx17_string_view.cmake)
+# include(${CMAKE_CURRENT_LIST_DIR}/cmake/cxx17_string_view.cmake)
 include(${CMAKE_CURRENT_LIST_DIR}/cmake/cxx17_utility_classes.cmake)
 
 add_library(${PROJECT_NAME} INTERFACE)
@@ -40,12 +40,12 @@ set(__all_dependences_found ON)
 #     set(__all_dependences_found OFF)
 # endif()
 
-if (TARGET std::string_view)
-    target_link_libraries(${PROJECT_NAME} INTERFACE std::string_view)
-else()
-    message(SEND_ERROR "std::string_view target not found")
-    set(__all_dependences_found OFF)
-endif()
+# if (TARGET std::string_view)
+#     target_link_libraries(${PROJECT_NAME} INTERFACE std::string_view)
+# else()
+#     message(SEND_ERROR "std::string_view target not found")
+#     set(__all_dependences_found OFF)
+# endif()
 
 if (TARGET std::utility_classes)
     target_link_libraries(${PROJECT_NAME} INTERFACE std::utility_classes)

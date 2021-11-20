@@ -1,10 +1,10 @@
 ////////////////////////////////////////////////////////////////////////////////
-// Copyright (c) 2019 Vladislav Trifochkin
+// Copyright (c) 2019-2021 Vladislav Trifochkin
 //
 // This file is part of [common-lib](https://github.com/semenovf/common-lib) library.
 //
 // Changelog:
-//      2019.12.23 Initial version
+//      2019.12.23 Initial version.
 //      2021.11.23 Refactored excluding use of external cmake script.
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once

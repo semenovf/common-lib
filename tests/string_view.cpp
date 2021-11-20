@@ -12,13 +12,8 @@
 #include <string>
 #include <utility>
 
-#if defined(PFS_NO_STD_STRING_VIEW)
 using pfs::basic_string_view;
 using pfs::string_view;
-#else
-using std::basic_string_view;
-using std::string_view;
-#endif
 
 //  Should be equal
 void interop (std::string const & str, string_view ref)
@@ -708,24 +703,24 @@ TEST_CASE("test_io")
 
     padding<char>();
     padding<wchar_t>();
-    
-#if !defined(PFS_NO_STD_STRING_VIEW)    
+
+#if PFS_STD_STRING_VIEW_ENABLED
     padding<char16_t>();
     padding<char32_t>();
-#endif    
+#endif
 
     padding_fill<char>();
     padding_fill<wchar_t>();
-    
-#if !defined(PFS_NO_STD_STRING_VIEW)        
+
+#if PFS_STD_STRING_VIEW_ENABLED
 //     padding_fill<char16_t>(); // Throws exception std::bad_cast
 //     padding_fill<char32_t>(); // Throws exception std::bad_cast
 #endif
 
     alignment<char>();
     alignment<wchar_t>();
-    
-#if !defined(PFS_NO_STD_STRING_VIEW)        
+
+#if PFS_STD_STRING_VIEW_ENABLED
     alignment<char16_t>();
     alignment<char32_t>();
 #endif
