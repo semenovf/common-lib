@@ -15,21 +15,7 @@
 #include <string>
 #include <utility>
 
-#if defined(PFS_NO_STD_VARIANT)
-using pfs::variant;
-using pfs::get;
-using pfs::get_if;
-using pfs::holds_alternative;
-using pfs::monostate;
-using pfs::variant_alternative;
-using pfs::variant_alternative_t;
-using pfs::variant_npos;
-using pfs::variant_size;
-using pfs::visit;
-using pfs::in_place_index_t;
-using pfs::in_place_type_t;
-using pfs::bad_variant_access;
-#else
+#if PFS_HAVE_STD_VARIANT
 using std::variant;
 using std::get;
 using std::get_if;
@@ -43,6 +29,20 @@ using std::visit;
 using std::in_place_index_t;
 using std::in_place_type_t;
 using std::bad_variant_access;
+#else
+using pfs::variant;
+using pfs::get;
+using pfs::get_if;
+using pfs::holds_alternative;
+using pfs::monostate;
+using pfs::variant_alternative;
+using pfs::variant_alternative_t;
+using pfs::variant_npos;
+using pfs::variant_size;
+using pfs::visit;
+using pfs::in_place_index_t;
+using pfs::in_place_type_t;
+using pfs::bad_variant_access;
 #endif
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -170,7 +170,7 @@ TEST_CASE("Variant Constructors")
 
     // IndexInitializerList
     {
-#ifndef PFS_NO_STD_VARIANT
+#if PFS_HAVE_STD_VARIANT
         variant<int, std::string> v{in_place_index_t<1>{}, {'4', '2'}};
         CHECK("42" == get<1>(v));
 #endif
@@ -197,7 +197,7 @@ TEST_CASE("Variant Constructors")
 
     // TypeInitializerList
     {
-#ifndef PFS_NO_STD_VARIANT
+#if PFS_HAVE_STD_VARIANT
         variant<int, std::string> v(in_place_type_t<std::string>(), {'4', '2'});
         CHECK("42" == get<std::string>(v));
 #endif
@@ -224,7 +224,7 @@ TEST_CASE("Variant Constructors")
         constexpr variant<int, const char *> cv(42);
         static_assert(42 == get<int>(cv), "");
 
-#ifndef PFS_NO_STD_VARIANT
+#if PFS_HAVE_STD_VARIANT
         // `cw`
         /*constexpr*/ variant<int, const char *> cw(std::move(cv));
         /*static_assert*/CHECK(42 == get<int>(cw));
@@ -339,7 +339,7 @@ TEST_CASE("Variant Assignments") {
 
     // BetterMatch
     {
-#ifndef PFS_NO_STD_VARIANT
+#if PFS_HAVE_STD_VARIANT
         variant<int, double> v;
         // `char` -> `int` is better than `char` -> `double`
 
@@ -350,7 +350,7 @@ TEST_CASE("Variant Assignments") {
 
     // NoMatch
     {
-#ifndef PFS_NO_STD_VARIANT
+#if PFS_HAVE_STD_VARIANT
         struct x {};
 
         static_assert(!std::is_assignable<variant<int, std::string>, x> {}
@@ -360,7 +360,7 @@ TEST_CASE("Variant Assignments") {
 
     // Ambiguous
     {
-#ifndef PFS_NO_STD_VARIANT
+#if PFS_HAVE_STD_VARIANT
 #   if defined(__GNUC__) && __cplusplus > 201703L
         // g++ error: static assertion failed: variant<short, long> v; v = 42;
 //         static_assert(!std::is_assignable<variant<short, long>, int> {}
@@ -488,7 +488,7 @@ TEST_CASE("Variant Get") {
 
     // MutVarConstType
     {
-#ifndef PFS_NO_STD_VARIANT
+#if PFS_HAVE_STD_VARIANT
         variant<int const> v(42);
         CHECK(42 == get<int const>(v));
 #endif
@@ -505,7 +505,7 @@ TEST_CASE("Variant Get") {
 
     // ConstVarConstType
     {
-#ifndef PFS_NO_STD_VARIANT
+#if PFS_HAVE_STD_VARIANT
         const variant<const int> v(42);
         CHECK(42 == get<const int>(v));
 
@@ -523,7 +523,7 @@ TEST_CASE("Variant Get") {
 
     // MutVarConstType
     {
-#ifndef PFS_NO_STD_VARIANT
+#if PFS_HAVE_STD_VARIANT
         variant<const int> v(42);
         CHECK(42 == *get_if<const int>(& v));
 #endif
@@ -540,7 +540,7 @@ TEST_CASE("Variant Get") {
 
     // ConstVarConstType
     {
-#ifndef PFS_NO_STD_VARIANT
+#if PFS_HAVE_STD_VARIANT
         const variant<const int> v(42);
         CHECK(42 == *get_if<const int>(& v));
 
@@ -585,7 +585,7 @@ TEST_CASE("Variant Modifiers") {
 
     // IndexInitializerList
     {
-#ifndef PFS_NO_STD_VARIANT
+#if PFS_HAVE_STD_VARIANT
         variant<int, std::string> v;
 
         v.emplace<1>({'4', '2'});
@@ -609,7 +609,7 @@ TEST_CASE("Variant Modifiers") {
 
     // TypeInitializerList
     {
-#ifndef PFS_NO_STD_VARIANT
+#if PFS_HAVE_STD_VARIANT
         variant<int, std::string> v;
         v.emplace<std::string>({'4', '2'});
         CHECK("42" == get<std::string>(v));
@@ -943,7 +943,7 @@ TEST_CASE("Variant Visit") {
         CHECK(42 == get<int>(v));
 
         // Check qualifier.
-#ifndef PFS_NO_STD_VARIANT
+#if PFS_HAVE_STD_VARIANT
         CHECK(LRef == visit(get_qual(), v));
         CHECK(RRef == visit(get_qual(), std::move(v)));
 #endif
@@ -951,7 +951,7 @@ TEST_CASE("Variant Visit") {
 
     // MutVarConstType
     {
-#ifndef PFS_NO_STD_VARIANT
+#if PFS_HAVE_STD_VARIANT
         variant<const int> v(42);
         CHECK(42 == get<const int>(v));
 
@@ -967,7 +967,7 @@ TEST_CASE("Variant Visit") {
         CHECK(42 == get<int>(v));
 
         // Check qualifier.
-#ifndef PFS_NO_STD_VARIANT
+#if PFS_HAVE_STD_VARIANT
         CHECK(ConstLRef == visit(get_qual(), v));
         CHECK(ConstRRef == visit(get_qual(), std::move(v)));
 #endif
@@ -975,7 +975,7 @@ TEST_CASE("Variant Visit") {
 
     // ConstVarConstType
     {
-#ifndef PFS_NO_STD_VARIANT
+#if PFS_HAVE_STD_VARIANT
         const variant<const int> v(42);
         CHECK(42 == get<const int>(v));
         // Check qualifier.
@@ -986,14 +986,14 @@ TEST_CASE("Variant Visit") {
 
     // Zero
     {
-#ifndef PFS_NO_STD_VARIANT
+#if PFS_HAVE_STD_VARIANT
         CHECK("" == visit(concat{}));
 #endif
     }
 
     // Double
     {
-#ifndef PFS_NO_STD_VARIANT
+#if PFS_HAVE_STD_VARIANT
         variant<int, std::string> v("hello"), w("world!");
         CHECK("helloworld!" == visit(concat {}, v, w));
 #endif
@@ -1001,7 +1001,7 @@ TEST_CASE("Variant Visit") {
 
     // Quintuple
     {
-#ifndef PFS_NO_STD_VARIANT
+#if PFS_HAVE_STD_VARIANT
         variant<int, std::string> v(101), w("+"), x(202), y("="), z(303);
         CHECK("101+202=303" == visit(concat {}, v, w, x, y, z));
 #endif
@@ -1009,7 +1009,7 @@ TEST_CASE("Variant Visit") {
 
     // Double
     {
-#ifndef PFS_NO_STD_VARIANT
+#if PFS_HAVE_STD_VARIANT
         variant<int, std::string> v("hello");
         variant<double, const char *> w("world!");
         CHECK("helloworld!" == visit(concat{}, v, w));
@@ -1018,7 +1018,7 @@ TEST_CASE("Variant Visit") {
 
     // Quintuple)
     {
-#ifndef PFS_NO_STD_VARIANT
+#if PFS_HAVE_STD_VARIANT
         variant<int, double> v(101);
         variant<const char *> w("+");
         variant<bool, std::string, int> x(202);
@@ -1889,7 +1889,7 @@ TEST_CASE("multivisitor") {
     int i2 = 0;
     VisitorISD visitor{i, s, d, i2};
 
-#ifndef PFS_NO_STD_VARIANT
+#if PFS_HAVE_STD_VARIANT
     visit(visitor, v, v2);
     CHECK(i == 42);
     CHECK(s == "");
@@ -1903,7 +1903,7 @@ TEST_CASE("multivisitor") {
 
     CHECK(v.index() == 2);
 
-#ifndef PFS_NO_STD_VARIANT
+#if PFS_HAVE_STD_VARIANT
     v2 = 37;
     visit(visitor, v, v2);
 
@@ -1931,7 +1931,7 @@ TEST_CASE("multivisitor") {
 
     ThreeVariantVisitor tvv;
 
-#ifndef PFS_NO_STD_VARIANT
+#if PFS_HAVE_STD_VARIANT
     visit(tvv, mv1, mv2, mv3);
 
     CHECK(tvv.a1 == 1);
@@ -2016,7 +2016,7 @@ TEST_CASE("assignment_with_conversion")
 
 TEST_CASE("visitor_with_non_void_return")
 {
-#ifndef PFS_NO_STD_VARIANT
+#if PFS_HAVE_STD_VARIANT
     variant<int> v(42);
     CHECK(visit([](int i) {return i * 2;},v) == 84);
 #endif
@@ -2024,7 +2024,7 @@ TEST_CASE("visitor_with_non_void_return")
 
 TEST_CASE("multi_visitor_with_non_void_return")
 {
-#ifndef PFS_NO_STD_VARIANT
+#if PFS_HAVE_STD_VARIANT
     variant<int> v(42);
     variant<double> v2(4.2);
 
@@ -2387,7 +2387,7 @@ TEST_CASE("get_with_rvalues")
 {
     int i=42;
 
-#ifndef PFS_NO_STD_VARIANT
+#if PFS_HAVE_STD_VARIANT
     static_assert(get<0>(variant<int>(42)) == 42, "");
     static_assert(get<int>(variant<int>(42)) == 42, "");
     static_assert(get<1>(variant<double,int,char>(42)) == 42, "");
@@ -2408,7 +2408,7 @@ TEST_CASE("get_with_rvalues")
 
     variant<int,std::string> v2("hello");
 
-#ifndef PFS_NO_STD_VARIANT
+#if PFS_HAVE_STD_VARIANT
     std::string && rs = get<1>(std::move(v2));
     std::string && rs2 = get<std::string>(std::move(v2));
     CHECK(& rs == & rs2);
@@ -2419,7 +2419,7 @@ TEST_CASE("get_with_rvalues")
 
 TEST_CASE("get_with_const_rvalues")
 {
-#ifndef PFS_NO_STD_VARIANT
+#if PFS_HAVE_STD_VARIANT
     static_assert(get<int>(variant<double,int,char>(42)) == 42, "");
     static_assert(get<1>((const variant<double,int,char>)(42)) == 42, "");
     static_assert(get<int>((const variant<double,int,char>)(42)) == 42, "");
@@ -2441,7 +2441,7 @@ TEST_CASE("get_with_const_rvalues")
 
     const variant<int,std::string> v2("hello");
 
-#ifndef PFS_NO_STD_VARIANT
+#if PFS_HAVE_STD_VARIANT
     const std::string && rs = get<1>(std::move(v2));
     const std::string && rs2 = get<std::string>(std::move(v2));
     CHECK(& rs == & rs2);
@@ -2561,7 +2561,7 @@ TEST_CASE("hash")
     static_assert(noexcept(h(vi)), "");
     static_assert(std::is_same<decltype(h(vi)),size_t>::value, "");
 
-#ifndef PFS_NO_STD_VARIANT
+#if PFS_HAVE_STD_VARIANT
     CHECK(h(vi) == h(vi2));
 #endif
 
@@ -2711,7 +2711,7 @@ struct uses_allocator<allocatable_no_arg,Alloc>
 {};
 }
 
-#if defined(PFS_NO_STD_VARIANT)
+#ifndef PFS_HAVE_STD_VARIANT
 TEST_CASE("allocator_default_constructor_no_allocator_support") {
     struct MyClass
     {

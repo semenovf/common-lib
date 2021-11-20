@@ -1,22 +1,24 @@
 ////////////////////////////////////////////////////////////////////////////////
-// Copyright (c) 2020 Vladislav Trifochkin
+// Copyright (c) 2020-2021 Vladislav Trifochkin
 //
 // This file is part of [common-lib](https://github.com/semenovf/common-lib) library.
 //
 // Changelog:
-//      2020.06.11 Initial version
+//      2020.06.11 Initial version.
+//      2021.11.20 Refactored excluding use of external cmake script.
 ////////////////////////////////////////////////////////////////////////////////
+#pragma once
 #include "bits/compiler.h"
 
-#pragma once
-#if !defined(PFS_NO_STD_ANY)
+#if (defined(__cplusplus) && __cplusplus >= 201703L        \
+        && defined(__has_include) && __has_include(<any>)) \
+        || (defined(_MSC_VER) && __cplusplus >= 201703L)
+#   define PFS_HAVE_STD_ANY 1
 #   include <any>
 #else
 #   ifndef STX_NAMESPACE_NAME
 #       define STX_NAMESPACE_NAME pfs
 #   endif
-
-#   define STX_NO_STD_ANY
 
 // Avoid gcc warning in 3rdparty/stx/any.hpp:395
 // warning: placement new constructing an object of type ‘T’ {aka ‘big_type’}
@@ -26,9 +28,10 @@
 #       pragma GCC diagnostic push
 #       pragma GCC diagnostic ignored "-Wplacement-new"
 #   endif
+
+#   define STX_NO_STD_ANY
 #   include "3rdparty/stx/any.hpp"
 #   if PFS_COMPILER_GNUC
 #       pragma GCC diagnostic pop
 #   endif
-
 #endif

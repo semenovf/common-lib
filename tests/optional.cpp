@@ -24,18 +24,18 @@
 #include <string>
 #include <utility>
 
-#if defined(PFS_NO_STD_OPTIONAL)
-    using pfs::optional;
-    using pfs::bad_optional_access;
-    using pfs::nullopt;
-    using pfs::in_place;
-    using pfs::make_optional;
-#else
+#if PFS_HAVE_STD_OPTIONAL
     using std::optional;
     using std::bad_optional_access;
     using std::nullopt;
     using std::in_place;
     using std::make_optional;
+#else
+    using pfs::optional;
+    using pfs::bad_optional_access;
+    using pfs::nullopt;
+    using pfs::in_place;
+    using pfs::make_optional;
 #endif
 
 TEST_CASE("basic") {
@@ -179,13 +179,13 @@ TEST_CASE("value_ctor")
     CHECK(oo1 == optional<Oracle>{v});
     CHECK(!!oo1);
     CHECK(bool(oo1));
-    
-#if !defined(PFS_NO_STD_OPTIONAL)    
+
+#if PFS_HAVE_STD_OPTIONAL
     CHECK(oo1->s == sValueCopyConstructed);
 #else
     CHECK(oo1->s == sMoveConstructed); // FIXME
 #endif
-    
+
     CHECK(v.s == sValueConstructed);
 
     optional<Oracle> oo2(std::move(v));
@@ -194,13 +194,13 @@ TEST_CASE("value_ctor")
     CHECK(oo2 == oo1);
     CHECK(!!oo2);
     CHECK(bool(oo2));
-    
-#if !defined(PFS_NO_STD_OPTIONAL)
+
+#if PFS_HAVE_STD_OPTIONAL
     CHECK(oo2->s == sValueMoveConstructed);
 #else
     CHECK(oo2->s == sMoveConstructed); // FIXME
 #endif
-    
+
     CHECK(v.s == sMovedFrom);
 
     {

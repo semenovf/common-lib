@@ -13,16 +13,15 @@
 #include <string>
 #include <utility>
 
-#if defined(PFS_NO_STD_ANY)
-    using pfs::any;
-    using pfs::any_cast;
-    using pfs::bad_any_cast;
-#else
+#if PFS_HAVE_STD_ANY
     using std::any;
     using std::any_cast;
     using std::bad_any_cast;
+#else
+    using pfs::any;
+    using pfs::any_cast;
+    using pfs::bad_any_cast;
 #endif
-
 
 TEST_CASE("basic") {
     any a{3};

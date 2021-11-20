@@ -5,7 +5,7 @@
 //
 // Changelog:
 //      2019.12.23 Initial version.
-//      2021.11.23 Refactored excluding use of external cmake script.
+//      2021.11.20 Refactored excluding use of external cmake script.
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
 
@@ -15,11 +15,8 @@
 #if (defined(__cplusplus) && __cplusplus >= 201703L               \
         && defined(__has_include) && __has_include(<filesystem>)) \
         || (defined(_MSC_VER) && _MSC_VER >= 1914)
-#   define PFS_STD_FILESYSTEM_ENABLED 1
+#   define PFS_HAVE_STD_FILESYSTEM 1
 #   include <filesystem>
-namespace pfs {
-    namespace filesystem = std::filesystem;
-} // namespace pfs
 #else
 #   if defined(_MSC_VER)
 #       define GHC_WIN_WSTRING_STRING_TYPE

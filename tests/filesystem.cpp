@@ -17,9 +17,13 @@
 #   define _STR(str) str
 #endif
 
-TEST_CASE("Filesystem path") {
-    namespace fs = pfs::filesystem;
+#if PFS_HAVE_STD_FILESYSTEM
+namespace fs = std::filesystem;
+#else
+namespace fs = pfs::filesystem;
+#endif
 
+TEST_CASE("Filesystem path") {
 ////////////////////////////////////////////////////////////////////////////////
 // Constructors                                                               //
 ////////////////////////////////////////////////////////////////////////////////
@@ -60,7 +64,7 @@ TEST_CASE("Filesystem path") {
         //fmt::print(_STR("*** [{}] ***\n"), p1.c_str());
 
         // where "//host" is a root-name
-#if PFS_STD_FILESYSTEM_ENABLED
+#if PFS_HAVE_STD_FILESYSTEM
         CHECK((fs::path(_STR("//host")) /= _STR("foo")) == fs::path::string_type(_STR("//host/foo")));
 #else
         CHECK((fs::path(_STR("//host")) /= _STR("foo")) == fs::path::string_type(_STR("//hostfoo"))); // FIXME for GHC version
@@ -69,7 +73,7 @@ TEST_CASE("Filesystem path") {
         CHECK((fs::path(_STR("//host/")) /= _STR("foo")) == fs::path::string_type(_STR("//host/foo")));
 
         // Non-member function
-#if PFS_STD_FILESYSTEM_ENABLED
+#if PFS_HAVE_STD_FILESYSTEM
         CHECK(fs::path(_STR("//host")) / _STR("foo")  == fs::path::string_type(_STR("//host/foo")));
 #else
         CHECK(fs::path(_STR("//host")) / _STR("foo")  == fs::path::string_type(_STR("//hostfoo"))); // FIXME for GHC version
@@ -219,7 +223,7 @@ TEST_CASE("Filesystem path") {
         CHECK(fs::path(_STR("//server/path/to/file")).relative_path() == fs::path(_STR("path/to/file")));
         //CHECK(fs::path(_STR("/")).parent_path() == fs::path(_STR(""))); // FIXME for GHC version
 #else
-#   if PFS_STD_FILESYSTEM_ENABLED
+#   if PFS_HAVE_STD_FILESYSTEM
         CHECK(fs::path(_STR("//server/path/to/file")).root_name() == fs::path());
         CHECK(fs::path(_STR("//server/path/to/file")).root_path() == fs::path(_STR("/")));
         CHECK(fs::path(_STR("//server/path/to/file")).relative_path() == fs::path(_STR("server/path/to/file")));
@@ -257,7 +261,7 @@ TEST_CASE("Filesystem path") {
         CHECK(fs::path(_STR("/foo/bar.txt/bar")).extension() == fs::path::string_type(_STR("")));
         CHECK(fs::path(_STR("/foo/.")).extension() == fs::path::string_type(_STR("")));
 
-#   if PFS_STD_FILESYSTEM_ENABLED
+#   if PFS_HAVE_STD_FILESYSTEM
         CHECK(fs::path(_STR("/foo/..")).extension() == fs::path::string_type(_STR("")));
 #   else
         CHECK(fs::path(_STR("/foo/..")).extension() == fs::path::string_type(_STR("."))); // FIXME for GHC version
@@ -290,7 +294,7 @@ TEST_CASE("Filesystem path") {
 #if defined(_MSC_VER)
         CHECK(fs::path("//server/path/to/file").has_root_name());
 #else
-#   if PFS_STD_FILESYSTEM_ENABLED
+#   if PFS_HAVE_STD_FILESYSTEM
         CHECK_FALSE(fs::path("//server/path/to/file").has_root_name());
 #   else
         CHECK(fs::path("//server/path/to/file").has_root_name()); // FIXME for GHC version
@@ -326,7 +330,7 @@ TEST_CASE("Filesystem path") {
         CHECK(!fs::path("/foo/bar.txt/bar").has_extension());
         CHECK(!fs::path("/foo/.").has_extension());
 
-#   if PFS_STD_FILESYSTEM_ENABLED
+#   if PFS_HAVE_STD_FILESYSTEM
         CHECK_FALSE(fs::path("/foo/..").has_extension());
 #   else
         CHECK(fs::path("/foo/..").has_extension()); // FIXME for GHC version
@@ -420,8 +424,6 @@ TEST_CASE("Filesystem path") {
 // directory_entry
 ////////////////////////////////////////////////////////////////////////////////
 TEST_CASE("Filesystem directory_entry") {
-    namespace fs = pfs::filesystem;
-
     // Constructors
     {
 //         fs::directory_entry p1("/usr/lib"); // portable format

@@ -12,8 +12,13 @@
 #include <string>
 #include <utility>
 
+#if PFS_HAVE_STD_STRING_VIEW
+using std::basic_string_view;
+using std::string_view;
+#else
 using pfs::basic_string_view;
 using pfs::string_view;
+#endif
 
 //  Should be equal
 void interop (std::string const & str, string_view ref)
@@ -114,7 +119,7 @@ TEST_CASE("basic")
 ////////////////////////////////////////////////////////////////////////////////
 
 // NOTE string_view::ends_with since C++20
-#if __cplusplus > 201703L || defined(PFS_NO_STD_STRING_VIEW)
+#if __cplusplus > 201703L || !defined(PFS_HAVE_STD_STRING_VIEW)
 void ends_with (const char *arg)
 {
     const size_t sz = std::strlen ( arg );
@@ -151,7 +156,7 @@ void ends_with (const char *arg)
 #endif
 
 // NOTE string_view::starts_with since C++20
-#if __cplusplus > 201703L || defined(PFS_NO_STD_STRING_VIEW)
+#if __cplusplus > 201703L || !defined(PFS_HAVE_STD_STRING_VIEW)
 void starts_with (char const * arg)
 {
     const size_t sz = std::strlen(arg);
@@ -456,7 +461,7 @@ constexpr bool operator != (const custom_allocator<T> &, const custom_allocator<
 }
 
 // NOTE Experimental feature yet (C++20)
-#if defined(PFS_NO_STD_STRING_VIEW)
+#if !defined(PFS_HAVE_STD_STRING_VIEW)
 void to_string (char const * arg)
 {
     string_view sr1;
@@ -524,7 +529,7 @@ const char * test_strings1[] = {
 
 // NOTE string_view::starts_with(), ends_with() since C++20
 // besides to_string() is experimental feature yet (C++20)
-#if defined(PFS_NO_STD_STRING_VIEW)
+#if !defined(PFS_HAVE_STD_STRING_VIEW)
 TEST_CASE("test_main")
 {
     char const ** p = & test_strings1[0];
@@ -704,7 +709,7 @@ TEST_CASE("test_io")
     padding<char>();
     padding<wchar_t>();
 
-#if PFS_STD_STRING_VIEW_ENABLED
+#if PFS_HAVE_STD_STRING_VIEW
     padding<char16_t>();
     padding<char32_t>();
 #endif
@@ -712,7 +717,7 @@ TEST_CASE("test_io")
     padding_fill<char>();
     padding_fill<wchar_t>();
 
-#if PFS_STD_STRING_VIEW_ENABLED
+#if PFS_HAVE_STD_STRING_VIEW
 //     padding_fill<char16_t>(); // Throws exception std::bad_cast
 //     padding_fill<char32_t>(); // Throws exception std::bad_cast
 #endif
@@ -720,7 +725,7 @@ TEST_CASE("test_io")
     alignment<char>();
     alignment<wchar_t>();
 
-#if PFS_STD_STRING_VIEW_ENABLED
+#if PFS_HAVE_STD_STRING_VIEW
     alignment<char16_t>();
     alignment<char32_t>();
 #endif

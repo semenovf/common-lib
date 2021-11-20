@@ -10,7 +10,11 @@
 #include "doctest.h"
 #include "pfs/dynamic_library.hpp"
 
+#if PFS_HAVE_STD_FILESYSTEM
+namespace fs = std::filesystem;
+#else
 namespace fs = pfs::filesystem;
+#endif
 
 TEST_CASE("Dynamic Library basics") {
     pfs::dynamic_library dl;

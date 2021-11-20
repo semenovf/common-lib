@@ -1,34 +1,24 @@
 ////////////////////////////////////////////////////////////////////////////////
-// Copyright (c) 2020 Vladislav Trifochkin
+// Copyright (c) 2020-2021 Vladislav Trifochkin
 //
 // This file is part of [common-lib](https://github.com/semenovf/common-lib) library.
 //
 // Changelog:
-//      2020.06.11 Initial version
+//      2020.06.11 Initial version.
+//      2021.11.20 Refactored excluding use of external cmake script.
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
-#if !defined(PFS_NO_STD_OPTIONAL)
-#   include <optional>
 
+#if (defined(__cplusplus) && __cplusplus >= 201703L             \
+        && defined(__has_include) && __has_include(<optional>)) \
+        || (defined(_MSC_VER) && __cplusplus >= 201703L)
 #   define PFS_HAVE_STD_OPTIONAL 1
+#   include <optional>
 #else
 #   ifndef STX_NAMESPACE_NAME
 #       define STX_NAMESPACE_NAME pfs
 #   endif
 
 #   define STX_NO_STD_OPTIONAL
-
 #   include "3rdparty/stx/optional.hpp"
-
-#   ifdef STX_HAVE_STD_OPTIONAL
-#       define PFS_HAVE_STD_OPTIONAL 1
-#   endif
-#endif
-
-#if PFS_HAVE_STD_OPTIONAL
-    template <typename T>
-    using optional_t = std::optional<T>;
-#else
-    template <typename T>
-    using optional_t = pfs::optional<T>;
 #endif
