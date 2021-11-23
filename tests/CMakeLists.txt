@@ -30,6 +30,8 @@ set(TEST_NAMES
     filesystem
     find
     function_queue
+    getenv
+    home_directory_path
     iterator_bidirectional
     iterator_forward
     iterator_input
