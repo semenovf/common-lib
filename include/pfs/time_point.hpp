@@ -76,26 +76,6 @@ std::string stringify_utc_offset (std::time_t off)
     return result;
 }
 
-/**
- * Returns current local time point with precision in milliseconds
- */
-inline time_point current_time_point ()
-{
-    return std::chrono::time_point_cast<std::chrono::milliseconds>(clock_type::now());
-}
-
-/**
- * // FIXME
- * Returns current time point in UTC with precision in milliseconds
- */
-inline utc_time_point current_utc_time_point ()
-{
-    auto now = current_time_point();
-    auto off = utc_offset();
-    now -= std::chrono::seconds{off};
-    return utc_time_point{now};
-}
-
 inline std::chrono::milliseconds to_millis (time_point const & t)
 {
     return std::chrono::duration_cast<std::chrono::milliseconds>(t.time_since_epoch());
@@ -109,6 +89,47 @@ inline std::chrono::milliseconds to_millis (utc_time_point const & t)
 inline time_point from_millis (std::chrono::milliseconds const & millis)
 {
     return time_point{millis};
+}
+
+/**
+ * Returns current local time point with precision in milliseconds
+ */
+inline time_point current_time_point ()
+{
+    return std::chrono::time_point_cast<std::chrono::milliseconds>(clock_type::now());
+}
+
+/**
+ * Returns current time point in UTC with precision in milliseconds
+ */
+inline utc_time_point current_utc_time_point ()
+{
+    auto now = current_time_point();
+    auto off = utc_offset();
+    now -= std::chrono::seconds{off};
+    return utc_time_point{now};
+}
+
+/**
+ * Convert local time point to UTC time point.
+ */
+inline utc_time_point to_utc_time_point (time_point const & t)
+{
+    auto millis = to_millis(t);
+    auto off = utc_offset();
+    millis -= std::chrono::seconds{off};
+    return utc_time_point{from_millis(millis)};
+}
+
+/**
+ * Convert UTC time point to local time point.
+ */
+inline time_point to_local_time_point (utc_time_point const & t)
+{
+    auto millis = to_millis(t.value);
+    auto off = utc_offset();
+    millis += std::chrono::seconds{off};
+    return from_millis(millis);
 }
 
 /**

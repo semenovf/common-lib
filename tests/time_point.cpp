@@ -36,7 +36,7 @@ TEST_CASE("time_point") {
         CHECK(now == now1);
         CHECK(millis == millis1);
 
-        fmt::print("{}\n", pfs::to_iso8601(now));
+        fmt::print("Local time: {}\n", pfs::to_iso8601(now));
     }
 
     {
@@ -48,7 +48,21 @@ TEST_CASE("time_point") {
         CHECK(now.value == now1.value);
         CHECK(millis == millis1);
 
-        fmt::print("{}\n", pfs::to_iso8601(now));
+        fmt::print("UTC time: {}\n", pfs::to_iso8601(now));
+    }
+
+    {
+        auto local = pfs::current_time_point();
+        auto utc = pfs::to_utc_time_point(local);
+
+        fmt::print("UTC time (converted from local): {}\n", pfs::to_iso8601(utc));
+    }
+
+    {
+        auto utc = pfs::current_utc_time_point();
+        auto local = pfs::to_local_time_point(utc);
+
+        fmt::print("Local time (converted from UTC): {}\n", pfs::to_iso8601(local));
     }
 }
 
