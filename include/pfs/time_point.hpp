@@ -50,7 +50,7 @@ inline std::time_t utc_offset ()
 /**
  * Returns string representation of UTC offset in format [+-]HHMM
  */
-std::string stringify_utc_offset (std::time_t off)
+inline std::string stringify_utc_offset (std::time_t off)
 {
     int sign = off < 0 ? -1 : 1;
     off *= sign;
