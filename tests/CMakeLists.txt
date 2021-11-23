@@ -45,6 +45,7 @@ set(TEST_NAMES
     source_location
     split
     string_view
+    time_point
     timer_pool
     type_traits
     variant
