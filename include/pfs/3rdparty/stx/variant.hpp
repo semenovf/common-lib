@@ -89,7 +89,9 @@ using remove_reference_t = typename std::remove_reference<T>::type;
 
 #endif
 
-#if __cplusplus < 201703L
+// --wladt--: May be conflict with optional.hpp
+//#if __cplusplus < 201703L
+#ifndef STX_HAVE_IN_PLACE_T
 struct in_place_t {
     explicit in_place_t() = default;
 };
@@ -104,6 +106,7 @@ template <size_t I> struct in_place_index_t {
     explicit in_place_index_t() = default;
 };
 
+#   define STX_HAVE_IN_PLACE_T // --wladt--
 #endif
 
 // --wladt--: Variable templates only available with C++14
