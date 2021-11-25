@@ -17,8 +17,9 @@
 #endif
 
 namespace pfs {
+namespace filesystem {
 
-inline filesystem::path home_directory_path ()
+inline path home_directory_path ()
 {
 #if PFS_COMPILER_MSVC
         auto userprofile = wgetenv(L"USERPROFILE");
@@ -82,4 +83,4 @@ inline filesystem::path home_directory_path ()
     return filesystem::path{};
 }
 
-} // namespace pfs::filesystem
+}} // namespace pfs::filesystem

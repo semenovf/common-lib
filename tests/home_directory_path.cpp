@@ -16,7 +16,7 @@
 TEST_CASE("home_directory_path") {
     namespace fs = pfs::filesystem;
 
-    auto home_dir = pfs::home_directory_path();
+    auto home_dir = fs::home_directory_path();
 
     CHECK(home_dir != fs::path{});
     CHECK(fs::exists(home_dir));

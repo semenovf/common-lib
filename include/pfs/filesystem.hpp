@@ -17,12 +17,17 @@
         || (defined(_MSC_VER) && _MSC_VER >= 1914)
 #   define PFS_HAVE_STD_FILESYSTEM 1
 #   include <filesystem>
+namespace pfs {
+namespace filesystem {
+    using namespace std::filesystem;
+}}
 #else
 #   if defined(_MSC_VER)
 #       define GHC_WIN_WSTRING_STRING_TYPE
 #   endif
 #   include "3rdparty/ghc/filesystem.hpp"
 namespace pfs {
-    namespace filesystem = ghc::filesystem;
-} // namespace pfs
+namespace filesystem {
+    using namespace ghc::filesystem;
+}} // namespace pfs::filesystem
 #endif
