@@ -119,6 +119,12 @@ endforeach()
 # Helper library for test `dynamic_library`
 add_library(shared_object SHARED shared_object.c)
 
+if (TARGET endian)
+    if (MSVC)
+        target_link_libraries(endian PRIVATE Ws2_32)
+    endif()
+endif()
+
 # Copy test data files
 add_custom_command(TARGET utf8_decode
     POST_BUILD

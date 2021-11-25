@@ -57,7 +57,7 @@ inline path home_directory_path ()
         if (systemdrive.has_value())
             path = *systemdrive + L'/';
         else
-            path = L"c:/"
+            path = L"c:/";
 
         return path;
 
