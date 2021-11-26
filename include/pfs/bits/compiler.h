@@ -43,4 +43,7 @@
 /* Clang also masquerades as GCC 4.2.1 */
 #       define PFS_COMPILER_CLANG 1
 #   endif
+#elif defined(__clang__)
+#   define PFS_COMPILER_DEFINED 1
+#   define PFS_COMPILER_CLANG 1
 #endif

@@ -40,6 +40,11 @@ inline std::string utf8_encode (wchar_t const * s, int nwchars)
     return result;
 }
 
+inline std::string utf8_encode (wchar_t const * s)
+{
+    return utf8_encode(s, static_cast<int>(std::wcslen(s)));
+}
+
 // Convert an UTF8 string to a wide Unicode String
 inline std::wstring utf8_decode (char const * s, int nchars /*const std::string & str*/)
 {

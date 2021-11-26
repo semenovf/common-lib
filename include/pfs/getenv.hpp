@@ -9,7 +9,9 @@
 #pragma once
 #include "bits/compiler.h"
 #include "optional.hpp"
+#include <array>
 #include <string>
+#include <cctype>
 #include <cstdlib>
 #include <cassert>
 
@@ -31,11 +33,22 @@ optional<std::string> getenv (std::string const & name)
 
     if (required_size <= 256) {
         std::array<char, 256> buffer;
-        getenv_s(& required_size, buffer, buffer.size(), name.c_str());
+        getenv_s(& required_size, buffer.data(), buffer.size(), name.c_str());
+
+        // Remove trailing whitespaces
+        while (std::isspace(buffer.data()[required_size - 1]));
+            required_size--;
+
+        result = std::string(buffer.data(), required_size);
     } else {
         char * buffer = new char[required_size];
         getenv_s(& required_size, buffer, required_size, name.c_str());
-        result = std::string(required_size, buffer);
+
+        // Remove trailing whitespaces
+        while (std::isspace(buffer[required_size - 1]));
+            required_size--;
+
+        result = std::string(buffer, required_size);
         delete [] buffer;
     }
 
@@ -56,7 +69,6 @@ optional<std::string> getenv (std::string const & name)
 #endif // PFS_COMPILER_GCC
 }
 
-
 #if PFS_COMPILER_MSVC
 
 optional<std::wstring> wgetenv (std::wstring const & name)
@@ -73,11 +85,22 @@ optional<std::wstring> wgetenv (std::wstring const & name)
 
     if (required_size <= 256) {
         std::array<wchar_t, 256> buffer;
-        _wgetenv_s(& required_size, buffer, buffer.size(), name.c_str());
+        _wgetenv_s(& required_size, buffer.data(), buffer.size(), name.c_str());
+
+        // Remove trailing whitespaces
+        while (iswspace(buffer.data()[required_size - 1]));
+            required_size--;
+
+        result = std::wstring(buffer.data(), required_size);
     } else {
-        wchat_t * buffer = new wchar_t[required_size];
+        wchar_t * buffer = new wchar_t[required_size];
         _wgetenv_s(& required_size, buffer, required_size, name.c_str());
-        result = std::wstring(required_size, buffer);
+
+        // Remove trailing whitespaces
+        while (iswspace(buffer[required_size - 1]));
+            required_size--;
+
+        result = std::wstring(buffer, required_size);
         delete [] buffer;
     }
 

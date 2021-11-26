@@ -4,10 +4,18 @@
 :: Unified build script for Windows
 ::
 :: Changelog:
-::      2021.06.22 Initial version
+::      2021.06.22 Initial version.
+::      2021.11.25 Updated.
 ::-------------------------------------------------------------------------------
 
 @echo off
+
+set "CMAKE_OPTIONS=!CMAKE_OPTIONS!"
+
+if "%PROJECT_OPT_PREFIX%" == "" (
+    @echo ERROR: PROJECT_OPT_PREFIX is mandatory >&2
+    exit /b 1
+)
 
 :: ENABLEDELAYEDEXPANSION need to work such things properly:
 ::      set "CMAKE_OPTIONS="!CMAKE_OPTIONS! ..."
@@ -52,11 +60,7 @@ if /i not "%CMAKE_VERBOSE_MAKEFILE%" == "off" (
 )
 
 if /i "%BUILD_STRICT%" == "on" (
-    set "CMAKE_OPTIONS=!CMAKE_OPTIONS! -DBUILD_STRICT=ON"
-)
-
-if /i "%BUILD_DEMO%" == "on" (
-    set "CMAKE_OPTIONS=!CMAKE_OPTIONS! -DBUILD_DEMO=ON"
+    set "CMAKE_OPTIONS=!CMAKE_OPTIONS! -D%PROJECT_OPT_PREFIX%BUILD_STRICT=ON"
 )
 
 if not "%CXX_STANDARD%" == "" (
@@ -77,23 +81,23 @@ if "%BUILD_TYPE%" == "" (
 
 set "CMAKE_OPTIONS=!CMAKE_OPTIONS! -DCMAKE_BUILD_TYPE=%BUILD_TYPE%"
 
-if not "%ENABLE_COVERAGE%" == "" (
-    if /i "%ENABLE_COVERAGE%" == "on" (
-        set "ENABLE_COVERAGE=ON"
-    ) else (
-        set ENABLE_COVERAGE=
-    )
+if /i "%BUILD_TESTS%" == "on" (
+    set "CMAKE_OPTIONS=!CMAKE_OPTIONS! -D%PROJECT_OPT_PREFIX%BUILD_TESTS=ON"
 )
 
-if not "%ENABLE_COVERAGE%" == "" (
-    set "CMAKE_OPTIONS=!CMAKE_OPTIONS! -DENABLE_COVERAGE=%ENABLE_COVERAGE%"
+if /i "%BUILD_DEMO%" == "on" (
+    set "CMAKE_OPTIONS=!CMAKE_OPTIONS! -D%PROJECT_OPT_PREFIX%BUILD_DEMO=ON"
+)
+
+if /i "%ENABLE_COVERAGE%" == "on" (
+    set "CMAKE_OPTIONS=!CMAKE_OPTIONS! -D%PROJECT_OPT_PREFIX%ENABLE_COVERAGE=ON"
 )
 
 if "%BUILD_DIR%" == "" (
     set "BUILD_DIR=builds\%BUILD_GENERATOR%"
 
     if not "%CXX_STANDARD%" == "" (
-        set "BUILD_DIR=!BUILD_DIR!.%CXX_STANDARD%" 
+        set "BUILD_DIR=!BUILD_DIR!.cxx%CXX_STANDARD%" 
     )
 
     if not "%ENABLE_COVERAGE%" == "" (
@@ -108,12 +112,14 @@ if exist .git (
     if "%ENABLE_COVERAGE%" == "" (
         set "SOURCE_DIR=%cd%"
     )
-    cd ..
+    set "BUILD_DIR=..\!BUILD_DIR!" 
 )
 
 if "%SOURCE_DIR%" == "" (
-    if exist src\.git (
-        set "SOURCE_DIR=%cd%\src"
+    :: We are inside subdirectory (usually from scripts directory)
+    if exist ..\.git (
+        set "SOURCE_DIR=%cd%\.."
+        set "BUILD_DIR=..\..\!BUILD_DIR!" 
     ) else (
         echo ERROR: SOURCE_DIR must be specified >&2
         exit /b 1
