@@ -10,6 +10,12 @@ option(PFS_COMMON__BUILD_STRICT "Build with strict policies: C++ standard requir
 option(PFS_COMMON__BUILD_TESTS "Build tests" OFF)
 option(PFS_COMMON__ENABLE_COVERAGE "Build tests with coverage support" OFF)
 
+if (NOT PORTABLE_TARGET__ENABLED)
+    list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/3rdparty/portable-target/cmake/v2)
+    include(PortableTarget)
+    portable_target(SET ENABLE_TRACE ON)
+endif()
+
 message(STATUS "C++ compiler: ${CMAKE_CXX_COMPILER}")
 message(STATUS "C++ compiler version: ${CMAKE_CXX_COMPILER_VERSION}")
 

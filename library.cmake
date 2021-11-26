@@ -10,19 +10,18 @@ option(PFS_COMMON__FORCE_ULID_STRUCT "Enable ULID struct representation (UUID ba
 
 find_package(Threads REQUIRED)
 
-add_library(${PROJECT_NAME} INTERFACE)
-add_library(pfs::common ALIAS ${PROJECT_NAME})
-target_include_directories(${PROJECT_NAME} INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
-target_link_libraries(${PROJECT_NAME} INTERFACE Threads::Threads)
+portable_target(LIBRARY ${PROJECT_NAME} INTERFACE ALIAS pfs::common)
+portable_target(INCLUDE_DIRS ${PROJECT_NAME} INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
+portable_target(LINK ${PROJECT_NAME} INTERFACE Threads::Threads)
 
 if (UNIX)
-    target_link_libraries(${PROJECT_NAME} INTERFACE dl)
+    portable_target(LINK ${PROJECT_NAME} INTERFACE dl)
 endif()
 
 if (MSVC)
-    target_compile_definitions(${PROJECT_NAME} INTERFACE -D_UNICODE -DUNICODE)
+    portable_target(DEFINITIONS ${PROJECT_NAME} INTERFACE -D_UNICODE -DUNICODE)
 endif()
 
 if (PFS_COMMON__FORCE_ULID_STRUCT)
-    target_compile_definitions(${PROJECT_NAME} INTERFACE -DPFS_COMMON__FORCE_ULID_STRUCT=1)
-endif(PFS_COMMON__FORCE_ULID_STRUCT)
+    portable_target(DEFINITIONS ${PROJECT_NAME} INTERFACE -DPFS_COMMON__FORCE_ULID_STRUCT=1)
+endif()
