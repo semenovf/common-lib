@@ -26,9 +26,17 @@ namespace pfs {
 // See https://github.com/suyash/ulid
 // NOTE! Struct-based implementation assumes big-endian order.
 
-struct uuid_t
+class uuid_t
 {
-    ulid::ULID u;
+public:
+#ifdef ULIDUINT128
+    ulid::ULID u {0};
+#else
+    ulid::ULID u {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+#endif
+
+    uuid_t () {}
+    uuid_t (ulid::ULID v) : u(v) {}
 };
 
 using random_engine_t = std::mt19937;
@@ -59,11 +67,20 @@ inline std::string to_string (uuid_t const & value)
 }
 
 template <typename T>
-T from_string (std::string const & str);
+T from_string (std::string const & str, bool * success = nullptr);
 
 template <>
-inline uuid_t from_string<uuid_t> (std::string const & str)
+inline uuid_t from_string<uuid_t> (std::string const & str, bool * success)
 {
+    if (str.size() != 26) {
+        if (success)
+            *success = false;
+        return uuid_t{};
+    }
+
+    if (success)
+        *success = true;
+
     return uuid_t {ulid::Unmarshal(str)};
 }
 
