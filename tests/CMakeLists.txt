@@ -27,6 +27,7 @@ set(TEST_NAMES
     dynamic_library
     emitter
     endian
+    expected
     filesystem
     find
     function_queue
