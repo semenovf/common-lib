@@ -43,6 +43,7 @@ set(TEST_NAMES
     rational
     ring_buffer
     ring_buffer_mt
+    sha256
     source_location
     split
     string_view
