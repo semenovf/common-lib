@@ -28,4 +28,19 @@
     constexpr typename basic_string_view<CharT, Traits>::size_type
     basic_string_view<CharT, Traits>::npos;
     } // namespace pfs
+
+    template <>
+    struct std::hash<pfs::string_view>
+    {
+        std::size_t operator () (pfs::string_view const & sv) const noexcept
+        {
+            std::size_t result = 0;
+            std::hash<pfs::string_view::value_type> hasher;
+
+            for (auto & ch: sv)
+                result = result * 31 + hasher(ch);
+
+            return result;
+        }
+    };
 #endif
