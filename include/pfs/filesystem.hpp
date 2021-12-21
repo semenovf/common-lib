@@ -60,3 +60,14 @@ namespace filesystem {
 #       define PFS_UTF8_ENCODE_PATH(x) x
 #   endif
 #endif
+
+#ifndef PFS_UTF8_DECODE_PATH
+#   if defined(PFS_COMPILER_MSVC)
+#       if !(defined(_UNICODE) || defined(UNICODE))
+#           error "Expected _UNICODE(UNICODE) is enabled"
+#       endif
+#       define PFS_UTF8_DECODE_PATH(x) utf8_decode(x)
+#   else
+#       define PFS_UTF8_DECODE_PATH(x) x
+#   endif
+#endif

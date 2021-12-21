@@ -268,7 +268,7 @@ public:
     *
     * @param name Base name of dynamic library.
     */
-    static fs::path::string_type build_dl_filename (fs::path::string_type const & name) noexcept
+    static fs::path::string_type build_filename (fs::path::string_type const & name) noexcept
     {
         fs::path::string_type result;
 

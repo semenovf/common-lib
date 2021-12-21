@@ -21,9 +21,9 @@ TEST_CASE("Dynamic Library basics") {
     typedef int (* dl_test_fn)(void);
 
 #if (defined(_WIN32) || defined(_WIN64)) && defined(_UNICODE)
-    auto dlfile = L"./" + pfs::dynamic_library::build_dl_filename(L"shared_object");
+    auto dlfile = L"./" + pfs::dynamic_library::build_filename(L"shared_object");
 #else
-    auto dlfile = "./" + pfs::dynamic_library::build_dl_filename("shared_object");
+    auto dlfile = "./" + pfs::dynamic_library::build_filename("shared_object");
 #endif
 
     std::error_code ec;

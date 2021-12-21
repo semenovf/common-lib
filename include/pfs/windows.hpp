@@ -69,6 +69,11 @@ inline std::wstring utf8_decode (char const * s, int nchars /*const std::string 
     return result;
 }
 
+inline std::wstring utf8_decode (char const * s)
+{
+    return utf8_decode(s, std::strlen(s));
+}
+
 inline std::string utf8_error (DWORD error_id)
 {
     DWORD dwFlags = FORMAT_MESSAGE_ALLOCATE_BUFFER
