@@ -1,16 +1,17 @@
 ////////////////////////////////////////////////////////////////////////////////
-// Copyright (c) 2019 Vladislav Trifochkin
+// Copyright (c) 2019-2021 Vladislav Trifochkin
 //
-// This file is part of [common-lib](https://github.com/semenovf/common-lib) library.
+// This file is part of `common-lib`.
 //
 // Changelog:
 //      2019.12.20 Initial version (inhereted from https://github.com/semenovf/pfs)
+//      2021.12.29 Refactored according to RAII idiom.
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
+#include "error.hpp"
 #include "filesystem.hpp"
 #include <list>
 #include <string>
-#include <system_error>
 
 #if _MSC_VER
 #   include "windows.hpp"
@@ -26,7 +27,8 @@
 // [Dynamically Loaded C++ Objects](http://www.drdobbs.com/dynamically-loaded-c-objects/184401900?pgno=1)
 
 namespace pfs {
-    namespace fs = filesystem;
+
+namespace fs = filesystem;
 
 ////////////////////////////////////////////////////////////////////////////////
 // dynamic_library_errc
@@ -40,18 +42,6 @@ enum class dynamic_library_errc
     , open_failed
     , symbol_not_found
 };
-
-#if _MSC_VER
-inline std::string dlerror ()
-{
-    return windows::utf8_error(GetLastError());
-}
-#else // POSIX
-inline std::string dlerror ()
-{
-    return ::dlerror();
-}
-#endif
 
 class dynamic_library_category : public std::error_category
 {
@@ -99,10 +89,35 @@ inline std::error_code make_error_code (dynamic_library_errc e)
 ////////////////////////////////////////////////////////////////////////////////
 // dynamic_library
 ////////////////////////////////////////////////////////////////////////////////
-class dynamic_library
+
+//
+// Need to avoid gcc compiler error:
+// `error: ISO C++ forbids casting between pointer-to-function and pointer-to-object`
+//
+template <typename FuncPtr>
+inline FuncPtr function_pointer_cast (void * p)
+{
+    static_assert(sizeof(void *) == sizeof(void (*)(void))
+        , "object pointer and function pointer sizes must be equal");
+    union { void * p; FuncPtr f; } u;
+    u.p = p;
+    return u.f;
+}
+
+// template <typename FuncPtr>
+// inline void * func_void_ptr_cast (FuncPtr f)
+// {
+//     static_assert(sizeof(void *) == sizeof(void (*)(void))
+//         , "object pointer and function pointer sizes must be equal");
+//     union { void * p; FuncPtr f; } u;
+//     u.f = f;
+//     return u.p;
+// }
+
+class dynamic_library final
 {
 public:
-#if defined(_WIN32) || defined(_WIN64)
+#if _MSC_VER
     using native_handle_type = HMODULE;
     using symbol_type = FARPROC;
 #else
@@ -112,61 +127,83 @@ public:
 
 private:
     native_handle_type _handle;
-    fs::path _path;   // contains path to dynamic library
-    std::string _native_error;
+
+private:
+#if _MSC_VER
+    static std::string last_error ()
+    {
+        return windows::utf8_error(GetLastError());
+    }
+#else // POSIX
+    static std::string last_error ()
+    {
+        return ::dlerror();
+    }
+#endif
+
+private:
+    symbol_type resolve_impl (char const * symbol_name, error * perr = nullptr)
+    {
+        auto success = true;
+
+#if _MSC_VER
+        dynamic_library::symbol_type sym = GetProcAddress(_handle, symbol_name);
+
+        if (!sym)
+            success = false;
+#else // POSIX
+        // clear error
+        ::dlerror();
+
+        dynamic_library::symbol_type sym = ::dlsym(_handle, symbol_name);
+
+        // Failed to resolve symbol
+        if (! sym)
+            success = false;
+#endif
+
+        if (!sym) {
+            auto ec = pfs::make_error_code(dynamic_library_errc::symbol_not_found);
+            auto err = error{ec, last_error()};
+            if (perr) *perr = err; else PFS__THROW(err);
+        }
+
+        return sym;
+    }
 
 public:
-    dynamic_library ()
+    dynamic_library (fs::path const & p, error * perr = nullptr)
         : _handle(0)
-    {}
-
-    dynamic_library (dynamic_library const &) = delete;
-    dynamic_library & operator = (dynamic_library const &) = delete;
-
-    ~dynamic_library ()
-    {
-        close();
-    }
-
-    native_handle_type native_handle () const
-    {
-        return _handle;
-    }
-
-    std::string const & native_error () const
-    {
-        return _native_error;
-    }
-
-    bool open (fs::path const & p, std::error_code & ec)
     {
         native_handle_type h{0};
-        _native_error.clear();
 
         if (p.empty()) {
-            ec = make_error_code(dynamic_library_errc::invalid_argument);
-            return false;
+            auto ec = make_error_code(dynamic_library_errc::invalid_argument);
+            auto err = error{ec};
+            if (perr) *perr = err; else PFS__THROW(err);
+            return;
         }
 
         if (!fs::exists(p)) {
-            ec = pfs::make_error_code(dynamic_library_errc::file_not_found);
-            return false;
+            auto ec = pfs::make_error_code(dynamic_library_errc::file_not_found);
+            auto err = error{ec};
+            if (perr) *perr = err; else PFS__THROW(err);
+            return;
         }
 
 #if _MSC_VER
-
         DWORD dwFlags = 0;
 
         h = LoadLibraryEx(p.c_str(), NULL, dwFlags);
 
         if (!h) {
-            ec = pfs::make_error_code(dynamic_library_errc::open_failed);
-            _native_error = dlerror();
-            return false;
+            auto ec = pfs::make_error_code(dynamic_library_errc::open_failed);
+            auto err = error{ec, last_error()};
+            if (perr) *perr = err; else PFS__THROW(err);
+            return;
         }
 
         _handle = h;
-        _path = p;
 
 #else // POSIX
         // clear error
@@ -176,93 +213,70 @@ public:
         bool resolve = true;
 
         h = ::dlopen(p.c_str(), (global ? RTLD_GLOBAL : RTLD_LOCAL)
-                | ( resolve ? RTLD_NOW : RTLD_LAZY));
+            | ( resolve ? RTLD_NOW : RTLD_LAZY));
 
         if (!h) {
-            ec = pfs::make_error_code(dynamic_library_errc::open_failed);
-            _native_error = dlerror();
-            return false;
+            auto ec = pfs::make_error_code(dynamic_library_errc::open_failed);
+            auto err = error{ec, last_error()};
+            if (perr) *perr = err; else PFS__THROW(err);
+            return;
         }
 
         _handle = h;
-        _path = p;
-
 #endif
-        return true;
     }
 
-    void close ()
-    {
-        _native_error.clear();
+    dynamic_library () = delete;
+    dynamic_library (dynamic_library const &) = delete;
+    dynamic_library & operator = (dynamic_library const &) = delete;
 
+    dynamic_library (dynamic_library && other)
+        : _handle(other._handle)
+    {
+        other._handle = native_handle_type{0};
+    }
+
+    dynamic_library & operator = (dynamic_library && other)
+    {
+        _handle = other._handle;
+        other._handle = native_handle_type{0};
+        return *this;
+    }
+
+    ~dynamic_library ()
+    {
 #if _MSC_VER
         if (_handle != native_handle_type{0}) {
             FreeLibrary(_handle);
             _handle = native_handle_type{0};
         }
 #else // expected POSIX
-        if (_handle != native_handle_type{ 0 }) {
+        if (_handle != native_handle_type{0}) {
             ::dlerror(); /*clear error*/
             ::dlclose(_handle);
-            _handle = native_handle_type{ 0 };
+            _handle = native_handle_type{0};
         }
 #endif
     }
 
-    symbol_type resolve (char const * symbol_name, std::error_code & ec) noexcept
+    operator bool () const noexcept
     {
-        _native_error.clear();
-
-#if _MSC_VER
-        dynamic_library::symbol_type sym = GetProcAddress(_handle, symbol_name);
-
-        if (!sym) {
-            _native_error = dlerror();
-            ec = pfs::make_error_code(dynamic_library_errc::symbol_not_found);
-        }
-
-        return sym;
-#else // POSIX
-        // clear error
-        ::dlerror();
-
-        dynamic_library::symbol_type sym = ::dlsym(_handle, symbol_name);
-
-        // Failed to resolve symbol
-        if (! sym) {
-            _native_error = dlerror();
-            ec = pfs::make_error_code(dynamic_library_errc::symbol_not_found);
-        }
-
-        return sym;
-#endif
+        return _handle != native_handle_type{0};
     }
 
-    symbol_type resolve (char const * symbol_name)
+    template <typename Signature>
+    Signature * resolve (char const * symbol_name, error * perr = nullptr)
     {
-        std::error_code ec;
-        symbol_type sym = resolve(symbol_name, ec);
-
-        if (! sym) {
-            throw std::system_error(ec
-                , std::string("dynamic_library::resolve(): ")
-#if _MSC_VER
-                //+ _path.c_str() + ": " // FIXME
-#else
-                    + "path: " + _path.c_str() + "; "
-#endif
-                    + "symbol: " + symbol_name + "; "
-                    + "error: " + _native_error);
-        }
-
-        return sym;
+        return function_pointer_cast<Signature *>(resolve_impl(symbol_name, perr));
     }
 
-    fs::path const & path () const noexcept
+    template <typename Signature>
+    Signature * resolve (std::string const & symbol_name, error * perr = nullptr)
     {
-        return _path;
+        return function_pointer_cast<Signature *>(resolve_impl(symbol_name.c_str(), perr));
     }
 
+public:
    /**
     * @brief Builds dynamic library (shared object) file name according to platform.
     *
@@ -288,29 +302,5 @@ public:
         return result;
     }
 };
-
-//
-// Need to avoid gcc compiler error:
-// `error: ISO C++ forbids casting between pointer-to-function and pointer-to-object`
-//
-template <typename FuncPtr>
-inline FuncPtr void_func_ptr_cast (void * p)
-{
-    static_assert(sizeof(void *) == sizeof(void (*)(void)),
-                  "object pointer and function pointer sizes must be equal");
-    union { void * p; FuncPtr f; } u;
-    u.p = p;
-    return u.f;
-}
-
-template <typename FuncPtr>
-inline void * func_void_ptr_cast (FuncPtr f)
-{
-    static_assert(sizeof(void *) == sizeof(void (*)(void)),
-                  "object pointer and function pointer sizes must be equal");
-    union { void * p; FuncPtr f; } u;
-    u.f = f;
-    return u.p;
-}
 
 } // pfs

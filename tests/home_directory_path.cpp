@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 // Copyright (c) 2019-2021 Vladislav Trifochkin
 //
-// This file is part of [common-lib](https://github.com/semenovf/pfs-modulus) library.
+// This file is part of `common-lib`.
 //
 // Changelog:
 //      2021.11.23 Initial version.
@@ -23,7 +23,7 @@ TEST_CASE("home_directory_path") {
     CHECK(fs::exists(home_dir));
 
     fmt::print("Home directory: [{}]\n"
-#if PFS_COMPILER_MSVC    
+#if PFS_COMPILER_MSVC
         , pfs::windows::utf8_encode(home_dir.c_str()));
 #else
         , home_dir.c_str());

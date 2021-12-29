@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 // Copyright (c) 2021 Vladislav Trifochkin
 //
-// This file is part of [common-lib](https://github.com/semenovf/common-lib) library.
+// This file is part of `common-lib`.
 //
 // Changelog:
 //      2021.10.14 Initial version.

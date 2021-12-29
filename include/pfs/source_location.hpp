@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 // Copyright (c) 2021 Vladislav Trifochkin
 //
-// This file is part of [common-lib](https://github.com/semenovf/common-lib) library.
+// This file is part of `common-lib`.
 //
 // Changelog:
 //      2021.05.08 Initial version
@@ -35,7 +35,7 @@ namespace pfs {
 #ifndef PFS_NO_STD_SOURCE_LOCATION
 #   define PFS_NO_STD_SOURCE_LOCATION 1
 
-#   if _MSC_VER 
+#   if _MSC_VER
 #       define PFS_CURRENT_SOURCE_LOCATION source_location{__LINE__, __FILE__, __FUNCSIG__}
 #   else
 #       define PFS_CURRENT_SOURCE_LOCATION source_location{__LINE__, __FILE__, __PRETTY_FUNCTION__}

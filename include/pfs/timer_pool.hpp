@@ -3,7 +3,7 @@
 //
 // License: see LICENSE file
 //
-// This file is part of [modulus2-lib](https://github.com/semenovf/modulus2-lib) library.
+// This file is part of `common-lib`.
 //
 // This code inspired from:
 //      * https://codereview.stackexchange.com/questions/127552/portable-periodic-one-shot-timer-thread-follow-up
