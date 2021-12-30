@@ -259,7 +259,7 @@ public:
     }
 };
 
-#ifdef PFS_COMMON__TEST_ENABLED
+#ifdef PFS__TEST_ENABLED
 // https://stackoverflow.com/questions/15056237/which-is-more-efficient-basic-mutex-lock-or-atomic-integer
 // https://rigtorp.se/spinlock/
 struct atomic_mutex
@@ -397,7 +397,7 @@ public:
     }
 };
 
-#endif // PFS_COMMON__TEST_ENABLED
+#endif // PFS__TEST_ENABLED
 
 ////////////////////////////////////////////////////////////////////////////////
 // emitter_mt specializations
@@ -405,7 +405,7 @@ public:
 template <typename ...Args>
 using emitter_mt = emitter_mt_basic<std::mutex, Args...>;
 
-#ifdef PFS_COMMON__TEST_ENABLED
+#ifdef PFS__TEST_ENABLED
 
 // Worse than emitter_mt (tested with gcc++-9 on Ubuntu 20.04)
 template <typename ...Args>
@@ -423,6 +423,6 @@ using emitter_mt_spinlock = emitter_mt_basic<spinlock_mutex, Args...>;
 template <typename ...Args>
 using emitter_mt_fast = emitter_mt_basic<fast_mutex, Args...>;
 
-#endif // PFS_COMMON__TEST_ENABLED
+#endif // PFS__TEST_ENABLED
 
 } // pfs

@@ -7,7 +7,7 @@
 //      2021.11.23 Initial version.
 ////////////////////////////////////////////////////////////////////////////////
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
-#define PFS_COMMON__TEST_ENABLED
+#define PFS__TEST_ENABLED
 #include "doctest.h"
 #include "pfs/fmt.hpp"
 #include "pfs/home_directory_path.hpp"

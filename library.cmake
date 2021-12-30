@@ -1,12 +1,13 @@
 ################################################################################
 # Copyright (c) 2019-2021 Vladislav Trifochkin
 #
-# This file is part of [pfs-common](https://github.com/semenovf/pfs-common) library.
+# This file is part of `common-lib`
 ################################################################################
 cmake_minimum_required (VERSION 3.5)
 project(pfs-common CXX C)
 
-option(PFS_COMMON__FORCE_ULID_STRUCT "Enable ULID struct representation (UUID backend)" OFF)
+option(PFS__FORCE_ULID_STRUCT "Enable ULID struct representation (UUID backend)" OFF)
+option(PFS__ENABLE_EXCEPTIONS "Enable exceptions for library" OFF)
 
 find_package(Threads REQUIRED)
 
@@ -22,6 +23,10 @@ if (MSVC)
     portable_target(DEFINITIONS ${PROJECT_NAME} INTERFACE -D_UNICODE -DUNICODE)
 endif()
 
-if (PFS_COMMON__FORCE_ULID_STRUCT)
-    portable_target(DEFINITIONS ${PROJECT_NAME} INTERFACE -DPFS_COMMON__FORCE_ULID_STRUCT=1)
+if (PFS__ENABLE_EXCEPTIONS)
+    portable_target(DEFINITIONS ${PROJECT_NAME} PUBLIC "-DPFS__EXCEPTIONS_ENABLED=1")
+endif()
+
+if (PFS__FORCE_ULID_STRUCT)
+    portable_target(DEFINITIONS ${PROJECT_NAME} INTERFACE -DPFS__FORCE_ULID_STRUCT=1)
 endif()

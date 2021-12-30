@@ -21,11 +21,6 @@ inline void assert_fail (char const * file, int line, char const * message)
 }
 } // namespace
 
-////////////////////////////////////////////////////////////////////////////////
-// Error codes, category, exception class
-////////////////////////////////////////////////////////////////////////////////
-using error_code = std::error_code;
-
 #ifndef PFS__ASSERT
 #   ifdef NDEBUG
 #       define PFS__ASSERT(condition, message)
@@ -33,7 +28,7 @@ using error_code = std::error_code;
 #       define PFS__ASSERT(condition, message)                        \
             ((condition)                                              \
                 ? (void)0                                             \
-                : ::debby::assert_fail(__FILE__, __LINE__, (message)))
+                : ::pfs::assert_fail(__FILE__, __LINE__, (message)))
 #   endif
 #endif
 

@@ -16,7 +16,7 @@
 #include <array>
 #include <random>
 
-#if PFS_COMMON__FORCE_ULID_STRUCT
+#if PFS__FORCE_ULID_STRUCT
 #   include "3rdparty/ulid/ulid_struct.hh"
 #else
 #   include "3rdparty/ulid/ulid.hh"

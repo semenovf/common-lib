@@ -8,7 +8,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #define ANKERL_NANOBENCH_IMPLEMENT
-#define PFS_COMMON__TEST_ENABLED
+#define PFS__TEST_ENABLED
 #include "doctest.h"
 #include "nanobench.h"
 #include "pfs/emitter.hpp"
