@@ -30,10 +30,6 @@ namespace pfs {
 
 namespace fs = filesystem;
 
-////////////////////////////////////////////////////////////////////////////////
-// dynamic_library_errc
-////////////////////////////////////////////////////////////////////////////////
-
 enum class dynamic_library_errc
 {
       success = 0
@@ -85,10 +81,6 @@ inline std::error_code make_error_code (dynamic_library_errc e)
     return std::error_code(static_cast<int>(e)
         , dynamic_library_category::category());
 }
-
-////////////////////////////////////////////////////////////////////////////////
-// dynamic_library
-////////////////////////////////////////////////////////////////////////////////
 
 //
 // Need to avoid gcc compiler error:
@@ -282,13 +274,13 @@ public:
     *
     * @param name Base name of dynamic library.
     */
-    static fs::path::string_type build_filename (fs::path::string_type const & name) noexcept
+    static fs::path build_filename (std::string const & name) noexcept
     {
         fs::path::string_type result;
 
 #if _MSC_VER
 #   if defined(_UNICODE)
-        result += name;
+        result += windows::utf8_decode(name);
         result += L".dll";
 #   else
         result += name;
@@ -299,7 +291,7 @@ public:
         result += name;
         result += ".so";
 #endif
-        return result;
+        return fs::path{result};
     }
 };
 

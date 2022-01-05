@@ -7,7 +7,9 @@
 //      2021.06.24 Initial version.
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
-#if _MSC_VER
+#include "bits/compiler.h"
+
+#if PFS_COMPILER_MSVC
 #   include <windows.h>
 #   include <windef.h>
 
@@ -107,4 +109,4 @@ inline std::string utf8_error (DWORD error_id)
 
 }} // namespace pfs::windows
 
-#endif // _MSC_VER
+#endif // PFS_COMPILER_MSVC

@@ -39,35 +39,45 @@ namespace filesystem {
 }} // namespace pfs::filesystem
 #endif
 
-#ifndef PFS_PLATFORM_LITERAL
+#ifndef PFS__LITERAL_PATH
 #   if defined(PFS_COMPILER_MSVC)
 #       if !(defined(_UNICODE) || defined(UNICODE))
 #           error "Expected _UNICODE(UNICODE) is enabled"
 #       endif
-#       define PFS_PLATFORM_LITERAL(x) L##x
+#       define PFS__LITERAL_PATH(x) L##x
 #   else
-#       define PFS_PLATFORM_LITERAL(x) x
+#       define PFS__LITERAL_PATH(x) x
 #   endif
 #endif
 
-#ifndef PFS_UTF8_ENCODE_PATH
-#   if defined(PFS_COMPILER_MSVC)
-#       if !(defined(_UNICODE) || defined(UNICODE))
-#           error "Expected _UNICODE(UNICODE) is enabled"
-#       endif
-#       define PFS_UTF8_ENCODE_PATH(x) utf8_encode(x)
-#   else
-#       define PFS_UTF8_ENCODE_PATH(x) x
+namespace pfs {
+namespace filesystem {
+
+#if defined(PFS_COMPILER_MSVC)
+#   if !(defined(_UNICODE) || defined(UNICODE))
+#       error "Expected _UNICODE(UNICODE) is enabled"
 #   endif
+inline std::string utf8_encode (path const & p)
+{
+    return pfs::windows::utf8_encode(p.c_str());
+}
+
+inline path utf8_decode (std::string const & s)
+{
+    return path{pfs::windows::utf8_decode(s)};
+}
+
+#else
+inline std::string utf8_encode (path const & p)
+{
+    return p.native();
+}
+
+inline path utf8_decode (std::string const & s)
+{
+    return path{s};
+}
+
 #endif
 
-#ifndef PFS_UTF8_DECODE_PATH
-#   if defined(PFS_COMPILER_MSVC)
-#       if !(defined(_UNICODE) || defined(UNICODE))
-#           error "Expected _UNICODE(UNICODE) is enabled"
-#       endif
-#       define PFS_UTF8_DECODE_PATH(x) utf8_decode(x)
-#   else
-#       define PFS_UTF8_DECODE_PATH(x) x
-#   endif
-#endif
+}} // namespace pfs::filesystem
