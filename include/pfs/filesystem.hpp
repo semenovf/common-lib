@@ -64,7 +64,7 @@ inline std::string utf8_encode (path const & p)
 
 inline path utf8_decode (std::string const & s)
 {
-    return path{pfs::windows::utf8_decode(s)};
+    return path{pfs::windows::utf8_decode(s.c_str(), static_cast<int>(s.size()))};
 }
 
 #else

@@ -73,7 +73,10 @@ inline std::wstring utf8_decode (char const * s, int nchars /*const std::string 
 
 inline std::wstring utf8_decode (char const * s)
 {
-    return utf8_decode(s, std::strlen(s));
+    auto n = std::strlen(s);
+    return (s && n > 0) 
+        ? utf8_decode(s, static_cast<int>(n))
+        : std::wstring{};
 }
 
 inline std::string utf8_error (DWORD error_id)

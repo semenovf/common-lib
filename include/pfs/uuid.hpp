@@ -33,7 +33,7 @@ public:
 #ifdef ULIDUINT128
     ulid::ULID u {0};
 #else
-    ulid::ULID u {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+    ulid::ULID u {};
 #endif
 
     uuid_t () {}
@@ -189,10 +189,10 @@ inline pfs::uuid_t make_uuid (std::array<std::uint8_t, 16> const & a
 
     // See NOTE at beginning of source
     if (e == endian::little) {
-        for (int i = 0, j = a.size() - 1; i < a.size(); i++, j--)
+        for (std::size_t i = 0, j = a.size() - 1; i < a.size(); i++, j--)
             result.u.data[i] = a[j];
     } else {
-        for (int i = 0; i < a.size(); i++)
+        for (std::size_t i = 0; i < a.size(); i++)
             result.u.data[i] = a[i];
     }
 
@@ -209,10 +209,10 @@ inline std::array<std::uint8_t, 16> to_array (uuid_t const & u
 
     // See NOTE at beginning of source
     if (e == endian::little) {
-        for (int i = 0, j = result.size() - 1; i < result.size(); i++, j--)
+        for (std::size_t i = 0, j = result.size() - 1; i < result.size(); i++, j--)
             result[i] = u.u.data[j];
     } else {
-        for (int i = 0; i < result.size(); i++)
+        for (std::size_t i = 0; i < result.size(); i++)
             result[i] = u.u.data[i];
     }
 

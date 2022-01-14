@@ -7,16 +7,25 @@
 //      2019.12.20 Initial version (inhereted from https://github.com/semenovf/pfs)
 //      2021.12.29 Refactored according to RAII idiom.
 ////////////////////////////////////////////////////////////////////////////////
-#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
+//#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
+#define DOCTEST_CONFIG_IMPLEMENT
 #include "doctest.h"
 #include "pfs/dynamic_library.hpp"
 #include <type_traits>
 
-#if PFS_HAVE_STD_FILESYSTEM
-namespace fs = std::filesystem;
-#else
 namespace fs = pfs::filesystem;
-#endif
+
+fs::path PROGRAM_DIR;
+
+DOCTEST_MSVC_SUPPRESS_WARNING_WITH_PUSH(4007) // 'function' : must be 'attribute' - see issue #182
+int main (int argc, char** argv) 
+{
+    auto program_path = fs::utf8_decode(argv[0]);
+    PROGRAM_DIR = fs::absolute(program_path).parent_path();
+
+    return doctest::Context(argc, argv).run();
+}
+DOCTEST_MSVC_SUPPRESS_WARNING_POP
 
 TEST_CASE("constructors") {
     REQUIRE_FALSE(std::is_default_constructible<pfs::dynamic_library>::value);
@@ -28,11 +37,8 @@ TEST_CASE("constructors") {
 }
 
 TEST_CASE("Dynamic Library basics") {
-#if (defined(_WIN32) || defined(_WIN64)) && defined(_UNICODE)
-    auto dlfile = L"./" + pfs::dynamic_library::build_filename(L"shared_object");
-#else
-    auto dlfile = "./" + pfs::dynamic_library::build_filename("shared_object");
-#endif
+
+    auto dlfile = PROGRAM_DIR / pfs::dynamic_library::build_filename("shared_object");
 
     pfs::error err;
     pfs::dynamic_library dl {dlfile, & err};

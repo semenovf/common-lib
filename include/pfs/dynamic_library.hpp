@@ -280,7 +280,7 @@ public:
 
 #if _MSC_VER
 #   if defined(_UNICODE)
-        result += windows::utf8_decode(name);
+        result += windows::utf8_decode(name.c_str(), static_cast<int>(name.size()));
         result += L".dll";
 #   else
         result += name;

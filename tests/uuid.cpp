@@ -35,7 +35,16 @@ TEST_CASE("crc16_32_64") {
 
     CHECK_EQ(crc16, 23689);
     CHECK_EQ(crc32, -495931481);
+
+#if defined(_MSC_VER)
+#   pragma warning(push)
+#   pragma warning(disable: 4146) // unary minus operator applied to unsigned type, result still unsigned
+#endif
     CHECK_EQ(crc64, PFS_INT64_C(-8818850263932298065));
+
+#if defined(_MSC_VER)
+#   pragma warning(pop)
+#endif
 }
 
 TEST_CASE("serialize")
