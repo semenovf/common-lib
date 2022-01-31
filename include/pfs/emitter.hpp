@@ -36,6 +36,8 @@ public:
     using iterator = detector_iterator;
 
 public:
+    ~emitter () { disconnect_all(); }
+
     /**
      * Connect detector defined as ordinary function
      */
@@ -147,7 +149,7 @@ private:
 
 public:
     emitter_mt_basic () = default;
-    ~emitter_mt_basic () = default;
+    ~emitter_mt_basic () { disconnect_all(); }
 
     emitter_mt_basic (emitter_mt_basic const & other)
         : emitter_mt_basic(other, std::lock_guard<mutex_type>(other._mtx))
@@ -418,7 +420,7 @@ using emitter_mt_atomic_mod = emitter_mt_basic<atomic_mutex_mod, Args...>;
 template <typename ...Args>
 using emitter_mt_spinlock = emitter_mt_basic<spinlock_mutex, Args...>;
 
-// Worse than emitter_mt but a little bit better tnan emitter_mt_atomic
+// Worse than emitter_mt but a little bit better than emitter_mt_atomic
 // (tested with gcc++-9 on Ubuntu 20.04)
 template <typename ...Args>
 using emitter_mt_fast = emitter_mt_basic<fast_mutex, Args...>;
