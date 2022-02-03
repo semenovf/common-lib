@@ -36,6 +36,11 @@ public:
     using iterator = detector_iterator;
 
 public:
+    emitter () = default;
+    emitter (emitter const &) = default;
+    emitter (emitter &&) = default;
+    emitter & operator = (emitter const &) = default;
+    emitter & operator = (emitter &&) = default;
     ~emitter () { disconnect_all(); }
 
     /**

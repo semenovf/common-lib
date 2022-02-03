@@ -14,6 +14,7 @@
 #include "i128.hpp"
 #include <array>
 #include <random>
+#include <cassert>
 
 #if PFS__FORCE_ULID_STRUCT
 #   include "3rdparty/ulid/ulid_struct.hh"
