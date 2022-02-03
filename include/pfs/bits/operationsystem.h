@@ -15,6 +15,8 @@
 #   define PFS_OS_WIN32 1
 #elif defined(__linux__) || defined(__linux)
 #   define PFS_OS_LINUX 1
+#elif defined(ANDROID) || defined(__ANDROID__)
+#   define PFS_OS_ANDROID 1
 #else
 #   error "Unsupported Platform"
 #endif
