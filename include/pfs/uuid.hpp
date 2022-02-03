@@ -12,7 +12,6 @@
 #pragma once
 #include "endian.hpp"
 #include "i128.hpp"
-#include "optional.hpp"
 #include <array>
 #include <random>
 
@@ -68,14 +67,14 @@ inline std::string to_string (uuid_t const & value)
 }
 
 template <typename T>
-optional<T> from_string (std::string const & str);
+T from_string (std::string const & str);
 
 template <>
-inline optional<uuid_t> from_string<uuid_t> (std::string const & str)
+inline uuid_t from_string<uuid_t> (std::string const & str)
 {
     return str.size() == 26
-        ? optional<uuid_t>{ulid::Unmarshal(str)}
-        : optional<uuid_t>{};
+        ? ulid::Unmarshal(str)
+        : uuid_t{};
 }
 
 #ifdef ULIDUINT128
