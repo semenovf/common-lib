@@ -37,6 +37,7 @@
 #include "bits/endian.h"
 #include "fmt.hpp"
 #include <array>
+#include <istream>
 #include <string>
 #include <cstdint>
 #include <cstring>
@@ -337,17 +338,40 @@ public:
     {
         return digest(reinterpret_cast<std::uint8_t const *>(src.data()), src.size());
     }
+
+    static sha256_digest digest (std::istream & is, bool * success = nullptr)
+    {
+        constexpr std::size_t kBUFSZ = 256;
+        char buffer[kBUFSZ];
+
+        sha256 hash;
+
+        try {
+            while (is.good()) {
+                is.read(buffer, kBUFSZ);
+                hash.update(reinterpret_cast<uint8_t *>(buffer), is.gcount());
+            }
+        } catch (...) {
+            if (success)
+                *success = false;
+        }
+
+        if (!is.eof()) {
+            if (success)
+                *success = false;
+        }
+
+        sha256_digest result;
+        hash.final(result.value.data());
+        return std::move(result);
+    }
 };
 
 constexpr const std::uint32_t sha256::K[64];
 
-}} // namespace pfs::crypto
-
-namespace std {
-
-inline string to_string (pfs::crypto::sha256_digest const & digest)
+inline std::string to_string (sha256_digest const & digest)
 {
-    string result;
+    std::string result;
     result.reserve(64);
 
     for (int i = 0; i < 32; i++)
@@ -356,4 +380,4 @@ inline string to_string (pfs::crypto::sha256_digest const & digest)
     return result;
 }
 
-} // namespace std;
+}} // namespace pfs::crypto
