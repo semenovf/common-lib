@@ -43,12 +43,20 @@ inline void assert_fail (char const * file, int line, char const * message)
 #   endif
 #endif
 
+#if defined(TRY)
+#   undef TRY
+#endif
+
+#if defined(CATCH)
+#   undef CATCH
+#endif
+
 #if PFS__EXCEPTIONS_ENABLED
-// #   define PFS_TRY try
-// #   define PFS_CATCH(x) catch (x)
+#   define TRY try
+#   define CATCH(x) catch (x)
 #else
-// #   define PFS_TRY if (true)
-// #   define PFS_CATCH(x) if (false)
+#   define TRY if (true)
+#   define CATCH(x) if (false)
 #endif
 
 /**
