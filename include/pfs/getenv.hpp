@@ -23,7 +23,7 @@ optional<std::string> getenv (std::string const & name)
 
     std::size_t required_size = 0;
 
-    getenv_s(& required_size, nullptr, 0, name.c_str());
+    ::getenv_s(& required_size, nullptr, 0, name.c_str());
 
     // Environment variable not set
     if (required_size == 0)
@@ -33,7 +33,7 @@ optional<std::string> getenv (std::string const & name)
 
     if (required_size <= 256) {
         std::array<char, 256> buffer;
-        getenv_s(& required_size, buffer.data(), buffer.size(), name.c_str());
+        ::getenv_s(& required_size, buffer.data(), buffer.size(), name.c_str());
 
         // Remove trailing whitespaces
         while (std::isspace(buffer.data()[required_size - 1]));
@@ -42,7 +42,7 @@ optional<std::string> getenv (std::string const & name)
         result = std::string(buffer.data(), required_size);
     } else {
         char * buffer = new char[required_size];
-        getenv_s(& required_size, buffer, required_size, name.c_str());
+        ::getenv_s(& required_size, buffer, required_size, name.c_str());
 
         // Remove trailing whitespaces
         while (std::isspace(buffer[required_size - 1]));
@@ -54,12 +54,18 @@ optional<std::string> getenv (std::string const & name)
 
     return optional<std::string>(std::move(result));
 
-#elif PFS_COMPILER_GCC
+#elif defined(PFS_COMPILER_GCC) && !defined(PFS_COMPILER_CLANG)
 #   if _GNU_SOURCE
-    char * result = secure_getenv(name.c_str());
+    char * result = ::secure_getenv(name.c_str());
 #   else
-    char * result = getenv(name.c_str());
+    char * result = ::getenv(name.c_str());
 #   endif
+
+    return result
+        ? optional<std::string>{std::string(result)}
+        : optional<std::string>{};
+#elif defined(PFS_COMPILER_CLANG)
+    char * result = ::getenv(name.c_str());
 
     return result
         ? optional<std::string>{std::string(result)}

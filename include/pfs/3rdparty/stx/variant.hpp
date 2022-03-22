@@ -455,8 +455,14 @@ template <typename _Type>
 struct __storage_wrapper {
     typename std::aligned_storage<sizeof(_Type), alignof(_Type)>::type __storage;
 
+
     template <typename ... _Args>
-    static constexpr void __construct(void* __p, _Args&& ... __args)
+    static
+     // avoid g++ "error: constexpr function's return type 'void' is not a literal type"
+#if __cplusplus > 201103L
+    constexpr
+#endif
+    void __construct(void* __p, _Args&& ... __args)
     {
         new(__p) _Type(std::forward<_Args>(__args)...);
     }
@@ -840,7 +846,7 @@ union __variant_data<_Head, _Rest...> {
     }
 
     template <size_t _Index>
-    constexpr typename __indexed_type<_Index - 1, _Rest...>::__type&&
+    /*constexpr*/ typename __indexed_type<_Index - 1, _Rest...>::__type&&
     __get_rref(
             in_place_index_t<_Index>)
     {
@@ -2374,7 +2380,7 @@ template <typename _Visitor, typename ... _Types>
 constexpr typename __visitor_table<_Visitor, _Types...>::__rv_func_type __visitor_table<_Visitor, _Types...>::__trampoline_rv[sizeof...(_Types)];
 
 template <typename _Visitor, typename ... _Types>
-constexpr typename __visitor_return_type<_Visitor, _Types...>::__type
+/*constexpr*/ typename __visitor_return_type<_Visitor, _Types...>::__type
 visit(_Visitor&& __visitor, variant<_Types...>& __v)
 {
     if (__v.valueless_by_exception())
@@ -2384,7 +2390,7 @@ visit(_Visitor&& __visitor, variant<_Types...>& __v)
 }
 
 template <typename _Visitor, typename... _Types>
-constexpr typename __visitor_return_type<_Visitor, _Types...>::__type
+/*constexpr*/ typename __visitor_return_type<_Visitor, _Types...>::__type
 visit(_Visitor&& __visitor, const variant<_Types...>& __v)
 {
     if (__v.valueless_by_exception())
@@ -2395,7 +2401,7 @@ visit(_Visitor&& __visitor, const variant<_Types...>& __v)
 }
 
 template <typename _Visitor, typename... _Types>
-constexpr typename __visitor_return_type<_Visitor, _Types...>::__type
+/*constexpr*/ typename __visitor_return_type<_Visitor, _Types...>::__type
 visit(_Visitor&& __visitor, variant<_Types...>&& __v)
 {
     if (__v.valueless_by_exception())
@@ -2511,7 +2517,7 @@ struct __multivisitor<_Visitor, _ReturnType, _Args> {
             __visitor(__visitor_), __args() {}
 
     template <typename _VisitVal>
-    constexpr _ReturnType operator()(_VisitVal&& __thisval)
+    /*constexpr*/ _ReturnType operator()(_VisitVal&& __thisval)
     {
         typedef __add_to_tuple<_Args, _VisitVal> __add_args;
         return __apply_visitor<_ReturnType>(
@@ -2545,7 +2551,7 @@ struct __multivisitor<_Visitor, _ReturnType, _Args, _First, _Variants...> {
             __remaining_variants(std::forward<_Variants>(__variants_)...) {}
 
     template <typename _VisitVal>
-    constexpr _ReturnType operator()(_VisitVal&& __thisval)
+    /*constexpr*/ _ReturnType operator()(_VisitVal&& __thisval)
     {
         typedef __add_to_tuple<_Args, _VisitVal> __add_args;
         typedef typename __add_args::type __args_type;
