@@ -9,7 +9,7 @@
 #ifdef ULIDUINT128
 #include "ulid_uint128.hh"
 #else
-#include "ulid_struct.hh"
+#include "ulid_struct_chrono.hh"
 #endif // ULIDUINT128
 
 #endif // ULID_HH

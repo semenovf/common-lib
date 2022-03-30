@@ -17,7 +17,7 @@
 #include <cassert>
 
 #if PFS__FORCE_ULID_STRUCT
-#   include "3rdparty/ulid/ulid_struct.hh"
+#   include "3rdparty/ulid/ulid_struct_chrono.hh"
 #else
 #   include "3rdparty/ulid/ulid.hh"
 #endif

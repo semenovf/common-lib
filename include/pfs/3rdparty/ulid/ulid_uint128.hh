@@ -26,6 +26,8 @@ typedef __uint128_t ULID;
  * timestamp
  * */
 inline void EncodeTime(time_t timestamp, ULID& ulid) {
+    static_assert(sizeof(time_t) >= 6, "Incompatible `time_t`");
+
 	ULID t = static_cast<uint8_t>(timestamp >> 40);
 
 	t <<= 8;
