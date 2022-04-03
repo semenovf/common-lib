@@ -12,6 +12,7 @@
 #pragma once
 #include "endian.hpp"
 #include "i128.hpp"
+#include "fmt.hpp"
 #include <array>
 #include <random>
 #include <cassert>
@@ -274,3 +275,23 @@ inline pfs::uuid_t operator ""_uuid (char const * str, std::size_t len)
     ulid::UnmarshalFrom(str, result.u);
     return result;
 }
+
+namespace fmt {
+
+template <>
+struct formatter<pfs::uuid_t>
+{
+    template <typename ParseContext>
+    constexpr auto parse (ParseContext & ctx) -> decltype(ctx.begin())
+    {
+        return ctx.begin();
+    }
+
+    template <typename FormatContext>
+    auto format (pfs::uuid_t const & uuid, FormatContext & ctx) -> decltype(ctx.out())
+    {
+        return format_to(ctx.out(), "#{}", to_string(uuid));
+    }
+};
+
+} // namespace fmt

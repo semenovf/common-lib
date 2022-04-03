@@ -199,10 +199,12 @@ public:
         return base_class::template connect<F>(f);
     }
 
-    iterator connect (std::function<void(Args...)> && f)
+    //iterator connect (std::function<void(Args...)> && f)
+    iterator connect (std::function<void(Args...)> f)
     {
         std::unique_lock<mutex_type> locker{_mtx};
-        return base_class::connect(std::forward<std::function<void(Args...)>>(f));
+        //return base_class::connect(std::forward<std::function<void(Args...)>>(f));
+        return base_class::connect(f);
     }
 
     template <typename Class>

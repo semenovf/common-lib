@@ -29,6 +29,36 @@ struct utc_time_point
     time_point value;
 };
 
+inline bool operator == (utc_time_point const & lhs, utc_time_point const & rhs)
+{
+    return lhs.value == rhs.value;
+}
+
+inline bool operator != (utc_time_point const & lhs, utc_time_point const & rhs)
+{
+    return lhs.value == rhs.value;
+}
+
+inline bool operator < (utc_time_point const & lhs, utc_time_point const & rhs)
+{
+    return lhs.value < rhs.value;
+}
+
+inline bool operator <= (utc_time_point const & lhs, utc_time_point const & rhs)
+{
+    return lhs.value <= rhs.value;
+}
+
+inline bool operator > (utc_time_point const & lhs, utc_time_point const & rhs)
+{
+    return lhs.value > rhs.value;
+}
+
+inline bool operator >= (utc_time_point const & lhs, utc_time_point const & rhs)
+{
+    return lhs.value >= rhs.value;
+}
+
 /**
  * UTC offset in seconds
  */
