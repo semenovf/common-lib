@@ -9,6 +9,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
 #include "bits/compiler.h"
+#include "fmt.hpp"
 
 #if defined(PFS_COMPILER_MSVC)
 #   include "windows.hpp"
@@ -81,3 +82,23 @@ inline path utf8_decode (std::string const & s)
 #endif
 
 }} // namespace pfs::filesystem
+
+namespace fmt {
+
+template <>
+struct formatter<pfs::filesystem::path>
+{
+    template <typename ParseContext>
+    constexpr auto parse (ParseContext & ctx) -> decltype(ctx.begin())
+    {
+        return ctx.begin();
+    }
+
+    template <typename FormatContext>
+    auto format (pfs::filesystem::path const & path, FormatContext & ctx) -> decltype(ctx.out())
+    {
+        return format_to(ctx.out(), "{}", pfs::filesystem::utf8_encode(path));
+    }
+};
+
+} // namespace fmt
