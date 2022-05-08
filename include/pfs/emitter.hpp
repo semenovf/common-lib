@@ -48,7 +48,7 @@ public:
      */
 
     template <typename F
-        , typename = typename std::enable_if<std::is_same<void (*) (Args...), F>::value, F>::type>
+        , typename = typename std::enable_if<std::is_same<void (*) (Args...), F>::value, F>>
     iterator connect (F f)
     {
         _detectors.emplace_back(f);
