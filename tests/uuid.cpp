@@ -23,8 +23,11 @@ TEST_CASE ("") {
 }
 
 TEST_CASE("literal") {
-    auto uuid = "01D78XYFJ1PRM1WPBCBT3VHMNV"_uuid;
-    CHECK_EQ(uuid, pfs::from_string<pfs::uuid_t>("01D78XYFJ1PRM1WPBCBT3VHMNV"));
+    {
+        auto uuid = "01D78XYFJ1PRM1WPBCBT3VHMNV"_uuid;
+        CHECK_EQ(uuid, pfs::from_string<pfs::uuid_t>("01D78XYFJ1PRM1WPBCBT3VHMNV"));
+        CHECK_EQ(to_string(uuid), "01D78XYFJ1PRM1WPBCBT3VHMNV");
+    }
 }
 
 TEST_CASE("crc16_32_64") {
