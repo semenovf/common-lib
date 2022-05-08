@@ -7,6 +7,7 @@
 //      2022.05.08 Initial version.
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
+#include <exception>
 #include <cstdio>
 
 namespace pfs {
