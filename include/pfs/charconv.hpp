@@ -74,10 +74,10 @@ inline std::uintmax_t __to_uintmax (char const * begin
 template <typename IntT>
 IntT __to_int (char const * begin
     , char const * end
-    , IntT min_val
-    , IntT max_val
     , bool * success
-    , int radix)
+    , int radix
+    , IntT min_val
+    , IntT max_val)
 {
     bool ok = true;
     auto n = __to_intmax(begin, end, ok, radix);
@@ -98,10 +98,10 @@ IntT __to_int (char const * begin
 template <typename UIntT>
 UIntT __to_uint (char const * begin
     , char const * end
-    , UIntT min_val
-    , UIntT max_val
     , bool * success
-    , int radix)
+    , int radix
+    , UIntT min_val
+    , UIntT max_val)
 {
     bool ok = true;
     auto n = __to_uintmax(begin, end, ok, radix);
@@ -120,77 +120,74 @@ UIntT __to_uint (char const * begin
 
 template <typename IntT>
 inline IntT to_int (char const * begin, char const * end
-    , bool * success = nullptr, int radix = 10)
+    , bool * success = nullptr, int radix = 10
+    , IntT min_val = std::numeric_limits<IntT>::min()
+    , IntT max_val = std::numeric_limits<IntT>::max())
 {
-    return __to_int(begin, end
-        , std::numeric_limits<IntT>::min()
-        , std::numeric_limits<IntT>::max()
-        , success, radix);
+    return __to_int(begin, end, success, radix, min_val, max_val);
 }
 
 template <typename UIntT>
 inline UIntT to_uint (char const * begin, char const * end
-    , bool * success = nullptr, int radix = 10)
+    , bool * success = nullptr, int radix = 10
+    , UIntT min_val = std::numeric_limits<UIntT>::min()
+    , UIntT max_val = std::numeric_limits<UIntT>::max())
 {
-    return __to_uint(begin, end
-        , std::numeric_limits<UIntT>::min()
-        , std::numeric_limits<UIntT>::max()
-        , success, radix);
+    return __to_uint(begin, end, success, radix, min_val, max_val);
 }
 
 template <typename IntT>
-inline IntT to_int (char const * s, bool * success = nullptr, int radix = 10)
+inline IntT to_int (char const * s, bool * success = nullptr
+    , int radix = 10
+    , IntT min_val = std::numeric_limits<IntT>::min()
+    , IntT max_val = std::numeric_limits<IntT>::max())
 {
-    return __to_int(s, s + std::strlen(s)
-        , std::numeric_limits<IntT>::min()
-        , std::numeric_limits<IntT>::max()
-        , success, radix);
+    return __to_int(s, s + std::strlen(s), success, radix, min_val, max_val);
 }
 
 template <typename UIntT>
-inline UIntT to_uint (char const * s, bool * success = nullptr, int radix = 10)
+inline UIntT to_uint (char const * s
+    , bool * success = nullptr, int radix = 10
+    , UIntT min_val = std::numeric_limits<UIntT>::min()
+    , UIntT max_val = std::numeric_limits<UIntT>::max())
 {
-    return __to_uint(s, s + std::strlen(s)
-        , std::numeric_limits<UIntT>::min()
-        , std::numeric_limits<UIntT>::max()
-        , success, radix);
+    return __to_uint(s, s + std::strlen(s), success, radix, min_val, max_val);
 }
 
 template <typename IntT>
-inline IntT to_int (string_view const & s, bool * success = nullptr, int radix = 10)
+inline IntT to_int (string_view const & s
+    , bool * success = nullptr, int radix = 10
+    , IntT min_val = std::numeric_limits<IntT>::min()
+    , IntT max_val = std::numeric_limits<IntT>::max())
 {
-    return __to_int(s.data(), s.data() + s.size()
-        , std::numeric_limits<IntT>::min()
-        , std::numeric_limits<IntT>::max()
-        , success, radix);
+    return __to_int(s.data(), s.data() + s.size(), success, radix, min_val, max_val);
 }
 
 template <typename UIntT>
-inline UIntT to_uint (string_view const & s, bool * success = nullptr, int radix = 10)
+inline UIntT to_uint (string_view const & s
+    , bool * success = nullptr, int radix = 10
+    , UIntT min_val = std::numeric_limits<UIntT>::min()
+    , UIntT max_val = std::numeric_limits<UIntT>::max())
 {
-    return __to_uint(s.data(), s.data() + s.size()
-        , std::numeric_limits<UIntT>::min()
-        , std::numeric_limits<UIntT>::max()
-        , success, radix);
+    return __to_uint(s.data(), s.data() + s.size(), success, radix, min_val, max_val);
 }
 
-///
 template <typename IntT>
-inline IntT to_int (std::string const & s, bool * success = nullptr, int radix = 10)
+inline IntT to_int (std::string const & s
+    , bool * success = nullptr, int radix = 10
+    , IntT min_val = std::numeric_limits<IntT>::min()
+    , IntT max_val = std::numeric_limits<IntT>::max())
 {
-    return __to_int(s.data(), s.data() + s.size()
-        , std::numeric_limits<IntT>::min()
-        , std::numeric_limits<IntT>::max()
-        , success, radix);
+    return __to_int(s.data(), s.data() + s.size(), success, radix, min_val, max_val);
 }
 
 template <typename UIntT>
-inline UIntT to_uint (std::string const & s, bool * success = nullptr, int radix = 10)
+inline UIntT to_uint (std::string const & s
+    , bool * success = nullptr, int radix = 10
+    , UIntT min_val = std::numeric_limits<UIntT>::min()
+    , UIntT max_val = std::numeric_limits<UIntT>::max())
 {
-    return __to_uint(s.data(), s.data() + s.size()
-        , std::numeric_limits<UIntT>::min()
-        , std::numeric_limits<UIntT>::max()
-        , success, radix);
+    return __to_uint(s.data(), s.data() + s.size(), success, radix, min_val, max_val);
 }
 
 } // namespace pfs
