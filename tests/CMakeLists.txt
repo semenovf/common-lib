@@ -22,6 +22,7 @@ set(TEST_NAMES
     any
     byteswap
     calendar
+    charconv
     compare_op
     crc16_32_64
     dynamic_library
