@@ -32,7 +32,7 @@
     template <>
     struct std::hash<pfs::string_view>
     {
-        std::size_t operator () (pfs::string_view const & sv) const noexcept
+        std::size_t operator () (pfs::string_view sv) const noexcept
         {
             std::size_t result = 0;
             std::hash<pfs::string_view::value_type> hasher;

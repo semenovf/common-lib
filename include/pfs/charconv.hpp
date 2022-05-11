@@ -155,7 +155,7 @@ inline UIntT to_uint (char const * s
 }
 
 template <typename IntT>
-inline IntT to_int (string_view const & s
+inline IntT to_int (string_view s
     , bool * success = nullptr, int radix = 10
     , IntT min_val = std::numeric_limits<IntT>::min()
     , IntT max_val = std::numeric_limits<IntT>::max())
@@ -164,7 +164,7 @@ inline IntT to_int (string_view const & s
 }
 
 template <typename UIntT>
-inline UIntT to_uint (string_view const & s
+inline UIntT to_uint (string_view s
     , bool * success = nullptr, int radix = 10
     , UIntT min_val = std::numeric_limits<UIntT>::min()
     , UIntT max_val = std::numeric_limits<UIntT>::max())
