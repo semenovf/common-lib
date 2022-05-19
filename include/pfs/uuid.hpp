@@ -10,12 +10,12 @@
 //      2021.11.08 Added `make_uuid` - UUID construction functions.
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
+#include "assert.hpp"
 #include "endian.hpp"
 #include "i128.hpp"
 #include "fmt.hpp"
 #include <array>
 #include <random>
-#include <cassert>
 
 #if PFS__FORCE_ULID_STRUCT
 #   include "3rdparty/ulid/ulid_struct_chrono.hh"
@@ -270,7 +270,12 @@ inline std::string to_string (pfs::uuid_t const & value)
 
 inline pfs::uuid_t operator ""_uuid (char const * str, std::size_t len)
 {
-    assert(len == 26);
+    PFS__ASSERT(len == 26 || len == 0
+        , "UUID literal must be 26 characters or empty");
+
+    if (len == 0)
+        return pfs::uuid_t{};
+
     pfs::uuid_t result;
     ulid::UnmarshalFrom(str, result.u);
     return result;
