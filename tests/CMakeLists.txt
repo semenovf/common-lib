@@ -50,6 +50,7 @@ set(TEST_NAMES
     string_view
     time_point
     timer_pool
+    tr
     type_traits
     variant
     utf8_decode
