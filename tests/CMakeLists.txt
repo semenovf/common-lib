@@ -34,6 +34,7 @@ set(TEST_NAMES
     function_queue
     getenv
     home_directory_path
+    i18n
     iterator_bidirectional
     iterator_forward
     iterator_input
@@ -50,7 +51,6 @@ set(TEST_NAMES
     string_view
     time_point
     timer_pool
-    tr
     type_traits
     variant
     utf8_decode
@@ -59,8 +59,7 @@ set(TEST_NAMES
 #     utf16le_encode
     utf16be_decode
 #     utf16be_encode
-    uuid
-    )
+    uuid)
 
 set(utf8_resource_SOURCES
     unicode/utf8/cyrillic.c

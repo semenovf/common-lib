@@ -8,7 +8,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include "doctest.h"
-#include "pfs/tr.hpp"
+#include "pfs/i18n.hpp"
 #include <string>
 
 /*
