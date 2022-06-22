@@ -19,6 +19,9 @@
 #       include <android/log.h>
 #   endif
 
+// https://stackoverflow.com/questions/5891221/variadic-macros-with-zero-arguments
+#define PFS__VA_ARGS(...) , ##__VA_ARGS__
+
 inline std::string stringify_trace_time ()
 {
     using std::chrono::duration_cast;
@@ -65,15 +68,15 @@ inline std::string stringify_trace_time ()
 #       endif
         }
 
-#       define LOGD(t, f, ...) __android_log_print_helper(ANDROID_LOG_DEBUG, t, fmt::format(f, __VA_ARGS__))
-#       define LOGI(t, f, ...) __android_log_print_helper(ANDROID_LOG_INFO, t, fmt::format(f, __VA_ARGS__))
-#       define LOGW(t, f, ...) __android_log_print_helper(ANDROID_LOG_WARN, t, fmt::format(f, __VA_ARGS__))
-#       define LOGE(t, f, ...) __android_log_print_helper(ANDROID_LOG_ERROR, t, fmt::format(f, __VA_ARGS__))
+#       define LOGD(t, f, ...) __android_log_print_helper(ANDROID_LOG_DEBUG, t, fmt::format(f  PFS__VA_ARGS(__VA_ARGS__)))
+#       define LOGI(t, f, ...) __android_log_print_helper(ANDROID_LOG_INFO, t, fmt::format(f PFS__VA_ARGS(__VA_ARGS__)))
+#       define LOGW(t, f, ...) __android_log_print_helper(ANDROID_LOG_WARN, t, fmt::format(f PFS__VA_ARGS(__VA_ARGS__)))
+#       define LOGE(t, f, ...) __android_log_print_helper(ANDROID_LOG_ERROR, t, fmt::format(f PFS__VA_ARGS(__VA_ARGS__)))
 
 #       if PFS__LOG_LEVEL >= 1
 #           define LOG_TRACE_1(f, ...) __android_log_print_helper(             \
                   ANDROID_LOG_VERBOSE                                          \
-                , "-- TRACE(1)", fmt::format(f, __VA_ARGS__).c_str())
+                , "-- TRACE(1)", fmt::format(f PFS__VA_ARGS(__VA_ARGS__)).c_str())
 #       else
 #           define define LOG_TRACE_1(f, ...)
 #       endif
@@ -81,7 +84,7 @@ inline std::string stringify_trace_time ()
 #       if PFS__LOG_LEVEL >= 2
 #           define LOG_TRACE_2(f, ...) __android_log_print_helper(             \
                   ANDROID_LOG_VERBOSE                                          \
-                , "-- TRACE(2)", fmt::format(f, __VA_ARGS__).c_str())
+                , "-- TRACE(2)", fmt::format(f PFS__VA_ARGS(__VA_ARGS__)).c_str())
 #       else
 #           define define LOG_TRACE_2(f, ...)
 #       endif
@@ -89,28 +92,28 @@ inline std::string stringify_trace_time ()
 #       if PFS__LOG_LEVEL >= 3
 #           define LOG_TRACE_3(f, ...) __android_log_print_helper(             \
                   ANDROID_LOG_VERBOSE                                          \
-                , "-- TRACE(3)", fmt::format(f, __VA_ARGS__).c_str())
+                , "-- TRACE(3)", fmt::format(f PFS__VA_ARGS(__VA_ARGS__)).c_str())
 #       else
 #           define define LOG_TRACE_3(f, ...)
 #       endif
 #   else  //  ANDROID
 #       define LOGD(t, f, ...) {                                               \
             fmt::print(stdout, "{} [D] {}: " f "\n"                            \
-                , stringify_trace_time(), t, __VA_ARGS__); fflush(stdout);}
+                , stringify_trace_time(), t PFS__VA_ARGS(__VA_ARGS__)); fflush(stdout);}
 #       define LOGI(t, f, ...) {                                               \
             fmt::print(stdout, "{} [I] {}: " f "\n"                            \
-                , stringify_trace_time(), t, __VA_ARGS__); fflush(stdout);}
+                , stringify_trace_time(), t PFS__VA_ARGS(__VA_ARGS__)); fflush(stdout);}
 #       define LOGW(t, f, ...) {                                               \
             fmt::print(stderr, "{} [W] {}: " f "\n"                            \
-                , stringify_trace_time(), t, __VA_ARGS__); fflush(stderr);}
+                , stringify_trace_time(), t PFS__VA_ARGS(__VA_ARGS__)); fflush(stderr);}
 #       define LOGE(t, f, ...) {                                               \
             fmt::print(stderr, "{} [E] {}: " f "\n"                            \
-                , stringify_trace_time(), t, __VA_ARGS__); fflush(stderr);}
+                , stringify_trace_time(), t PFS__VA_ARGS(__VA_ARGS__)); fflush(stderr);}
 
 #       if PFS__LOG_LEVEL >= 1
 #           define LOG_TRACE_1(f, ...) {                                       \
                 fmt::print(stdout, "{} -- TRACE(1): " f "\n"                   \
-                    , stringify_trace_time(), __VA_ARGS__); fflush(stdout);}
+                    , stringify_trace_time() PFS__VA_ARGS(__VA_ARGS__)); fflush(stdout);}
 #       else
 #           define define LOG_TRACE_1(f, ...)
 #       endif
@@ -118,7 +121,7 @@ inline std::string stringify_trace_time ()
 #       if PFS__LOG_LEVEL >= 2
 #           define LOG_TRACE_2(f, ...) {                                       \
                 fmt::print(stdout, "{} -- TRACE(2): " f "\n"                   \
-                    , stringify_trace_time(), __VA_ARGS__); fflush(stdout);}
+                    , stringify_trace_time() PFS__VA_ARGS(__VA_ARGS__)); fflush(stdout);}
 #       else
 #           define define LOG_TRACE_2(f, ...)
 #       endif
@@ -126,7 +129,7 @@ inline std::string stringify_trace_time ()
 #       if PFS__LOG_LEVEL >= 3
 #           define LOG_TRACE_3(f, ...) {                                       \
               fmt::print(stdout, "{} -- TRACE(3): " f "\n"                     \
-            , stringify_trace_time(), __VA_ARGS__); fflush(stdout);}
+            , stringify_trace_time() PFS__VA_ARGS(__VA_ARGS__)); fflush(stdout);}
 #       else
 #           define define LOG_TRACE_3(f, ...)
 #       endif
