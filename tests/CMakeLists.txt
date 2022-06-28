@@ -40,6 +40,7 @@ set(TEST_NAMES
     iterator_input
     iterator_output
     iterator_random_access
+    locale_utils
     optional
     pointer_proxy_iterator
     rational

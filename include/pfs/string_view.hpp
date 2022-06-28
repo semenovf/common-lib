@@ -14,6 +14,7 @@
         || (defined(_MSC_VER) && __cplusplus >= 201703L)
 #   define PFS_HAVE_STD_STRING_VIEW 1
 #   include <string_view>
+    using string_view = std::string_view;
 #else
 #   ifndef STX_NAMESPACE_NAME
 #       define STX_NAMESPACE_NAME pfs
@@ -28,6 +29,8 @@
     constexpr typename basic_string_view<CharT, Traits>::size_type
     basic_string_view<CharT, Traits>::npos;
     } // namespace pfs
+
+    using string_view = pfs::string_view;
 
     template <>
     struct std::hash<pfs::string_view>
