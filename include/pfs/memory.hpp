@@ -68,3 +68,5 @@ make_unique (Args &&...) = delete;
 #endif
 
 } // namespace pfs
+
+using ::pfs::make_unique;
