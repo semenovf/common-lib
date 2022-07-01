@@ -8,7 +8,10 @@
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
 #include "fmt.hpp"
-#include <libintl.h>
+
+#if PFS__ENABLE_NLS
+#   include <libintl.h>
+#endif
 
 //
 // `xgettext` can recognizes keywords in format `NS::keyword` ignoring namespace
@@ -44,6 +47,8 @@ struct domain_category
         : domainname(dname.empty() ? nullptr : dname.c_str()), category(c)
     {}
 };
+
+#if PFS__ENABLE_NLS
 
 inline char * _ (char const * msgid)
 {
@@ -110,5 +115,62 @@ constexpr char const * noop_ (char const * msgid)
 {
     return msgid;
 }
+
+#else // PFS__ENABLE_NLS
+
+inline char const * _ (char const * msgid)
+{
+    return msgid;
+}
+
+inline char const * _ (std::string & msgid)
+{
+    return msgid.c_str();
+}
+
+inline char const * _ (char const * msgid, domain_category const & /*dc*/)
+{
+    return msgid;
+}
+
+inline char const * _ (std::string & msgid, domain_category const & dc)
+{
+    return _(msgid.c_str(), dc);
+}
+
+inline char const * n_ (plural const & p)
+{
+    return p.msgid;
+}
+
+inline char const * n_ (plural const & p, domain_category const & /*dc*/)
+{
+    return p.msgid;
+}
+
+template <typename... T>
+inline std::string f_ (char const * msgid, T &&... args)
+{
+    return fmt::format(msgid, std::forward<T>(args)...);
+}
+
+template <typename... T>
+inline std::string f_ (std::string & msgid, T &&... args)
+{
+    return fmt::format(msgid.c_str(), std::forward<T>(args)...);
+}
+
+template <typename... T>
+inline std::string f_ (char const * msgid, domain_category const & /*dc*/, T &&... args)
+{
+    return fmt::format(msgid, std::forward<T>(args)...);
+}
+
+constexpr char const * noop_ (char const * msgid)
+{
+    return msgid;
+}
+
+#endif // !PFS__ENABLE_NLS
 
 } // namespace tr

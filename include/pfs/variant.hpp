@@ -20,6 +20,19 @@
 #       define STX_NAMESPACE_NAME pfs
 #   endif
 
+#if _MSC_VER
+// Disable warnings
+// warning C4244: '=': conversion from 'ptrdiff_t' to '...', possible loss of data
+// warning C4244: 'initializing': conversion from 'ptrdiff_t' to '...', possible loss of data
+#   pragma warning(push)
+#   pragma warning(disable:4244)
+#endif
+
 #   define STX_NO_STD_VARIANT
 #   include "3rdparty/stx/variant.hpp"
+
+#ifdef _MSC_VER
+#   pragma warning(pop)
+#endif
+
 #endif

@@ -52,6 +52,8 @@
  * $ xgettext --keyword=_ --keyword=f_ --keyword=n_:1,2 --keyword=noop_ --output=/tmp/tr.pot tr.cpp
  */
 
+#if PFS__ENABLE_NLS
+
 static char const * STATIC_CHARS = tr::noop_("STATIC CHARS");
 static std::string STATIC_STRING = tr::noop_("STATIC STRING");
 static char const * DOMAIN_STATIC_CHARS = tr::noop_("DOMAIN STATIC CHARS");
@@ -76,12 +78,21 @@ TEST_CASE("translate") {
 
     // Domain name and category
     {
+        // NOTE. MSVC do not support LC_MESSAGES.
+
+#if _MSC_VER
+        auto text1 = tr::_(DOMAIN_STATIC_CHARS, {"domain", LC_ALL});
+        auto text2 = tr::_(DOMAIN_STATIC_STRING, {"domain", LC_ALL});
+        auto text3 = tr::_("Domain Raw C string", {"domain", LC_ALL});
+        std::string s4 {"Domain C++ string"};
+        auto text4 = tr::_(s4, {"domain", LC_ALL});
+#else
         auto text1 = tr::_(DOMAIN_STATIC_CHARS, {"domain", LC_MESSAGES});
         auto text2 = tr::_(DOMAIN_STATIC_STRING, {"domain", LC_MESSAGES});
         auto text3 = tr::_("Domain Raw C string", {"domain", LC_MESSAGES});
-
         std::string s4 {"Domain C++ string"};
         auto text4 = tr::_(s4, {"domain", LC_MESSAGES});
+#endif
 
         CHECK_EQ(text1, std::string{"DOMAIN STATIC CHARS"});
         CHECK_EQ(text2, std::string{"DOMAIN STATIC STRING"});
@@ -106,11 +117,19 @@ TEST_CASE("translate") {
 
     // Plural, domain name and category
     {
+#if _MSC_VER
+        auto text1 = fmt::format(tr::n_({"Domain: {} day left", "Domain: {} days left", 0}, {"domain", LC_ALL}), 0);
+        auto text2 = fmt::format(tr::n_({"Domain: {} day left", "Domain: {} days left", 1}, {"domain", LC_ALL}), 1);
+        auto text3 = fmt::format(tr::n_({"Domain: {} day left", "Domain: {} days left", 2}, {"domain", LC_ALL}), 2);
+        auto text4 = fmt::format(tr::n_({"Domain: {} day left", "Domain: {} days left", 5}, {"domain", LC_ALL}), 5);
+        auto text5 = fmt::format(tr::n_({"Domain: {} day left", "Domain: {} days left", 42}, {"domain", LC_ALL}), 42);
+#else        
         auto text1 = fmt::format(tr::n_({"Domain: {} day left", "Domain: {} days left", 0}, {"domain", LC_MESSAGES}), 0);
         auto text2 = fmt::format(tr::n_({"Domain: {} day left", "Domain: {} days left", 1}, {"domain", LC_MESSAGES}), 1);
         auto text3 = fmt::format(tr::n_({"Domain: {} day left", "Domain: {} days left", 2}, {"domain", LC_MESSAGES}), 2);
         auto text4 = fmt::format(tr::n_({"Domain: {} day left", "Domain: {} days left", 5}, {"domain", LC_MESSAGES}), 5);
         auto text5 = fmt::format(tr::n_({"Domain: {} day left", "Domain: {} days left", 42}, {"domain", LC_MESSAGES}), 42);
+#endif
 
         CHECK_EQ(text1, std::string{"Domain: 0 days left"});
         CHECK_EQ(text2, std::string{"Domain: 1 day left"});
@@ -124,7 +143,12 @@ TEST_CASE("translate") {
         auto text1 = tr::f_("Hello, {}", tr::_(FORMAT_STATIC_CHARS));
         auto text2 = tr::f_("Hello, {}", tr::_(FORMAT_STATIC_STRING));
         auto text3 = tr::f_("Hello, {}", tr::_("World!"));
+
+#if _MSC_VER
+        auto text4 = tr::f_("Hello, {}", {"domain", LC_ALL}, tr::_("Domain!"));
+#else        
         auto text4 = tr::f_("Hello, {}", {"domain", LC_MESSAGES}, tr::_("Domain!"));
+#endif
 
         CHECK_EQ(text1, std::string{"Hello, FORMAT STATIC CHARS"});
         CHECK_EQ(text2, std::string{"Hello, FORMAT STATIC STRING"});
@@ -132,3 +156,5 @@ TEST_CASE("translate") {
         CHECK_EQ(text4, std::string{"Hello, Domain!"});
     }
 }
+
+#endif // PFS__ENABLE_NLS

@@ -31,9 +31,9 @@ TEST_CASE("crc16_32_64_of") {
         CHECK_EQ(pfs::crc16_of_ptr(" ", 1), static_cast<std::int16_t>(0x2462));
         CHECK_EQ(pfs::crc16_of_ptr("123456789", 9), static_cast<std::int16_t>(0x31C3));
 
-        CHECK_EQ(pfs::crc16_of_ptr("", 0, 0xFFFF), static_cast<std::int16_t>(0xFFFF));
-        CHECK_EQ(pfs::crc16_of_ptr(" ", 1, 0xFFFF), static_cast<std::int16_t>(0xC592));
-        CHECK_EQ(pfs::crc16_of_ptr("123456789", 9, 0xFFFF), static_cast<std::int16_t>(0x29B1));
+        CHECK_EQ(pfs::crc16_of_ptr("", 0, static_cast<std::int16_t>(0xFFFF)), static_cast<std::int16_t>(0xFFFF));
+        CHECK_EQ(pfs::crc16_of_ptr(" ", 1, static_cast<std::int16_t>(0xFFFF)), static_cast<std::int16_t>(0xC592));
+        CHECK_EQ(pfs::crc16_of_ptr("123456789", 9, static_cast<std::int16_t>(0xFFFF)), static_cast<std::int16_t>(0x29B1));
 
         auto a16 = crc16_of(v5
             , crc16_of(v4

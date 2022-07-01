@@ -60,7 +60,8 @@ set(TEST_NAMES
 #     utf16le_encode
     utf16be_decode
 #     utf16be_encode
-    uuid)
+uuid
+)
 
 set(utf8_resource_SOURCES
     unicode/utf8/cyrillic.c
@@ -129,36 +130,60 @@ if (TARGET endian)
     endif()
 endif()
 
-# Copy test data files
-add_custom_command(TARGET utf8_decode
-    POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:utf8_decode>/unicode"
-    COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:utf8_decode>/unicode/utf8"
-    COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:utf8_decode>/unicode/utf8/data"
-    COMMAND ${CMAKE_COMMAND} -E copy_directory
-        "${CMAKE_CURRENT_SOURCE_DIR}/unicode/utf8/data"
-        "$<TARGET_FILE_DIR:utf8_decode>/unicode/utf8/data"
-    VERBATIM)
+if (TARGET i18n)
+    # Target `libintl` available if `PFS__ENABLE_NLS` is ON 
+    # and `PFS__USE_IMPORTED_GETTEXT_LIB` is ON (on Windows platform)
+    if (TARGET libintl)
+        portable_target(LINK i18n PRIVATE libintl)
+        
+        add_custom_command(TARGET i18n
+            POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy 
+                "$<TARGET_PROPERTY:libintl,IMPORTED_LOCATION>"
+                "$<TARGET_FILE_DIR:i18n>"
+            COMMAND ${CMAKE_COMMAND} -E copy 
+                "$<TARGET_PROPERTY:libintl,ICONV_LIB>"
+                "$<TARGET_FILE_DIR:i18n>"
+            VERBATIM)
+    endif()
+endif()
 
-add_custom_command(TARGET utf16le_decode
-    POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:utf16le_decode>/unicode"
-    COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:utf16le_decode>/unicode/utf16le"
-    COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:utf16le_decode>/unicode/utf16le/data"
-    COMMAND ${CMAKE_COMMAND} -E copy_directory
-        "${CMAKE_CURRENT_SOURCE_DIR}/unicode/utf16le/data"
-        "$<TARGET_FILE_DIR:utf16le_decode>/unicode/utf16le/data"
-    VERBATIM)
+if (TARGET utf8_decode)
+    # Copy test data files
+    add_custom_command(TARGET utf8_decode
+        POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:utf8_decode>/unicode"
+        COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:utf8_decode>/unicode/utf8"
+        COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:utf8_decode>/unicode/utf8/data"
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+            "${CMAKE_CURRENT_SOURCE_DIR}/unicode/utf8/data"
+            "$<TARGET_FILE_DIR:utf8_decode>/unicode/utf8/data"
+        VERBATIM)
+endif()
 
-add_custom_command(TARGET utf16be_decode
-    POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:utf16be_decode>/unicode"
-    COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:utf16be_decode>/unicode/utf16be"
-    COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:utf16be_decode>/unicode/utf16be/data"
-    COMMAND ${CMAKE_COMMAND} -E copy_directory
-        "${CMAKE_CURRENT_SOURCE_DIR}/unicode/utf16be/data"
-        "$<TARGET_FILE_DIR:utf16be_decode>/unicode/utf16be/data"
-    VERBATIM)
+if (TARGET utf16le_decode)
+    add_custom_command(TARGET utf16le_decode
+        POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:utf16le_decode>/unicode"
+        COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:utf16le_decode>/unicode/utf16le"
+        COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:utf16le_decode>/unicode/utf16le/data"
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+            "${CMAKE_CURRENT_SOURCE_DIR}/unicode/utf16le/data"
+            "$<TARGET_FILE_DIR:utf16le_decode>/unicode/utf16le/data"
+        VERBATIM)
+endif()
+
+if (TARGET utf16be_decode)
+    add_custom_command(TARGET utf16be_decode
+        POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:utf16be_decode>/unicode"
+        COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:utf16be_decode>/unicode/utf16be"
+        COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:utf16be_decode>/unicode/utf16be/data"
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+            "${CMAKE_CURRENT_SOURCE_DIR}/unicode/utf16be/data"
+            "$<TARGET_FILE_DIR:utf16be_decode>/unicode/utf16be/data"
+        VERBATIM)
+endif()
 
 if (PFS__ENABLE_COVERAGE)
     include(${CMAKE_SOURCE_DIR}/cmake/Coverage.cmake)
