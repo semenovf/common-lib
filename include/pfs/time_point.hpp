@@ -68,11 +68,19 @@ inline std::time_t utc_offset ()
     std::tm utc_time;
     std::tm local_time;
 
+#if _MSC_VER
+    ::gmtime_s(& utc_time, & now);
+#else
     std::tm * utc = std::gmtime(& now);
     memcpy(& utc_time, utc, sizeof(std::tm));
+#endif
 
+#if _MSC_VER
+    ::localtime_s(& local_time, & now);
+#else
     std::tm * local = std::localtime(& now);
     memcpy(& local_time, local, sizeof(std::tm));
+#endif
 
     return (std::mktime(& local_time) - std::mktime(& utc_time));
 }
@@ -85,8 +93,8 @@ inline std::string stringify_utc_offset (std::time_t off)
     int sign = off < 0 ? -1 : 1;
     off *= sign;
     off /= 60;            // seconds
-    int min = off % 60;
-    int hour = off / 60;
+    auto min = off % 60;
+    auto hour = off / 60;
 
     std::string result;
     result.reserve(5);

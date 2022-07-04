@@ -303,11 +303,9 @@ template <class T> struct in_place_type_t {
     explicit in_place_type_t() = default;
 };
 
-
 template <size_t I> struct in_place_index_t {
     explicit in_place_index_t() = default;
 };
-
 
 #if defined(__cpp_variable_templates) && __cpp_variable_templates >= 201304
 template <class T>
@@ -315,7 +313,6 @@ constexpr in_place_type_t<T> in_place_type{};
 template <size_t I>
 constexpr in_place_index_t<I> in_place_index{};
 #endif // __cpp_variable_templates
-
 
 #define STX_HAVE_IN_PLACE_T
 #endif // STX_HAVE_IN_PLACE_T

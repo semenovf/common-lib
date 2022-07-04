@@ -89,9 +89,8 @@ using remove_reference_t = typename std::remove_reference<T>::type;
 
 #endif
 
-// --wladt--: May be conflict with optional.hpp
-//#if __cplusplus < 201703L
 #ifndef STX_HAVE_IN_PLACE_T
+
 struct in_place_t {
     explicit in_place_t() = default;
 };
@@ -106,21 +105,16 @@ template <size_t I> struct in_place_index_t {
     explicit in_place_index_t() = default;
 };
 
-#   define STX_HAVE_IN_PLACE_T // --wladt--
-#endif
-
-// --wladt--: Variable templates only available with C++14
-#if __cplusplus >= 201402L
-
+#   if defined(__cpp_variable_templates) && __cpp_variable_templates >= 201304
 template <typename T>
 constexpr in_place_type_t<T> in_place_type{};
 
 template <size_t I>
 constexpr in_place_index_t<I> in_place_index{};
 
-#   define STX_IN_PLACE_INDEX(I) in_place_index<I>
+#       define STX_IN_PLACE_INDEX(I) in_place_index<I>
 
-#else
+#   else
 
 template <typename T>
 inline constexpr in_place_type_t<T> in_place_type ()
@@ -134,8 +128,12 @@ inline constexpr in_place_index_t<I> in_place_index ()
     return in_place_index_t<I>{};
 }
 
-#   define STX_IN_PLACE_INDEX(I) in_place_index<I>()
+#       define STX_IN_PLACE_INDEX(I) in_place_index<I>()
+#   endif
 
+#   define STX_HAVE_IN_PLACE_T
+#else
+#   define STX_IN_PLACE_INDEX(I) in_place_index<I>
 #endif
 
 class bad_variant_access : public std::logic_error {
