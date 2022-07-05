@@ -115,7 +115,7 @@ inline std::string stringify_trace_time ()
                 fmt::print(stdout, "{} -- TRACE(1): " f "\n"                   \
                     , stringify_trace_time() PFS__VA_ARGS(__VA_ARGS__)); fflush(stdout);}
 #       else
-#           define define LOG_TRACE_1(f, ...)
+#           define LOG_TRACE_1(f, ...)
 #       endif
 
 #       if PFS__LOG_LEVEL >= 2
@@ -123,7 +123,7 @@ inline std::string stringify_trace_time ()
                 fmt::print(stdout, "{} -- TRACE(2): " f "\n"                   \
                     , stringify_trace_time() PFS__VA_ARGS(__VA_ARGS__)); fflush(stdout);}
 #       else
-#           define define LOG_TRACE_2(f, ...)
+#           define LOG_TRACE_2(f, ...)
 #       endif
 
 #       if PFS__LOG_LEVEL >= 3
@@ -131,7 +131,7 @@ inline std::string stringify_trace_time ()
               fmt::print(stdout, "{} -- TRACE(3): " f "\n"                     \
             , stringify_trace_time() PFS__VA_ARGS(__VA_ARGS__)); fflush(stdout);}
 #       else
-#           define define LOG_TRACE_3(f, ...)
+#           define LOG_TRACE_3(f, ...)
 #       endif
 #   endif // !ANDROID
 #else // PFS__LOG_LEVEL

@@ -68,3 +68,17 @@ if (PFS__ENABLE_NLS)
             ICONV_LIB "${CMAKE_SOURCE_DIR}/3rdparty/gettext-0.21/libiconv-2.dll")
     endif()
 endif()
+
+# Some targets need to direct access to `fmt` library.
+if (NOT TARGET fmt::fmt)
+    add_library(fmt INTERFACE)
+    add_library(fmt::fmt ALIAS fmt)
+    target_include_directories(fmt INTERFACE "${CMAKE_CURRENT_LIST_DIR}/include/pfs/3rdparty")
+endif()
+
+if (NOT TARGET fmt::fmt-header-only)
+    add_library(fmt-header-only INTERFACE)
+    add_library(fmt::fmt-header-only ALIAS fmt-header-only)
+    target_include_directories(fmt-header-only INTERFACE "${CMAKE_CURRENT_LIST_DIR}/include/pfs/3rdparty")
+    target_compile_definitions(fmt-header-only INTERFACE "FMT_HEADER_ONLY=1")
+endif()

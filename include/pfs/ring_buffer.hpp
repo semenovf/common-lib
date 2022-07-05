@@ -210,7 +210,7 @@ public:
     using size_type = std::size_t;
 
     // Actually infinite limit
-    static constexpr const size_type nbulks = std::numeric_limits<size_type>::max();
+    static constexpr const size_type nbulks = (std::numeric_limits<size_type>::max)();
     static constexpr const size_type bulk_size = BulkSize;
 
 private:
