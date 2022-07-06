@@ -47,3 +47,29 @@
         }
     };
 #endif
+
+namespace pfs {
+
+inline bool starts_with (string_view const & str, string_view::value_type ch)
+{
+    return str.size() >= 1 && str[0] == ch;
+}
+
+inline bool starts_with (string_view const & str, char const * p)
+{
+    // NOTE Not optimal
+    auto len = std::strlen(p);
+    return str.size() >= len && str.compare(0, len, p) == 0;
+}
+
+inline bool starts_with (string_view const & str, std::string const & prefix)
+{
+    return str.size() >= prefix.size() && str.compare(0, prefix.size(), prefix) == 0;
+}
+
+inline bool starts_with (string_view const & str, string_view const & prefix)
+{
+    return str.size() >= prefix.size() && str.compare(0, prefix.size(), prefix) == 0;
+}
+
+}

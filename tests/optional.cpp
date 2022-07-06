@@ -25,19 +25,7 @@
 #include <string>
 #include <utility>
 
-#if PFS_HAVE_STD_OPTIONAL
-    using std::optional;
-    using std::bad_optional_access;
-    using std::nullopt;
-    using std::in_place;
-    using std::make_optional;
-#else
-    using pfs::optional;
-    using pfs::bad_optional_access;
-    using pfs::nullopt;
-    using pfs::in_place;
-    using pfs::make_optional;
-#endif
+using namespace pfs;
 
 TEST_CASE("basic") {
     constexpr optional<int> empty{};

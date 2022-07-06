@@ -24,6 +24,7 @@
         using std::in_place_t;
         using std::in_place;
     }
+
 #else
 #   ifndef STX_NAMESPACE_NAME
 #       define STX_NAMESPACE_NAME pfs

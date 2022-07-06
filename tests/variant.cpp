@@ -16,35 +16,7 @@
 #include <string>
 #include <utility>
 
-#if PFS_HAVE_STD_VARIANT
-using std::variant;
-using std::get;
-using std::get_if;
-using std::holds_alternative;
-using std::monostate;
-using std::variant_alternative;
-using std::variant_alternative_t;
-using std::variant_npos;
-using std::variant_size;
-using std::visit;
-using std::in_place_index_t;
-using std::in_place_type_t;
-using std::bad_variant_access;
-#else
-using pfs::variant;
-using pfs::get;
-using pfs::get_if;
-using pfs::holds_alternative;
-using pfs::monostate;
-using pfs::variant_alternative;
-using pfs::variant_alternative_t;
-using pfs::variant_npos;
-using pfs::variant_size;
-using pfs::visit;
-using pfs::in_place_index_t;
-using pfs::in_place_type_t;
-using pfs::bad_variant_access;
-#endif
+using namespace pfs;
 
 ////////////////////////////////////////////////////////////////////////////////
 //                             Constructors                                   //

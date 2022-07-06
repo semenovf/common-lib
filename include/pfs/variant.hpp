@@ -15,6 +15,27 @@
         || (defined(_MSC_VER) && __cplusplus >= 201703L)
 #   define PFS_HAVE_STD_VARIANT 1
 #   include <variant>
+
+namespace pfs {
+
+using std::variant;
+using std::get;
+using std::get_if;
+using std::holds_alternative;
+using std::monostate;
+using std::variant_alternative;
+using std::variant_alternative_t;
+using std::variant_npos;
+using std::variant_size;
+using std::visit;
+using std::in_place_t;
+using std::in_place;
+using std::in_place_index_t;
+using std::in_place_type_t;
+using std::bad_variant_access;
+
+} // namespace pfs
+
 #else
 #   ifndef STX_NAMESPACE_NAME
 #       define STX_NAMESPACE_NAME pfs

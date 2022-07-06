@@ -34,7 +34,7 @@ parse_locale_name (std::string const & locname)
     string_view sv {locname};
     std::map<std::string, std::string> result;
 
-    if (sv.starts_with("LC_")) {
+    if (starts_with(sv, "LC_")) {
         auto pos = sv.begin();
 
         while (pos != sv.end()) {
