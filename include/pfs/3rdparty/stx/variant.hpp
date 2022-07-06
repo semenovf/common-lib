@@ -57,6 +57,8 @@
 #pragma warning(disable:4522)
 #endif
 
+#include "in_place.hpp"
+
 namespace STX_NAMESPACE_NAME {
 
 #if __cplusplus >= 201402L
@@ -87,53 +89,6 @@ using remove_cv_t = typename std::remove_cv<T>::type;
 template <typename T>
 using remove_reference_t = typename std::remove_reference<T>::type;
 
-#endif
-
-#ifndef STX_HAVE_IN_PLACE_T
-
-struct in_place_t {
-    explicit in_place_t() = default;
-};
-
-constexpr in_place_t in_place{};
-
-template <class T> struct in_place_type_t {
-    explicit in_place_type_t() = default;
-};
-
-template <size_t I> struct in_place_index_t {
-    explicit in_place_index_t() = default;
-};
-
-#   if defined(__cpp_variable_templates) && __cpp_variable_templates >= 201304
-template <typename T>
-constexpr in_place_type_t<T> in_place_type{};
-
-template <size_t I>
-constexpr in_place_index_t<I> in_place_index{};
-
-#       define STX_IN_PLACE_INDEX(I) in_place_index<I>
-
-#   else
-
-template <typename T>
-inline constexpr in_place_type_t<T> in_place_type ()
-{
-    return in_place_type_t<T>{};
-}
-
-template <size_t I>
-inline constexpr in_place_index_t<I> in_place_index ()
-{
-    return in_place_index_t<I>{};
-}
-
-#       define STX_IN_PLACE_INDEX(I) in_place_index<I>()
-#   endif
-
-#   define STX_HAVE_IN_PLACE_T
-#else
-#   define STX_IN_PLACE_INDEX(I) in_place_index<I>
 #endif
 
 class bad_variant_access : public std::logic_error {

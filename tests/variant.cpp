@@ -10,6 +10,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include "doctest.h"
+#include "pfs/optional.hpp" // For check conflicts with `stx::variant`
 #include "pfs/variant.hpp"
 #include <memory>
 #include <string>

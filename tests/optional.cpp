@@ -17,6 +17,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include "doctest.h"
+#include "pfs/variant.hpp" // For check conflicts with `stx::optional`
 #include "pfs/optional.hpp"
 #include <complex>
 #include <functional>
