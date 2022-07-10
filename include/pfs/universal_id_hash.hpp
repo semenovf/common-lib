@@ -7,14 +7,14 @@
 //      2021.11.09 Initial version.
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
-#include "uuid.hpp"
+#include "universal_id.hpp"
 #include <functional>
 
 template<>
-struct std::hash<pfs::uuid_t>
+struct std::hash<pfs::universal_id>
 {
     // See https://stackoverflow.com/questions/2590677/how-do-i-combine-hash-values-in-c0x
-    std::size_t operator () (pfs::uuid_t const & u) const noexcept
+    std::size_t operator () (pfs::universal_id const & u) const noexcept
     {
 #ifdef ULIDUINT128
         std::uint64_t hi = u.u >> 64;

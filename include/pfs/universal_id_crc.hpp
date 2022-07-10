@@ -10,13 +10,13 @@
 #include "crc16.hpp"
 #include "crc32.hpp"
 #include "crc64.hpp"
-#include "uuid.hpp"
+#include "universal_id.hpp"
 
 namespace pfs {
 
 #ifdef ULIDUINT128
 template <>
-inline std::int16_t crc16_of<uuid_t> (uuid_t const & data, std::int16_t initial)
+inline std::int16_t crc16_of<universal_id> (universal_id const & data, std::int16_t initial)
 {
     return crc16_all_of(initial
         , static_cast<std::uint8_t>(data.u >> 120)
@@ -38,7 +38,7 @@ inline std::int16_t crc16_of<uuid_t> (uuid_t const & data, std::int16_t initial)
 }
 
 template <>
-inline std::int32_t crc32_of<uuid_t> (uuid_t const & data, std::int32_t initial)
+inline std::int32_t crc32_of<universal_id> (universal_id const & data, std::int32_t initial)
 {
     return crc32_all_of(initial
         , static_cast<std::uint8_t>(data.u >> 120)
@@ -60,7 +60,7 @@ inline std::int32_t crc32_of<uuid_t> (uuid_t const & data, std::int32_t initial)
 }
 
 template <>
-inline std::int64_t crc64_of<uuid_t> (uuid_t const & data, std::int64_t initial)
+inline std::int64_t crc64_of<universal_id> (universal_id const & data, std::int64_t initial)
 {
     return crc64_all_of(initial
         , static_cast<std::uint8_t>(data.u >> 120)
@@ -82,7 +82,7 @@ inline std::int64_t crc64_of<uuid_t> (uuid_t const & data, std::int64_t initial)
 }
 #else // ULIDUINT128
 template <>
-inline std::int16_t crc16_of<uuid_t> (uuid_t const & data, std::int16_t initial)
+inline std::int16_t crc16_of<universal_id> (universal_id const & data, std::int16_t initial)
 {
     return crc16_all_of(initial
         , data.u.data[0]
@@ -104,7 +104,7 @@ inline std::int16_t crc16_of<uuid_t> (uuid_t const & data, std::int16_t initial)
 }
 
 template <>
-inline std::int32_t crc32_of<uuid_t> (uuid_t const & data, std::int32_t initial)
+inline std::int32_t crc32_of<universal_id> (universal_id const & data, std::int32_t initial)
 {
     return crc32_all_of(initial
         , data.u.data[0]
@@ -126,7 +126,7 @@ inline std::int32_t crc32_of<uuid_t> (uuid_t const & data, std::int32_t initial)
 }
 
 template <>
-inline std::int64_t crc64_of<uuid_t> (uuid_t const & data, std::int64_t initial)
+inline std::int64_t crc64_of<universal_id> (universal_id const & data, std::int64_t initial)
 {
     return crc64_all_of(initial
         , data.u.data[0]

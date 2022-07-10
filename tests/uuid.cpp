@@ -9,9 +9,9 @@
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include "doctest.h"
 #include "pfs/fmt.hpp"
-#include "pfs/uuid.hpp"
-#include "pfs/uuid_crc.hpp"
-#include "pfs/uuid_hash.hpp"
+#include "pfs/universal_id.hpp"
+#include "pfs/universal_id_crc.hpp"
+#include "pfs/universal_id_hash.hpp"
 #include <unordered_map>
 
 TEST_CASE ("") {
@@ -25,14 +25,14 @@ TEST_CASE ("") {
 TEST_CASE("literal") {
     {
         auto uuid = "01D78XYFJ1PRM1WPBCBT3VHMNV"_uuid;
-        CHECK_EQ(uuid, pfs::from_string<pfs::uuid_t>("01D78XYFJ1PRM1WPBCBT3VHMNV"));
+        CHECK_EQ(uuid, pfs::from_string<pfs::universal_id>("01D78XYFJ1PRM1WPBCBT3VHMNV"));
         CHECK_EQ(to_string(uuid), "01D78XYFJ1PRM1WPBCBT3VHMNV");
     }
 }
 
 TEST_CASE("crc16_32_64") {
-    auto uuid = pfs::from_string<pfs::uuid_t>("01D78XYFJ1PRM1WPBCBT3VHMNV");
-    REQUIRE_NE(uuid, pfs::uuid_t{});
+    auto uuid = pfs::from_string<pfs::universal_id>("01D78XYFJ1PRM1WPBCBT3VHMNV");
+    REQUIRE_NE(uuid, pfs::universal_id{});
 
     auto crc16 = pfs::crc16_of(uuid);
     auto crc32 = pfs::crc32_of(uuid);
@@ -54,9 +54,9 @@ TEST_CASE("crc16_32_64") {
 
 TEST_CASE("serialize")
 {
-    auto u = pfs::from_string<pfs::uuid_t>("01D78XYFJ1PRM1WPBCBT3VHMNV");
+    auto u = pfs::from_string<pfs::universal_id>("01D78XYFJ1PRM1WPBCBT3VHMNV");
 
-    REQUIRE_NE(u, pfs::uuid_t{});
+    REQUIRE_NE(u, pfs::universal_id{});
 
 #ifndef ULIDUINT128
     CHECK_EQ(u.u.data[0], 0x01);
@@ -105,9 +105,9 @@ TEST_CASE("serialize")
 
 TEST_CASE("comparison")
 {
-    auto u1 = pfs::from_string<pfs::uuid_t>("01D78XYFJ1PRM1WPBCBT3VHMNV");
-    auto u2 = pfs::from_string<pfs::uuid_t>("01D78XYFJ1PRM1WPBCBT3VHMNV");
-    auto u3 = pfs::from_string<pfs::uuid_t>("02D78XYFJ1PRM1WPBCBT3VHMNV");
+    auto u1 = pfs::from_string<pfs::universal_id>("01D78XYFJ1PRM1WPBCBT3VHMNV");
+    auto u2 = pfs::from_string<pfs::universal_id>("01D78XYFJ1PRM1WPBCBT3VHMNV");
+    auto u3 = pfs::from_string<pfs::universal_id>("02D78XYFJ1PRM1WPBCBT3VHMNV");
 
     CHECK(u1 == u2);
     CHECK(u1 <= u2);
@@ -120,10 +120,10 @@ TEST_CASE("comparison")
 
 TEST_CASE("hash")
 {
-    auto u1 = pfs::from_string<pfs::uuid_t>("01D78XYFJ1PRM1WPBCBT3VHMNV");
-    auto u2 = pfs::from_string<pfs::uuid_t>("02D78XYFJ1PRM1WPBCBT3VHMNV");
+    auto u1 = pfs::from_string<pfs::universal_id>("01D78XYFJ1PRM1WPBCBT3VHMNV");
+    auto u2 = pfs::from_string<pfs::universal_id>("02D78XYFJ1PRM1WPBCBT3VHMNV");
 
-    std::unordered_map<pfs::uuid_t, int> m;
+    std::unordered_map<pfs::universal_id, int> m;
     m[u1] = 42;
     m[u2] = 43;
 
