@@ -2,7 +2,7 @@
 
 CWD=`pwd`
 
-if [ -d .git ] ; then
+if [ -e .git ] ; then
 
     git pull \
         && git submodule update --init \
