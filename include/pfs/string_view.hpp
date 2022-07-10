@@ -52,7 +52,7 @@ namespace pfs {
 
 inline bool starts_with (string_view const & str, string_view::value_type ch)
 {
-    return str.size() >= 1 && str[0] == ch;
+    return str.size() >= 1 && str.front() == ch;
 }
 
 inline bool starts_with (string_view const & str, char const * p)
@@ -70,6 +70,30 @@ inline bool starts_with (string_view const & str, std::string const & prefix)
 inline bool starts_with (string_view const & str, string_view const & prefix)
 {
     return str.size() >= prefix.size() && str.compare(0, prefix.size(), prefix) == 0;
+}
+
+inline bool ends_with (string_view const & str, string_view::value_type ch)
+{
+    return str.size() >= 1 && str.back() == ch;
+}
+
+inline bool ends_with (string_view const & str, char const * p)
+{
+    // NOTE Not optimal
+    auto len = std::strlen(p);
+    return str.size() >= len && str.compare(str.size() - len, string_view::npos, p) == 0;
+}
+
+inline bool ends_with (string_view const & str, std::string const & suffix)
+{
+    return str.size() >= suffix.size() 
+        && str.compare(str.size() - suffix.size(), string_view::npos, suffix) == 0;
+}
+
+inline bool ends_with (string_view const & str, string_view const & suffix)
+{
+    return str.size() >= suffix.size() 
+        && str.compare(str.size() - suffix.size(), string_view::npos, suffix) == 0;
 }
 
 }

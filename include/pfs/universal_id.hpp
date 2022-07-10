@@ -28,7 +28,8 @@ namespace pfs {
 // See https://github.com/suyash/ulid
 // NOTE! Struct-based implementation assumes big-endian order.
 
-class uuid_t
+// NOTE! `uuid_t` name conficts with macro `uuid_t` defined in MSVC's shared/rpcdece.h
+class universal_id //uuid_t
 {
 public:
 #ifdef ULIDUINT128
@@ -37,8 +38,8 @@ public:
     ulid::ULID u {};
 #endif
 
-    uuid_t () {}
-    uuid_t (ulid::ULID v) : u(v) {}
+    universal_id () {}
+    universal_id (ulid::ULID v) : u(v) {}
 };
 
 using random_engine_t = std::mt19937;
@@ -50,9 +51,9 @@ inline auto random_engine () -> random_engine_t &
     return result;
 }
 
-inline uuid_t generate_uuid ()
+inline universal_id generate_uuid ()
 {
-    uuid_t result;
+    universal_id result;
 
     // Encode first 6 bytes with the timestamp in milliseconds using
     // std::chrono::system_clock::now()
@@ -63,7 +64,7 @@ inline uuid_t generate_uuid ()
     return result;
 }
 
-inline std::string to_string (uuid_t const & value)
+inline std::string to_string (universal_id const & value)
 {
     return ulid::Marshal(value.u);
 }
@@ -72,27 +73,27 @@ template <typename T>
 T from_string (std::string const & str);
 
 template <>
-inline uuid_t from_string<uuid_t> (std::string const & str)
+inline universal_id from_string<universal_id> (std::string const & str)
 {
     return str.size() == 26
         ? ulid::Unmarshal(str)
-        : uuid_t{};
+        : universal_id{};
 }
 
 #ifdef ULIDUINT128
 
-inline uuid_t make_uuid (std::uint64_t hi, std::uint64_t lo)
+inline universal_id make_uuid (std::uint64_t hi, std::uint64_t lo)
 {
-    return pfs::uuid_t{construct_uint128(hi, lo)};
+    return pfs::universal_id{construct_uint128(hi, lo)};
 }
 
 /**
  * Makes UUID from array @a a that contains bytes in order specified by @a e.
  */
-inline pfs::uuid_t make_uuid (std::array<std::uint8_t, 16> const & a
+inline universal_id make_uuid (std::array<std::uint8_t, 16> const & a
     , endian e = endian::network)
 {
-    pfs::uuid_t result {0};
+    universal_id result {0};
 
     if (e == endian::little) {
         for (int i = 0, j = 0; i < 16; i++, j += 8)
@@ -108,7 +109,7 @@ inline pfs::uuid_t make_uuid (std::array<std::uint8_t, 16> const & a
 /**
  * Converts UUID into array that will contains bytes in order specified by @a e.
  */
-inline std::array<std::uint8_t, 16> to_array (uuid_t const & u
+inline std::array<std::uint8_t, 16> to_array (universal_id const & u
     , endian e = endian::network)
 {
     std::array<std::uint8_t, 16> result;
@@ -126,9 +127,9 @@ inline std::array<std::uint8_t, 16> to_array (uuid_t const & u
 
 #else // ULIDUINT128
 
-inline pfs::uuid_t make_uuid (std::uint64_t hi, std::uint64_t lo)
+inline universal_id make_uuid (std::uint64_t hi, std::uint64_t lo)
 {
-    pfs::uuid_t result;
+    universal_id result;
     std::uint8_t * a = & result.u.data[0];
 
     a[15] = static_cast<std::uint8_t>(hi);
@@ -183,10 +184,10 @@ inline pfs::uuid_t make_uuid (std::uint64_t hi, std::uint64_t lo)
 /**
  * Makes UUID from array @a a that contains bytes in order specified by @a e.
  */
-inline pfs::uuid_t make_uuid (std::array<std::uint8_t, 16> const & a
+inline universal_id make_uuid (std::array<std::uint8_t, 16> const & a
     , endian e = endian::network)
 {
-    pfs::uuid_t result;
+    universal_id result;
 
     // See NOTE at beginning of source
     if (e == endian::little) {
@@ -203,7 +204,7 @@ inline pfs::uuid_t make_uuid (std::array<std::uint8_t, 16> const & a
 /**
  * Converts UUID into array that will contains bytes in order specified by @a e.
  */
-inline std::array<std::uint8_t, 16> to_array (uuid_t const & u
+inline std::array<std::uint8_t, 16> to_array (universal_id const & u
     , endian e = endian::network)
 {
     std::array<std::uint8_t, 16> result;
@@ -222,37 +223,37 @@ inline std::array<std::uint8_t, 16> to_array (uuid_t const & u
 
 #endif // !ULIDUINT128
 
-inline int compare (uuid_t const & u1, uuid_t const & u2)
+inline int compare (universal_id const & u1, universal_id const & u2)
 {
     return ulid::CompareULIDs(u1.u, u2.u);
 }
 
-inline bool operator == (uuid_t const & u1, uuid_t const & u2)
+inline bool operator == (universal_id const & u1, universal_id const & u2)
 {
     return compare(u1, u2) == 0;
 }
 
-inline bool operator != (uuid_t const & u1, uuid_t const & u2)
+inline bool operator != (universal_id const & u1, universal_id const & u2)
 {
     return compare(u1, u2) != 0;
 }
 
-inline bool operator < (uuid_t const & u1, uuid_t const & u2)
+inline bool operator < (universal_id const & u1, universal_id const & u2)
 {
     return compare(u1, u2) < 0;
 }
 
-inline bool operator <= (uuid_t const & u1, uuid_t const & u2)
+inline bool operator <= (universal_id const & u1, universal_id const & u2)
 {
     return compare(u1, u2) <= 0;
 }
 
-inline bool operator > (uuid_t const & u1, uuid_t const & u2)
+inline bool operator > (universal_id const & u1, universal_id const & u2)
 {
     return compare(u1, u2) > 0;
 }
 
-inline bool operator >= (uuid_t const & u1, uuid_t const & u2)
+inline bool operator >= (universal_id const & u1, universal_id const & u2)
 {
     return compare(u1, u2) >= 0;
 }
@@ -261,22 +262,22 @@ inline bool operator >= (uuid_t const & u1, uuid_t const & u2)
 
 namespace std {
 
-inline std::string to_string (pfs::uuid_t const & value)
+inline std::string to_string (pfs::universal_id const & value)
 {
     return pfs::to_string(value);
 }
 
 } // namespace std
 
-inline pfs::uuid_t operator ""_uuid (char const * str, std::size_t len)
+inline pfs::universal_id operator ""_uuid (char const * str, std::size_t len)
 {
     PFS__ASSERT(len == 26 || len == 0
         , "UUID literal must be 26 characters or empty");
 
     if (len == 0)
-        return pfs::uuid_t{};
+        return pfs::universal_id{};
 
-    pfs::uuid_t result;
+    pfs::universal_id result;
     ulid::UnmarshalFrom(str, result.u);
     return result;
 }
@@ -284,7 +285,7 @@ inline pfs::uuid_t operator ""_uuid (char const * str, std::size_t len)
 namespace fmt {
 
 template <>
-struct formatter<pfs::uuid_t>
+struct formatter<pfs::universal_id>
 {
     template <typename ParseContext>
     constexpr auto parse (ParseContext & ctx) -> decltype(ctx.begin())
@@ -293,7 +294,7 @@ struct formatter<pfs::uuid_t>
     }
 
     template <typename FormatContext>
-    auto format (pfs::uuid_t const & uuid, FormatContext & ctx) -> decltype(ctx.out())
+    auto format (pfs::universal_id const & uuid, FormatContext & ctx) -> decltype(ctx.out())
     {
         return format_to(ctx.out(), "#{}", to_string(uuid));
     }
