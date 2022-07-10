@@ -4,9 +4,9 @@ CWD=`pwd`
 
 if [ -e .git ] ; then
 
-    git pull \
+    git checkout master && git pull origin master \
         && git submodule update --init \
-        && cd 3rdparty/portable-target && git pull && git checkout master \
+        && cd 3rdparty/portable-target && git checkout master && git pull origin master \
         && cd $CWD
 
 fi
