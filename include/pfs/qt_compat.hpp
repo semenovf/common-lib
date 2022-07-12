@@ -37,7 +37,7 @@ namespace std {
 
 inline unsigned int qHash (std::string const & key, unsigned int seed = 0)
 {
-    return qHash(QByteArray::fromRawData(key.data(), key.length()), seed);
+    return qHash(QByteArray::fromRawData(key.data(), static_cast<int>(key.length())), seed);
 }
 
 } // namespace std
