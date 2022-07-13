@@ -24,7 +24,7 @@ option(PFS__USE_IMPORTED_GETTEXT_LIB "Enable external gettext library" ${_use_im
 
 find_package(Threads REQUIRED)
 
-portable_target(LIBRARY ${PROJECT_NAME} INTERFACE ALIAS pfs::common)
+portable_target(ADD_INTERFACE ${PROJECT_NAME} ALIAS pfs::common)
 portable_target(INCLUDE_DIRS ${PROJECT_NAME} INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
 portable_target(LINK ${PROJECT_NAME} INTERFACE Threads::Threads)
 
