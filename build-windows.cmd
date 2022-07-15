@@ -31,7 +31,6 @@ if "%BUILD_JOBS%" == "" set BUILD_JOBS = %NUMBER_OF_PROCESSORS%
 
 :: Valid values for MSBuild verbosity option.
 :: q[uiet], m[inimal], n[ormal] (default), d[etailed], and diag[nostic].
-
 if "%BUILD_VERBOSITY%" == "" set BUILD_VERBOSITY=minimal
 
 if "%BUILD_GENERATOR%" == "" (
