@@ -8,7 +8,7 @@ project(pfs-common CXX C)
 
 option(PFS__FORCE_ULID_STRUCT "Enable ULID struct representation (UUID backend)" OFF)
 option(PFS__ENABLE_EXCEPTIONS "Enable exceptions for library" OFF)
-option(PFS__ENABLE_NLS "Enable Native Language Support " ON)
+option(PFS__ENABLE_NLS "Enable Native Language Support " OFF)
 
 if (PFS__ENABLE_NLS)
     if (MSVC)

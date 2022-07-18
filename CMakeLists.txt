@@ -1,7 +1,7 @@
 ################################################################################
-# Copyright (c) 2019-2021 Vladislav Trifochkin
+# Copyright (c) 2019-2022 Vladislav Trifochkin
 #
-# This file is part of [common-lib](https://github.com/semenovf/common-lib) library.
+# This file is part of `common-lib`.
 ################################################################################
 cmake_minimum_required (VERSION 3.11)
 project(common-lib-ALL CXX C)
