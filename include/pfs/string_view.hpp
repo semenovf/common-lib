@@ -24,28 +24,30 @@
 #   include "3rdparty/stx/string_view.hpp"
 
     namespace pfs {
-    // Avoid `undefined reference to `std::basic_string_view<char, std::char_traits<char> >::npos`
-    template <typename CharT, typename Traits>
-    constexpr typename basic_string_view<CharT, Traits>::size_type
-    basic_string_view<CharT, Traits>::npos;
+        // Avoid `undefined reference to `std::basic_string_view<char, std::char_traits<char> >::npos`
+        template <typename CharT, typename Traits>
+        constexpr typename basic_string_view<CharT, Traits>::size_type
+        basic_string_view<CharT, Traits>::npos;
     } // namespace pfs
 
     using string_view = pfs::string_view;
 
-    template <>
-    struct std::hash<pfs::string_view>
-    {
-        std::size_t operator () (pfs::string_view sv) const noexcept
+    namespace std {
+        template <>
+        struct hash<pfs::string_view>
         {
-            std::size_t result = 0;
-            std::hash<pfs::string_view::value_type> hasher;
+            std::size_t operator () (pfs::string_view sv) const noexcept
+            {
+                std::size_t result = 0;
+                std::hash<pfs::string_view::value_type> hasher;
 
-            for (auto & ch: sv)
-                result = result * 31 + hasher(ch);
+                for (auto & ch: sv)
+                    result = result * 31 + hasher(ch);
 
-            return result;
-        }
-    };
+                return result;
+            }
+        };
+    } // namespace std
 #endif
 
 namespace pfs {
