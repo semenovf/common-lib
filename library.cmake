@@ -60,6 +60,7 @@ if (PFS__ENABLE_NLS)
     if (PFS__USE_IMPORTED_GETTEXT_LIB)
         if (MSVC)
             add_library(libintl SHARED IMPORTED GLOBAL)
+            add_library(libiconv-2 SHARED IMPORTED GLOBAL)
 
             set_target_properties(libintl PROPERTIES 
                 IMPORTED_LOCATION "${CMAKE_CURRENT_LIST_DIR}/3rdparty/gettext-0.21/libintl.dll"
@@ -67,6 +68,11 @@ if (PFS__ENABLE_NLS)
                 INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_CURRENT_LIST_DIR}/3rdparty/gettext-0.21"
                 # Custom target for libintl dependency
                 ICONV_LIB "${CMAKE_CURRENT_LIST_DIR}/3rdparty/gettext-0.21/libiconv-2.dll")
+
+            set_target_properties(libiconv-2 PROPERTIES 
+                IMPORTED_LOCATION "${CMAKE_CURRENT_LIST_DIR}/3rdparty/gettext-0.21/libiconv-2.dll"
+                IMPORTED_IMPLIB "${CMAKE_CURRENT_LIST_DIR}/3rdparty/gettext-0.21/libiconv-2.lib"
+                INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_CURRENT_LIST_DIR}/3rdparty/gettext-0.21")
                 
             portable_target(LINK ${PROJECT_NAME} INTERFACE libintl)
 
