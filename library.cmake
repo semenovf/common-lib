@@ -7,7 +7,6 @@ cmake_minimum_required (VERSION 3.5)
 project(pfs-common CXX C)
 
 option(PFS__FORCE_ULID_STRUCT "Enable ULID struct representation (UUID backend)" OFF)
-option(PFS__ENABLE_EXCEPTIONS "Enable exceptions for library" OFF)
 option(PFS__ENABLE_NLS "Enable Native Language Support " ON)
 
 if (PFS__ENABLE_NLS)
@@ -36,10 +35,6 @@ if (MSVC)
     portable_target(DEFINITIONS ${PROJECT_NAME} INTERFACE -D_UNICODE -DUNICODE)
 endif()
 
-if (PFS__ENABLE_EXCEPTIONS)
-    portable_target(DEFINITIONS ${PROJECT_NAME} INTERFACE "PFS__EXCEPTIONS_ENABLED=1")
-endif()
-
 if (PFS__FORCE_ULID_STRUCT)
     portable_target(DEFINITIONS ${PROJECT_NAME} INTERFACE "PFS__FORCE_ULID_STRUCT=1")
 endif()
@@ -60,7 +55,7 @@ if (PFS__ENABLE_NLS)
     if (PFS__USE_IMPORTED_GETTEXT_LIB)
         add_library(libintl SHARED IMPORTED GLOBAL)
 
-        set_target_properties(libintl PROPERTIES 
+        set_target_properties(libintl PROPERTIES
             IMPORTED_LOCATION "${CMAKE_SOURCE_DIR}/3rdparty/gettext-0.21/libintl.dll"
             IMPORTED_IMPLIB "${CMAKE_SOURCE_DIR}/3rdparty/gettext-0.21/libintl.lib"
             INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_SOURCE_DIR}/3rdparty/gettext-0.21"

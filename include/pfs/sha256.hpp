@@ -331,7 +331,7 @@ public:
 
         sha256_digest result;
         hash.final(result.value.data());
-        return std::move(result);
+        return result;
     }
 
     static inline sha256_digest digest (std::string const & src)
@@ -363,7 +363,7 @@ public:
 
         sha256_digest result;
         hash.final(result.value.data());
-        return std::move(result);
+        return result;
     }
 };
 
