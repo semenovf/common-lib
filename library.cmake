@@ -7,7 +7,7 @@ cmake_minimum_required (VERSION 3.5)
 project(pfs-common CXX C)
 
 option(PFS__FORCE_ULID_STRUCT "Enable ULID struct representation (UUID backend)" OFF)
-option(PFS__ENABLE_NLS "Enable Native Language Support " ON)
+option(PFS__ENABLE_NLS "Enable Native Language Support " OFF)
 
 if (PFS__ENABLE_NLS)
     if (MSVC)
@@ -23,7 +23,7 @@ option(PFS__USE_IMPORTED_GETTEXT_LIB "Enable external gettext library" ${_use_im
 
 find_package(Threads REQUIRED)
 
-portable_target(LIBRARY ${PROJECT_NAME} INTERFACE ALIAS pfs::common)
+portable_target(ADD_INTERFACE ${PROJECT_NAME} ALIAS pfs::common)
 portable_target(INCLUDE_DIRS ${PROJECT_NAME} INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
 portable_target(LINK ${PROJECT_NAME} INTERFACE Threads::Threads)
 
@@ -53,14 +53,38 @@ endif()
 
 if (PFS__ENABLE_NLS)
     if (PFS__USE_IMPORTED_GETTEXT_LIB)
-        add_library(libintl SHARED IMPORTED GLOBAL)
+        if (MSVC)
+            add_library(libintl SHARED IMPORTED GLOBAL)
+            add_library(libiconv-2 SHARED IMPORTED GLOBAL)
 
-        set_target_properties(libintl PROPERTIES
-            IMPORTED_LOCATION "${CMAKE_SOURCE_DIR}/3rdparty/gettext-0.21/libintl.dll"
-            IMPORTED_IMPLIB "${CMAKE_SOURCE_DIR}/3rdparty/gettext-0.21/libintl.lib"
-            INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_SOURCE_DIR}/3rdparty/gettext-0.21"
-            # Custom target for libintl dependency
-            ICONV_LIB "${CMAKE_SOURCE_DIR}/3rdparty/gettext-0.21/libiconv-2.dll")
+            set_target_properties(libintl PROPERTIES
+                IMPORTED_LOCATION "${CMAKE_CURRENT_LIST_DIR}/3rdparty/gettext-0.21/libintl.dll"
+                IMPORTED_IMPLIB "${CMAKE_CURRENT_LIST_DIR}/3rdparty/gettext-0.21/libintl.lib"
+                INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_CURRENT_LIST_DIR}/3rdparty/gettext-0.21"
+                # Custom target for libintl dependency
+                ICONV_LIB "${CMAKE_CURRENT_LIST_DIR}/3rdparty/gettext-0.21/libiconv-2.dll")
+
+            set_target_properties(libiconv-2 PROPERTIES
+                IMPORTED_LOCATION "${CMAKE_CURRENT_LIST_DIR}/3rdparty/gettext-0.21/libiconv-2.dll"
+                IMPORTED_IMPLIB "${CMAKE_CURRENT_LIST_DIR}/3rdparty/gettext-0.21/libiconv-2.lib"
+                INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_CURRENT_LIST_DIR}/3rdparty/gettext-0.21")
+
+            portable_target(LINK ${PROJECT_NAME} INTERFACE libintl)
+
+            # FIXME
+            # Target "pfs-common" is an INTERFACE library that may not have PRE_BUILD,
+            # PRE_LINK, or POST_BUILD commands.
+            #
+            # add_custom_command(TARGET ${PROJECT_NAME}
+            #     POST_BUILD
+            #     COMMAND ${CMAKE_COMMAND} -E copy
+            #         "$<TARGET_PROPERTY:libintl,IMPORTED_LOCATION>"
+            #         "$<TARGET_FILE_DIR:${PROJECT_NAME}>"
+            #     COMMAND ${CMAKE_COMMAND} -E copy
+            #         "$<TARGET_PROPERTY:libintl,ICONV_LIB>"
+            #         "$<TARGET_FILE_DIR:${PROJECT_NAME}>"
+            #     VERBATIM)
+        endif (MSVC)
     endif()
 endif()
 

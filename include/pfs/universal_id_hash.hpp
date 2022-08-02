@@ -10,8 +10,10 @@
 #include "universal_id.hpp"
 #include <functional>
 
+namespace std {
+
 template<>
-struct std::hash<pfs::universal_id>
+struct hash<pfs::universal_id>
 {
     // See https://stackoverflow.com/questions/2590677/how-do-i-combine-hash-values-in-c0x
     std::size_t operator () (pfs::universal_id const & u) const noexcept
@@ -44,3 +46,5 @@ struct std::hash<pfs::universal_id>
         return result;
     }
 };
+
+} // namespace std

@@ -17,3 +17,34 @@ namespace pfs {<br/>
     8. `static_unique_pointer_cast` function<br/>
     9. `unicode`<br/>
 } // namespace pfs<br/>
+
+# I18N support
+
+Call cmake with `PFS__ENABLE_NLS` to enable NLS support:
+
+```sh
+$ cmake ... -DPFS__ENABLE_NLS=ON ...
+```
+
+```cmake
+...
+
+if (TARGET <TARGET>)
+    # Target `libintl` available if `PFS__ENABLE_NLS` is ON 
+    # and `PFS__USE_IMPORTED_GETTEXT_LIB` is ON (on Windows platform)
+    if (TARGET libintl)
+        portable_target(LINK <TARGET> PRIVATE libintl)
+        
+        add_custom_command(TARGET <TARGET>
+            POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy 
+                "$<TARGET_PROPERTY:libintl,IMPORTED_LOCATION>"
+                "$<TARGET_FILE_DIR:<TARGET>>"
+            COMMAND ${CMAKE_COMMAND} -E copy 
+                "$<TARGET_PROPERTY:libintl,ICONV_LIB>"
+                "$<TARGET_FILE_DIR:<TARGET>>"
+            VERBATIM)
+    endif()
+endif()
+...
+```

@@ -2,12 +2,11 @@
 
 CWD=`pwd`
 
-if [ -d .git ] ; then
+if [ -e .git ] ; then
 
-    git pull \
-        && git submodule update --init \
-        && cd 3rdparty/portable-target && git pull && git checkout master \
-        && cd $CWD
+    git checkout master && git pull origin master \
+        && git submodule update --init --recursive \
+        && git submodule update --init --remote -- 3rdparty/portable-target
 
 fi
 

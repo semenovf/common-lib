@@ -1,5 +1,5 @@
 ::-------------------------------------------------------------------------------
-:: Copyright (c) 2021 Vladislav Trifochkin
+:: Copyright (c) 2021,2022 Vladislav Trifochkin
 ::
 :: Unified build script for Windows
 ::
@@ -7,6 +7,8 @@
 ::      2021.06.22 Initial version.
 ::      2021.11.25 Updated.
 ::      2022.07.06 Added CTEST_OPTIONS.
+::      2022.07.14 Added BUILD_JOBS variable.
+::                 Added BUILD_VERBOSITY variable.
 ::-------------------------------------------------------------------------------
 
 @echo off
@@ -24,6 +26,12 @@ if "%PROJECT_OPT_PREFIX%" == "" (
     @echo ERROR: PROJECT_OPT_PREFIX is mandatory >&2
     exit /b 1
 )
+
+if "%BUILD_JOBS%" == "" set BUILD_JOBS = %NUMBER_OF_PROCESSORS%
+
+:: Valid values for MSBuild verbosity option.
+:: q[uiet], m[inimal], n[ormal] (default), d[etailed], and diag[nostic].
+if "%BUILD_VERBOSITY%" == "" set BUILD_VERBOSITY=minimal
 
 if "%BUILD_GENERATOR%" == "" (
     @echo Detecting build generator ...
@@ -100,7 +108,7 @@ if /i "%ENABLE_COVERAGE%" == "on" (
 )
 
 if "%BUILD_DIR%" == "" (
-    set "BUILD_DIR=builds\%BUILD_GENERATOR%"
+    set "BUILD_DIR=builds\%PROJECT_OPT_PREFIX%%BUILD_GENERATOR%"
 
     if not "%CXX_STANDARD%" == "" (
         set "BUILD_DIR=!BUILD_DIR!.cxx%CXX_STANDARD%" 
@@ -109,6 +117,10 @@ if "%BUILD_DIR%" == "" (
     if not "%ENABLE_COVERAGE%" == "" (
         set "BUILD_DIR=!BUILD_DIR!.coverage" 
     )
+)
+
+if not "%BUILD_DIR_SUFFIX%" == "" (
+    set "BUILD_DIR=!BUILD_DIR!%BUILD_DIR_SUFFIX%" 
 )
 
 ::
@@ -132,20 +144,22 @@ if "%SOURCE_DIR%" == "" (
     )
 )
 
-if not exist "%BUILD_DIR%" (
-    mkdir "%BUILD_DIR%"
-)
+if not exist "%BUILD_DIR%" mkdir "%BUILD_DIR%"
 
-cd "%BUILD_DIR%" ^
-    && cmake -G "%BUILD_GENERATOR%" %CMAKE_OPTIONS% "%SOURCE_DIR%" ^
-    && cmake --build .
+if %ERRORLEVEL% == 0 (
+    cd "%BUILD_DIR%" ^
+        && cmake -G "%BUILD_GENERATOR%" %CMAKE_OPTIONS% "%SOURCE_DIR%" ^
+        && cmake --build . -j %BUILD_JOBS% -- -verbosity:%BUILD_VERBOSITY%
+)
 
 if %ERRORLEVEL% == 0 (
     if "%BUILD_TESTS%" == "ON" ctest %CTEST_OPTIONS% -C %BUILD_TYPE%
 )
 
 if %ERRORLEVEL% == 0 (
-    if "%ENABLE_COVERAGE%" == "ON" cmake --build . --target Coverage
+    if "%ENABLE_COVERAGE%" == "ON" (
+	cmake --build . --target Coverage -j %BUILD_JOBS% -- -verbosity:%BUILD_VERBOSITY%
+    )
 )
 
 endlocal
