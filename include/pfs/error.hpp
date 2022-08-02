@@ -13,32 +13,73 @@
 
 namespace pfs {
 
-#ifndef PFS__THROW
-#   if PFS__EXCEPTIONS_ENABLED
-#       define PFS__THROW(x) throw x
-#   else
-#       define PFS__THROW(x)                                                \
-            do {                                                            \
-                ::pfs::assert_fail(__FILE__, __LINE__, (x).what().c_str()); \
-            } while (false)
-#   endif
-#endif
+// DEPRECATED
+// #ifndef PFS__THROW
+// #   if PFS__EXCEPTIONS_ENABLED
+// #       define PFS__THROW(x) throw x
+// #   else
+// #       define PFS__THROW(x)                                                \
+//             do {                                                            \
+//                 ::pfs::assert_fail(__FILE__, __LINE__, (x).what().c_str()); \
+//             } while (false)
+// #   endif
+// #endif
+//
+// #if defined(TRY)
+// #   undef TRY
+// #endif
+//
+// #if defined(CATCH)
+// #   undef CATCH
+// #endif
+//
+// #if PFS__EXCEPTIONS_ENABLED
+// #   define TRY try
+// #   define CATCH(x) catch (x)
+// #else
+// #   define TRY if (true)
+// #   define CATCH(x) if (false)
+// #endif
 
-#if defined(TRY)
-#   undef TRY
-#endif
+using error_code = std::error_code;
 
-#if defined(CATCH)
-#   undef CATCH
-#endif
+enum class errc
+{
+      success = 0
+    , unexpected_error // Replaces any unexpected error
+};
 
-#if PFS__EXCEPTIONS_ENABLED
-#   define TRY try
-#   define CATCH(x) catch (x)
-#else
-#   define TRY if (true)
-#   define CATCH(x) if (false)
-#endif
+class error_category : public std::error_category
+{
+public:
+    virtual char const * name () const noexcept override
+    {
+        return "pfs_common_category";
+    }
+
+    virtual std::string message (int ev) const override
+    {
+        switch (ev) {
+            case static_cast<int>(errc::success):
+                return std::string{"no error"};
+            case static_cast<int>(errc::unexpected_error):
+                return std::string{"Unexpected error"};
+
+            default: return std::string{"unknown common error"};
+        }
+    }
+};
+
+inline std::error_category const & get_error_category ()
+{
+    static error_category instance;
+    return instance;
+}
+
+inline std::error_code make_error_code (errc e)
+{
+    return std::error_code(static_cast<int>(e), get_error_category());
+}
 
 /**
  * @note This exception class may throw std::bad_alloc as it uses std::string.
@@ -127,5 +168,10 @@ public:
         return result;
     }
 };
+
+inline error make_exception (errc e)
+{
+    return error(make_error_code(e));
+}
 
 } // namespace pfs

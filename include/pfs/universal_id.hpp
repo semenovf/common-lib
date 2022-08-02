@@ -260,28 +260,6 @@ inline bool operator >= (universal_id const & u1, universal_id const & u2)
 
 } // namespace pfs
 
-namespace std {
-
-inline std::string to_string (pfs::universal_id const & value)
-{
-    return pfs::to_string(value);
-}
-
-} // namespace std
-
-inline pfs::universal_id operator ""_uuid (char const * str, std::size_t len)
-{
-    PFS__ASSERT(len == 26 || len == 0
-        , "UUID literal must be 26 characters or empty");
-
-    if (len == 0)
-        return pfs::universal_id{};
-
-    pfs::universal_id result;
-    ulid::UnmarshalFrom(str, result.u);
-    return result;
-}
-
 namespace fmt {
 
 template <>
@@ -301,3 +279,16 @@ struct formatter<pfs::universal_id>
 };
 
 } // namespace fmt
+
+inline pfs::universal_id operator ""_uuid (char const * str, std::size_t len)
+{
+    PFS__ASSERT(len == 26 || len == 0
+        , "UUID literal must be 26 characters or empty");
+
+    if (len == 0)
+        return pfs::universal_id{};
+
+    pfs::universal_id result;
+    ulid::UnmarshalFrom(str, result.u);
+    return result;
+}

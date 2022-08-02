@@ -35,8 +35,11 @@
  */
 #pragma once
 #include "bits/endian.h"
+#include "error.hpp"
+#include "filesystem.hpp"
 #include "fmt.hpp"
 #include <array>
+#include <system_error>
 #include <istream>
 #include <string>
 #include <cstdint>
@@ -339,27 +342,77 @@ public:
         return digest(reinterpret_cast<std::uint8_t const *>(src.data()), src.size());
     }
 
-    static sha256_digest digest (std::istream & is, bool * success = nullptr)
+    /**
+     * @throws error @c std::errc::no_such_file_or_directory.
+     * @throws error with @c std::ios_base::failure error codes.
+     */
+    static sha256_digest digest (filesystem::path const & path)
+    {
+        std::error_code ec;
+        auto res = digest(path, ec);
+
+        if (ec)
+            throw error(ec);
+
+        return res;
+    }
+
+    /**
+     * @throws error with @c std::ios_base::failure error codes.
+     */
+    static sha256_digest digest (std::istream & is)
+    {
+        std::error_code ec;
+        auto res = digest(is, ec);
+
+        if (ec)
+            throw error(ec);
+
+        return res;
+    }
+
+    /**
+     */
+    static sha256_digest digest (filesystem::path const & path, std::error_code & ec) noexcept
+    {
+        if (!filesystem::exists(path)) {
+            ec = std::make_error_code(std::errc::no_such_file_or_directory);
+            return sha256_digest{};
+        }
+
+        std::ifstream ifs{filesystem::utf8_encode(path), std::ios::binary};
+        return digest(ifs, ec);
+    }
+
+    static sha256_digest digest (std::istream & is, std::error_code & ec) noexcept
     {
         constexpr std::size_t kBUFSZ = 256;
         char buffer[kBUFSZ];
 
         sha256 hash;
 
+        auto saved_exceptions = is.exceptions();
+
         try {
+            is.exceptions(std::ios::failbit | std::ios::badbit);
+            is.seekg(0, std::ios::beg);
+
             while (is.good()) {
                 is.read(buffer, kBUFSZ);
                 hash.update(reinterpret_cast<uint8_t *>(buffer), is.gcount());
             }
+        } catch (std::ios_base::failure ex) {
+            if (!is.eof()) {
+                ec = ex.code();
+                is.exceptions(saved_exceptions);
+                return sha256_digest{};
+            }
         } catch (...) {
-            if (success)
-                *success = false;
+            ec = make_error_code(errc::unexpected_error);
+            return sha256_digest{};
         }
 
-        if (!is.eof()) {
-            if (success)
-                *success = false;
-        }
+        is.exceptions(saved_exceptions);
 
         sha256_digest result;
         hash.final(result.value.data());
