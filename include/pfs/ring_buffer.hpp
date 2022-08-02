@@ -192,9 +192,10 @@ using default_list_container = std::list<T>;
 // ring_buffer
 ///////////////////////////////////////////////////////////
 template <typename T
-    , size_t BulkSize
+    , size_t BULK_SIZE
     , template <typename> class ListContainer = ring_buffer_details::default_list_container
-    , template <typename, size_t> class BulkContainer = ring_buffer_details::default_bulk_container>
+    , template <typename, size_t> class BulkContainer = ring_buffer_details::default_bulk_container
+    , size_t MAX_BUFFER_SIZE = (std::numeric_limits<std::size_t>::max)()>
 class ring_buffer
 {
     friend class ring_buffer_details::forward_iterator<ring_buffer>;
@@ -205,13 +206,13 @@ public:
     using const_reference = T const &;
     using pointer = T *;
     using const_pointer = T const *;
-    using bulk_type = BulkContainer<T, BulkSize>;
+    using bulk_type = BulkContainer<T, BULK_SIZE>;
     using bulk_list_type = ListContainer<bulk_type>;
     using size_type = std::size_t;
 
     // Actually infinite limit
     static constexpr const size_type nbulks = (std::numeric_limits<size_type>::max)();
-    static constexpr const size_type bulk_size = BulkSize;
+    static constexpr const size_type bulk_size = BULK_SIZE;
 
 private:
     using item_iterator = typename bulk_type::iterator;
@@ -352,8 +353,8 @@ public:
                     for (size_type i = 0; i < nbulks; i++)
                         _bulks.emplace(_head.current_bulk());
                 } else {
-                // If head and tail is on the same bulks insert new bulks
-                // before head's bulk and move values to the new bulk
+                    // If head and tail is on the same bulks insert new bulks
+                    // before head's bulk and move values to the new bulk
 
                     // Save first inserted bulk to store tail's values from head's bulk
                     auto first_inserted_bulk = _bulks.emplace(_head.current_bulk());
@@ -458,11 +459,8 @@ public:
      */
     void push (value_type const & value)
     {
-        if (_size == capacity())
-            throw std::bad_alloc();
-
+        ensure_capacity();
         move_write_position();
-
         new (& *_tail) value_type(value);
     }
 
@@ -471,20 +469,15 @@ public:
      */
     void push (value_type && value)
     {
-        if (_size == capacity())
-            throw std::bad_alloc();
-
+        ensure_capacity();
         move_write_position();
-
         new (& *_tail) value_type(std::forward<value_type>(value));
     }
 
     template <typename ...Args>
     void emplace (Args &&... args)
     {
-        if (_size == capacity())
-            throw std::bad_alloc();
-
+        ensure_capacity();
         move_write_position();
         new (& *_tail) value_type(std::forward<Args>(args)...);
     }
@@ -530,21 +523,21 @@ private:
         _size++;
     }
 
-    iterator begin ()
+    inline iterator begin ()
     {
         return iterator(*this
             , _bulks.begin()
             , _bulks.front().begin());
     }
 
-    iterator end ()
+    inline iterator end ()
     {
         return iterator(*this
             , last_bulk()
             , _bulks.back().end());
     }
 
-    iterator last ()
+    inline iterator last ()
     {
         return iterator(*this
             , last_bulk()
@@ -552,9 +545,24 @@ private:
     }
 
     // Iterator specific helper method
-    bulk_iterator last_bulk ()
+    inline bulk_iterator last_bulk ()
     {
         return --_bulks.end();
+    }
+
+    inline void ensure_capacity ()
+    {
+        if (size() == capacity()) {
+            if (size() >= MAX_BUFFER_SIZE)
+                throw std::bad_alloc();
+
+            auto new_size = size() + BULK_SIZE;
+
+            if (new_size > MAX_BUFFER_SIZE)
+                new_size = MAX_BUFFER_SIZE;
+
+            reserve(new_size);
+        }
     }
 };
 
@@ -562,14 +570,16 @@ private:
 // ring_buffer_mt
 ///////////////////////////////////////////////////////////
 template <typename T
-    , size_t BulkSize
+    , size_t BULK_SIZE
     , typename BasicLockable = std::mutex
     , typename ConditionVariable = std::condition_variable
     , template <typename> class ListContainer = ring_buffer_details::default_list_container
-    , template <typename, size_t> class BulkContainer = ring_buffer_details::default_bulk_container>
-class ring_buffer_mt : protected ring_buffer<T, BulkSize, ListContainer, BulkContainer>
+    , template <typename, size_t> class BulkContainer = ring_buffer_details::default_bulk_container
+    , size_t MAX_BUFFER_SIZE = (std::numeric_limits<std::size_t>::max)()>
+class ring_buffer_mt : protected ring_buffer<T, BULK_SIZE, ListContainer
+    , BulkContainer, MAX_BUFFER_SIZE>
 {
-    using base_class = ring_buffer<T, BulkSize, ListContainer, BulkContainer>;
+    using base_class = ring_buffer<T, BULK_SIZE, ListContainer, BulkContainer>;
     using mutex_type = BasicLockable;
     using condition_variable_type = ConditionVariable;
 
