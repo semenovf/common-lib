@@ -18,7 +18,7 @@ namespace fs = pfs::filesystem;
 fs::path PROGRAM_DIR;
 
 DOCTEST_MSVC_SUPPRESS_WARNING_WITH_PUSH(4007) // 'function' : must be 'attribute' - see issue #182
-int main (int argc, char** argv) 
+int main (int argc, char** argv)
 {
     auto program_path = fs::utf8_decode(argv[0]);
     PROGRAM_DIR = fs::absolute(program_path).parent_path();
@@ -38,16 +38,16 @@ TEST_CASE("constructors") {
 
 TEST_CASE("Dynamic Library basics") {
 
+    std::error_code ec;
     auto dlfile = PROGRAM_DIR / pfs::dynamic_library::build_filename("shared_object");
 
-    pfs::error err;
-    pfs::dynamic_library dl {dlfile, & err};
+    pfs::dynamic_library dl {dlfile, ec};
 
-    REQUIRE_MESSAGE((dl), "Dynamic library open failed: " << err.what());
+    REQUIRE_MESSAGE((dl), "Dynamic library open failed: " << ec.message());
 
-    auto dltest = dl.resolve<int(void)>("dl_only_for_testing_purpose", & err);
+    auto dltest = dl.resolve<int(void)>("dl_only_for_testing_purpose", ec);
 
-    REQUIRE_MESSAGE(!err, "Dynamic library symbol resolve failed: " << err.what());
+    REQUIRE_MESSAGE(!(ec), "Dynamic library symbol resolve failed: " << ec.message());
     MESSAGE("'dl_only_for_testing_purpose': symbol (function pointer) found");
     REQUIRE_MESSAGE(dltest() == 1234, "run plugin/library function");
     MESSAGE("run plugin/library function: success");

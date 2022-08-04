@@ -122,19 +122,57 @@ private:
 
 private:
 #if _MSC_VER
-    static std::string last_error ()
+    static std::string last_error () noexcept
     {
         return windows::utf8_error(GetLastError());
     }
 #else // POSIX
-    static std::string last_error ()
+    static std::string last_error () noexcept
     {
         return ::dlerror();
     }
 #endif
 
 private:
-    symbol_type resolve_impl (char const * symbol_name, error * perr = nullptr)
+    std::error_code open (fs::path const & p) noexcept
+    {
+        native_handle_type h{0};
+
+        if (p.empty())
+            return make_error_code(dynamic_library_errc::invalid_argument);
+
+        if (!fs::exists(p))
+            return make_error_code(dynamic_library_errc::file_not_found);
+
+#if _MSC_VER
+        DWORD dwFlags = 0;
+
+        h = LoadLibraryEx(p.c_str(), NULL, dwFlags);
+
+        if (!h)
+            return make_error_code(dynamic_library_errc::open_failed);
+
+        _handle = h;
+
+#else // POSIX
+        // clear error
+        ::dlerror();
+
+        bool global = false;
+        bool resolve = true;
+
+        h = ::dlopen(p.c_str(), (global ? RTLD_GLOBAL : RTLD_LOCAL)
+            | ( resolve ? RTLD_NOW : RTLD_LAZY));
+
+        if (!h)
+            return make_error_code(dynamic_library_errc::open_failed);
+
+        _handle = h;
+#endif
+        return std::error_code{};
+    }
+
+    symbol_type resolve_impl (char const * symbol_name, std::error_code & ec) noexcept
     {
         auto success = true;
 
@@ -154,68 +192,37 @@ private:
             success = false;
 #endif
 
-        if (!sym) {
-            auto ec = pfs::make_error_code(dynamic_library_errc::symbol_not_found);
-            auto err = error{ec, last_error()};
-            if (perr) *perr = err; else PFS__THROW(err);
-        }
+        if (!sym)
+            ec = pfs::make_error_code(dynamic_library_errc::symbol_not_found);
 
         return sym;
     }
 
+    symbol_type resolve_impl (char const * symbol_name)
+    {
+        std::error_code ec;
+        auto res = resolve_impl(symbol_name, ec);
+
+        if (ec)
+            throw error{ec, last_error()};
+
+        return res;
+    }
+
 public:
-    dynamic_library (fs::path const & p, error * perr = nullptr)
+    dynamic_library (fs::path const & p, std::error_code & ec) noexcept
         : _handle(0)
     {
-        native_handle_type h{0};
+        ec = open(p);
+    }
 
-        if (p.empty()) {
-            auto ec = make_error_code(dynamic_library_errc::invalid_argument);
-            auto err = error{ec};
-            if (perr) *perr = err; else PFS__THROW(err);
-            return;
-        }
+    dynamic_library (fs::path const & p)
+        : _handle(0)
+    {
+        auto ec = open(p);
 
-        if (!fs::exists(p)) {
-            auto ec = pfs::make_error_code(dynamic_library_errc::file_not_found);
-            auto err = error{ec};
-            if (perr) *perr = err; else PFS__THROW(err);
-            return;
-        }
-
-#if _MSC_VER
-        DWORD dwFlags = 0;
-
-        h = LoadLibraryEx(p.c_str(), NULL, dwFlags);
-
-        if (!h) {
-            auto ec = pfs::make_error_code(dynamic_library_errc::open_failed);
-            auto err = error{ec, last_error()};
-            if (perr) *perr = err; else PFS__THROW(err);
-            return;
-        }
-
-        _handle = h;
-
-#else // POSIX
-        // clear error
-        ::dlerror();
-
-        bool global = false;
-        bool resolve = true;
-
-        h = ::dlopen(p.c_str(), (global ? RTLD_GLOBAL : RTLD_LOCAL)
-            | ( resolve ? RTLD_NOW : RTLD_LAZY));
-
-        if (!h) {
-            auto ec = pfs::make_error_code(dynamic_library_errc::open_failed);
-            auto err = error{ec, last_error()};
-            if (perr) *perr = err; else PFS__THROW(err);
-            return;
-        }
-
-        _handle = h;
-#endif
+        if (ec)
+            throw error{ec};
     }
 
     dynamic_library () = delete;
@@ -257,15 +264,39 @@ public:
     }
 
     template <typename Signature>
-    Signature * resolve (char const * symbol_name, error * perr = nullptr)
+    Signature * resolve (char const * symbol_name, std::error_code & ec) noexcept
     {
-        return function_pointer_cast<Signature *>(resolve_impl(symbol_name, perr));
+        return function_pointer_cast<Signature *>(resolve_impl(symbol_name, ec));
     }
 
     template <typename Signature>
-    Signature * resolve (std::string const & symbol_name, error * perr = nullptr)
+    Signature * resolve (char const * symbol_name)
     {
-        return function_pointer_cast<Signature *>(resolve_impl(symbol_name.c_str(), perr));
+        std::error_code ec;
+        auto res = resolve<Signature>(symbol_name, ec);
+
+        if (ec)
+            throw error {ec, last_error()};
+
+        return res;
+    }
+
+    template <typename Signature>
+    Signature * resolve (std::string const & symbol_name, std::error_code & ec) noexcept
+    {
+        return function_pointer_cast<Signature *>(resolve_impl(symbol_name.c_str(), ec));
+    }
+
+    template <typename Signature>
+    Signature * resolve (std::string const & symbol_name)
+    {
+        std::error_code ec;
+        auto res = resolve<Signature>(symbol_name, ec);
+
+        if (ec)
+            throw error {ec, last_error()};
+
+        return res;
     }
 
 public:

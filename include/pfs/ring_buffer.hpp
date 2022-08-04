@@ -193,9 +193,9 @@ using default_list_container = std::list<T>;
 ///////////////////////////////////////////////////////////
 template <typename T
     , size_t BULK_SIZE
+    , size_t MAX_BUFFER_SIZE = (std::numeric_limits<std::size_t>::max)()
     , template <typename> class ListContainer = ring_buffer_details::default_list_container
-    , template <typename, size_t> class BulkContainer = ring_buffer_details::default_bulk_container
-    , size_t MAX_BUFFER_SIZE = (std::numeric_limits<std::size_t>::max)()>
+    , template <typename, size_t> class BulkContainer = ring_buffer_details::default_bulk_container>
 class ring_buffer
 {
     friend class ring_buffer_details::forward_iterator<ring_buffer>;
@@ -490,20 +490,26 @@ public:
         //_head->~value_type();
         reinterpret_cast<pointer>(& *_head)->~value_type();
 
-        ++_head;
-
-        if (_head == end()) {
-            _head = begin();
-            _is_head_preceed_tail = true;
-        }
-
         --_size;
+
+        if (_size == 0) {
+            _head = begin();
+            _tail = end();
+            _is_head_preceed_tail = true;
+        } else {
+            ++_head;
+
+            if (_head == end()) {
+                _head = begin();
+                _is_head_preceed_tail = true;
+            }
+        }
     }
 
 private:
     void move_write_position ()
     {
-        // Intially _tail points to the end of ring buffer
+        // Initially _tail points to the end of ring buffer
         if (_tail == end()) {
             _tail = begin();
 
@@ -576,10 +582,10 @@ template <typename T
     , template <typename> class ListContainer = ring_buffer_details::default_list_container
     , template <typename, size_t> class BulkContainer = ring_buffer_details::default_bulk_container
     , size_t MAX_BUFFER_SIZE = (std::numeric_limits<std::size_t>::max)()>
-class ring_buffer_mt : protected ring_buffer<T, BULK_SIZE, ListContainer
-    , BulkContainer, MAX_BUFFER_SIZE>
+class ring_buffer_mt : protected ring_buffer<T, BULK_SIZE, MAX_BUFFER_SIZE, ListContainer
+    , BulkContainer>
 {
-    using base_class = ring_buffer<T, BULK_SIZE, ListContainer, BulkContainer>;
+    using base_class = ring_buffer<T, BULK_SIZE, MAX_BUFFER_SIZE, ListContainer, BulkContainer>;
     using mutex_type = BasicLockable;
     using condition_variable_type = ConditionVariable;
 

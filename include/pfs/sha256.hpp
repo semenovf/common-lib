@@ -337,6 +337,11 @@ public:
         return result;
     }
 
+    static sha256_digest digest (char const * src)
+    {
+        return digest(reinterpret_cast<std::uint8_t const *>(src), std::strlen(src));
+    }
+
     static inline sha256_digest digest (std::string const & src)
     {
         return digest(reinterpret_cast<std::uint8_t const *>(src.data()), src.size());

@@ -200,7 +200,7 @@ TEST_CASE("Constructors") {
 
 TEST_CASE("Modifiers") {
     {
-        pfs::ring_buffer<X, 1> rb{3};
+        pfs::ring_buffer<X, 1, 3> rb{3};
 
         REQUIRE_THROWS_AS(rb.back(), std::out_of_range);
 
@@ -317,7 +317,7 @@ TEST_CASE("Reserve") {
     // Head is on the right side from tail
     // and head and tail is on different bulks
     {
-        pfs::ring_buffer<X, 2> rb{3};
+        pfs::ring_buffer<X, 2, 3> rb{3};
         decltype(rb) rb1{2};
 
         auto initial_capacity = rb.capacity();
@@ -346,7 +346,7 @@ TEST_CASE("Reserve") {
     // Head is on the right side from tail
     // and head and tail is on the same bulk
     {
-        pfs::ring_buffer<X, 2> rb{3};
+        pfs::ring_buffer<X, 2, 3> rb{3};
         decltype(rb) rb1{2};
 
         auto initial_capacity = rb.capacity();
