@@ -4,7 +4,7 @@
 # This file is part of `common-lib`
 ################################################################################
 cmake_minimum_required (VERSION 3.5)
-project(pfs-common CXX C)
+project(common CXX C)
 
 option(PFS__FORCE_ULID_STRUCT "Enable ULID struct representation (UUID backend)" OFF)
 option(PFS__ENABLE_NLS "Enable Native Language Support " OFF)

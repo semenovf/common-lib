@@ -3,7 +3,7 @@
 #
 # This file is part of [common-lib](https://github.com/semenovf/common-lib) library.
 ################################################################################
-project(common-lib-TESTS CXX C)
+project(common-TESTS CXX C)
 
 if (PFS__ENABLE_COVERAGE)
     message(STATUS "Coverage feature enabled")
@@ -131,17 +131,17 @@ if (TARGET endian)
 endif()
 
 if (TARGET i18n)
-    # Target `libintl` available if `PFS__ENABLE_NLS` is ON 
+    # Target `libintl` available if `PFS__ENABLE_NLS` is ON
     # and `PFS__USE_IMPORTED_GETTEXT_LIB` is ON (on Windows platform)
     if (TARGET libintl)
         portable_target(LINK i18n PRIVATE libintl)
-        
+
         add_custom_command(TARGET i18n
             POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy 
+            COMMAND ${CMAKE_COMMAND} -E copy
                 "$<TARGET_PROPERTY:libintl,IMPORTED_LOCATION>"
                 "$<TARGET_FILE_DIR:i18n>"
-            COMMAND ${CMAKE_COMMAND} -E copy 
+            COMMAND ${CMAKE_COMMAND} -E copy
                 "$<TARGET_PROPERTY:libintl,ICONV_LIB>"
                 "$<TARGET_FILE_DIR:i18n>"
             VERBATIM)
