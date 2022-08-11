@@ -30,6 +30,7 @@
 
 namespace pfs {
 namespace crypto {
+namespace details {
 
 // https://en.wikipedia.org/wiki/SHA-2
 class sha256
@@ -66,6 +67,14 @@ private:
         _state[5] = 0x9b05688cUL;
         _state[6] = 0x1f83d9abUL;
         _state[7] = 0x5be0cd19UL;
+    }
+
+    ~sha256 ()
+    {
+        /* Clear the context state */
+        _count = 0;
+        std::memset(& _state[0], 0, sizeof(_state));
+        std::memset(& _buf[0]  , 0, sizeof(_buf));
     }
 
     static inline void store32_be (std::uint8_t dst[4], std::uint32_t w)
@@ -315,58 +324,6 @@ public:
         return result;
     }
 
-    static sha256_digest digest (char const * src)
-    {
-        return digest(reinterpret_cast<std::uint8_t const *>(src), std::strlen(src));
-    }
-
-    static inline sha256_digest digest (std::string const & src)
-    {
-        return digest(reinterpret_cast<std::uint8_t const *>(src.data()), src.size());
-    }
-
-    /**
-     * @throws error @c std::errc::no_such_file_or_directory.
-     * @throws error with @c std::ios_base::failure error codes.
-     */
-    static sha256_digest digest (filesystem::path const & path)
-    {
-        std::error_code ec;
-        auto res = digest(path, ec);
-
-        if (ec)
-            throw error(ec);
-
-        return res;
-    }
-
-    /**
-     * @throws error with @c std::ios_base::failure error codes.
-     */
-    static sha256_digest digest (std::istream & is)
-    {
-        std::error_code ec;
-        auto res = digest(is, ec);
-
-        if (ec)
-            throw error(ec);
-
-        return res;
-    }
-
-    /**
-     */
-    static sha256_digest digest (filesystem::path const & path, std::error_code & ec) noexcept
-    {
-        if (!filesystem::exists(path)) {
-            ec = std::make_error_code(std::errc::no_such_file_or_directory);
-            return sha256_digest{};
-        }
-
-        std::ifstream ifs{filesystem::utf8_encode(path), std::ios::binary};
-        return digest(ifs, ec);
-    }
-
     static sha256_digest digest (std::istream & is, std::error_code & ec) noexcept
     {
         constexpr std::size_t kBUFSZ = 256;
@@ -385,7 +342,9 @@ public:
                 hash.update(buffer.data(), is.gcount());
             }
         } catch (std::ios_base::failure ex) {
-            if (!is.eof()) {
+            if (is.eof()) {
+                hash.update(buffer.data(), is.gcount());
+            } else {
                 ec = ex.code();
                 is.exceptions(saved_exceptions);
                 return sha256_digest{};
@@ -405,4 +364,4 @@ public:
 
 constexpr const std::uint32_t sha256::K[64];
 
-}} // namespace pfs::crypto
+}}} // namespace pfs::crypto::details

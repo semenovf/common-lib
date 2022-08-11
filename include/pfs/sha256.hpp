@@ -21,9 +21,6 @@
 namespace pfs {
 namespace crypto {
 
-#define PFS__COLIN_PERCIVAL_SHA256_IMPL 1
-#define PFS__SYSTEM_GLITCH_SHA256_IMPL 0
-
 struct sha256_digest : std::array<std::uint8_t, 32> {};
 
 inline std::string to_string (sha256_digest const & digest)
@@ -39,10 +36,77 @@ inline std::string to_string (sha256_digest const & digest)
 
 }} // namespace pfs::crypto
 
-#if PFS__SYSTEM_GLITCH_SHA256_IMPL
-#   include "3rdparty/crypto/system_glitch_sha256.hpp"
-#endif // PFS__SYSTEM_GLITCH_SHA256_IMPL
+//#include "3rdparty/crypto/colin_persival_sha256_mod.hpp"
+#include "3rdparty/crypto/colin_persival_sha256.hpp"
 
-#if PFS__COLIN_PERCIVAL_SHA256_IMPL
-#   include "3rdparty/crypto/colin_persival_sha256.hpp"
-#endif // PFS__COLIN_PERCIVAL_SHA256_IMPL
+namespace pfs {
+namespace crypto {
+
+class sha256
+{
+public:
+    static inline sha256_digest digest (std::uint8_t const * src
+        , std::size_t n) noexcept
+    {
+        return details::sha256::digest(src, n);
+    }
+
+    static inline sha256_digest digest (char const * src) noexcept
+    {
+        return digest(reinterpret_cast<std::uint8_t const *>(src), std::strlen(src));
+    }
+
+    static inline sha256_digest digest (std::string const & src) noexcept
+    {
+        return digest(reinterpret_cast<std::uint8_t const *>(src.data()), src.size());
+    }
+
+    static inline sha256_digest digest (std::istream & is, std::error_code & ec) noexcept
+    {
+        return details::sha256::digest(is, ec);
+    }
+
+    /**
+     * @throws error with @c std::ios_base::failure error codes.
+     */
+    static sha256_digest digest (std::istream & is)
+    {
+        std::error_code ec;
+        auto res = digest(is, ec);
+
+        if (ec)
+            throw error(ec);
+
+        return res;
+    }
+
+    /**
+     */
+    static sha256_digest digest (filesystem::path const & path, std::error_code & ec) noexcept
+    {
+        if (!filesystem::exists(path)) {
+            ec = std::make_error_code(std::errc::no_such_file_or_directory);
+            return sha256_digest{};
+        }
+
+        std::ifstream ifs{filesystem::utf8_encode(path), std::ios::binary};
+        return digest(ifs, ec);
+    }
+
+    /**
+     * @throws error @c std::errc::no_such_file_or_directory.
+     * @throws error with @c std::ios_base::failure error codes.
+     */
+    static sha256_digest digest (filesystem::path const & path)
+    {
+        std::error_code ec;
+        auto res = digest(path, ec);
+
+        if (ec)
+            throw error(ec);
+
+        return res;
+    }
+};
+
+}} // namespace pfs::crypto
