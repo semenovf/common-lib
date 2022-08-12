@@ -89,7 +89,7 @@ template <>
 struct formatter<pfs::filesystem::path>
 {
     template <typename ParseContext>
-    constexpr auto parse (ParseContext & ctx) -> decltype(ctx.begin())
+    /*constexpr */auto parse (ParseContext & ctx) -> decltype(ctx.begin())
     {
         return ctx.begin();
     }
