@@ -134,23 +134,29 @@ private:
 #endif
 
 private:
-    std::error_code open (fs::path const & p) noexcept
+    bool open (fs::path const & p, std::error_code & ec) noexcept
     {
         native_handle_type h{0};
 
-        if (p.empty())
-            return make_error_code(dynamic_library_errc::invalid_argument);
+        if (p.empty()) {
+            ec = make_error_code(dynamic_library_errc::invalid_argument);
+            return false;
+        }
 
-        if (!fs::exists(p))
-            return make_error_code(dynamic_library_errc::file_not_found);
+        if (!fs::exists(p)) {
+            ec = make_error_code(dynamic_library_errc::file_not_found);
+            return false;
+        }
 
 #if _MSC_VER
         DWORD dwFlags = 0;
 
         h = LoadLibraryEx(p.c_str(), NULL, dwFlags);
 
-        if (!h)
-            return make_error_code(dynamic_library_errc::open_failed);
+        if (!h) {
+            ec = make_error_code(dynamic_library_errc::open_failed);
+            return false;
+        }
 
         _handle = h;
 
@@ -164,12 +170,14 @@ private:
         h = ::dlopen(p.c_str(), (global ? RTLD_GLOBAL : RTLD_LOCAL)
             | ( resolve ? RTLD_NOW : RTLD_LAZY));
 
-        if (!h)
-            return make_error_code(dynamic_library_errc::open_failed);
+        if (!h) {
+            ec = make_error_code(dynamic_library_errc::open_failed);
+            return false;
+        }
 
         _handle = h;
 #endif
-        return std::error_code{};
+        return true;
     }
 
     symbol_type resolve_impl (char const * symbol_name, std::error_code & ec) noexcept
@@ -213,16 +221,17 @@ public:
     dynamic_library (fs::path const & p, std::error_code & ec) noexcept
         : _handle(0)
     {
-        ec = open(p);
+        open(p, ec);
     }
 
     dynamic_library (fs::path const & p)
         : _handle(0)
     {
-        auto ec = open(p);
+        std::error_code ec;
+        open(p, ec);
 
         if (ec)
-            throw error{ec};
+            throw error {ec, last_error()};
     }
 
     dynamic_library () = delete;

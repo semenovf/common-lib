@@ -144,15 +144,10 @@ inline std::string stringify_trace_time ()
 #   define LOG_TRACE_3(format, ...)
 #endif // !PFS__LOG_LEVEL
 
-#if PFS__EXCEPTIONS_ENABLED
-#   if ANDROID
-#       define LOGEXP(t, x) __android_log_print_helper(ANDROID_LOG_ERROR, t, x.what())
-#   else
-#       define LOGEXP(t, x) {                                                  \
+#if ANDROID
+#   define LOGEXP(t, x) __android_log_print_helper(ANDROID_LOG_ERROR, t, x.what())
+#else
+#   define LOGEXP(t, x) {                                                      \
               fmt::print(stderr, fmt::format("{} [E] {}: {}\n"                 \
             , stringify_trace_time(), t, x.what())); fflush(stderr);}
-
-#   endif
-#else
-#   define LOGEXP(t, x)
 #endif
