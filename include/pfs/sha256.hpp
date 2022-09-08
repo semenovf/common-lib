@@ -8,6 +8,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
 #include "bits/endian.h"
+#include "integer.hpp"
 #include "error.hpp"
 #include "filesystem.hpp"
 #include "fmt.hpp"
@@ -32,6 +33,42 @@ inline std::string to_string (sha256_digest const & digest)
         result += fmt::format("{:02x}", digest[i]);
 
     return result;
+}
+
+inline sha256_digest to_sha256_digest_unsafe (char const * s, std::error_code & ec)
+{
+    sha256_digest result;
+
+    for (int i = 0; !ec && i < 32; i++) {
+        result[i] = to_integer<std::uint8_t>(s, s + 2, 16, ec);
+        s += 2;
+    }
+
+    return result;
+}
+
+inline sha256_digest to_sha256_digest (char const * s, std::error_code & ec)
+{
+    if (std::strlen(s) != 64) {
+        ec = make_error_code(std::errc::invalid_argument);
+        return sha256_digest{};
+    }
+
+    return to_sha256_digest_unsafe(s, ec);
+}
+
+/**
+ * @return SHA256 digest converted from string @a s. On failure @a ec set to
+ *         @c std::errc::invalid_argument.
+ */
+inline sha256_digest to_sha256_digest (std::string const & s, std::error_code & ec)
+{
+    if (s.size() != 64) {
+        ec = make_error_code(std::errc::invalid_argument);
+        return sha256_digest{};
+    }
+
+    return to_sha256_digest_unsafe(s.c_str(), ec);
 }
 
 }} // namespace pfs::crypto

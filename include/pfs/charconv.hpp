@@ -7,187 +7,27 @@
 //      2022.05.10 Initial version.
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
-#include "string_view.hpp"
+#include "assert.hpp"
+#include "integer.hpp"
+#include <type_traits>
 #include <cstdint>
 #include <cstdlib>
 
 namespace pfs {
 
-inline std::intmax_t __to_intmax (char const * begin
-    , char const * end
-    , bool & success
-    , int radix)
+struct from_chars_result
 {
-    success = true;
+    char const * ptr;
+    std::errc ec;
+};
 
-    if (begin < end) {
-        char * endptr = nullptr;
-        errno = 0;
-
-        if (sizeof(std::intmax_t) == sizeof(long int)) {
-            auto n = std::strtol(begin, & endptr, radix);
-
-            if (endptr == end && !errno)
-                return static_cast<std::intmax_t>(n);
-        } else {
-            auto n = std::strtoll(begin, & endptr, radix);
-
-            if (endptr == end && !errno)
-                return static_cast<std::intmax_t>(n);
-        }
-    }
-
-    success = false;
-
-    return std::intmax_t{0};
-}
-
-inline std::uintmax_t __to_uintmax (char const * begin
-    , char const * end
-    , bool & success
-    , int radix)
+template <typename T, typename std::enable_if<std::is_integral<T>::value, int>::type = 0>
+inline from_chars_result
+from_chars (char const * first, char const * last, T & value, int base = 10)
 {
-    success = true;
-
-    if (begin < end) {
-        char * endptr = nullptr;
-        errno = 0;
-
-        if (sizeof(std::uintmax_t) == sizeof(unsigned long int)) {
-            auto n = std::strtoul(begin, & endptr, radix);
-
-            if (endptr == end && !errno)
-                return static_cast<std::uintmax_t>(n);
-        } else {
-            auto n = std::strtoull(begin, & endptr, radix);
-
-            if (endptr == end && !errno)
-                return static_cast<std::uintmax_t>(n);
-        }
-    }
-
-    success = false;
-
-    return std::uintmax_t{0};
-}
-
-template <typename IntT>
-IntT __to_int (char const * begin
-    , char const * end
-    , bool * success
-    , int radix
-    , IntT min_val
-    , IntT max_val)
-{
-    bool ok = true;
-    auto n = __to_intmax(begin, end, ok, radix);
-
-    if (ok && n >= min_val && n <= max_val) {
-        if (success)
-            *success = true;
-
-        return static_cast<IntT>(n);
-    }
-
-    if (success)
-        *success = false;
-
-    return IntT{0};
-}
-
-template <typename UIntT>
-UIntT __to_uint (char const * begin
-    , char const * end
-    , bool * success
-    , int radix
-    , UIntT min_val
-    , UIntT max_val)
-{
-    bool ok = true;
-    auto n = __to_uintmax(begin, end, ok, radix);
-
-    if (ok && n >= min_val && n <= max_val) {
-        if (success)
-            *success = true;
-        return static_cast<UIntT>(n);
-    }
-
-    if (success)
-        *success = false;
-
-    return UIntT{0};
-}
-
-template <typename IntT>
-inline IntT to_int (char const * begin, char const * end
-    , bool * success = nullptr, int radix = 10
-    , IntT min_val = std::numeric_limits<IntT>::min()
-    , IntT max_val = std::numeric_limits<IntT>::max())
-{
-    return __to_int(begin, end, success, radix, min_val, max_val);
-}
-
-template <typename UIntT>
-inline UIntT to_uint (char const * begin, char const * end
-    , bool * success = nullptr, int radix = 10
-    , UIntT min_val = std::numeric_limits<UIntT>::min()
-    , UIntT max_val = std::numeric_limits<UIntT>::max())
-{
-    return __to_uint(begin, end, success, radix, min_val, max_val);
-}
-
-template <typename IntT>
-inline IntT to_int (char const * s, bool * success = nullptr
-    , int radix = 10
-    , IntT min_val = std::numeric_limits<IntT>::min()
-    , IntT max_val = std::numeric_limits<IntT>::max())
-{
-    return __to_int(s, s + std::strlen(s), success, radix, min_val, max_val);
-}
-
-template <typename UIntT>
-inline UIntT to_uint (char const * s
-    , bool * success = nullptr, int radix = 10
-    , UIntT min_val = std::numeric_limits<UIntT>::min()
-    , UIntT max_val = std::numeric_limits<UIntT>::max())
-{
-    return __to_uint(s, s + std::strlen(s), success, radix, min_val, max_val);
-}
-
-template <typename IntT>
-inline IntT to_int (string_view s
-    , bool * success = nullptr, int radix = 10
-    , IntT min_val = std::numeric_limits<IntT>::min()
-    , IntT max_val = std::numeric_limits<IntT>::max())
-{
-    return __to_int(s.data(), s.data() + s.size(), success, radix, min_val, max_val);
-}
-
-template <typename UIntT>
-inline UIntT to_uint (string_view s
-    , bool * success = nullptr, int radix = 10
-    , UIntT min_val = std::numeric_limits<UIntT>::min()
-    , UIntT max_val = std::numeric_limits<UIntT>::max())
-{
-    return __to_uint(s.data(), s.data() + s.size(), success, radix, min_val, max_val);
-}
-
-template <typename IntT>
-inline IntT to_int (std::string const & s
-    , bool * success = nullptr, int radix = 10
-    , IntT min_val = std::numeric_limits<IntT>::min()
-    , IntT max_val = std::numeric_limits<IntT>::max())
-{
-    return __to_int(s.data(), s.data() + s.size(), success, radix, min_val, max_val);
-}
-
-template <typename UIntT>
-inline UIntT to_uint (std::string const & s
-    , bool * success = nullptr, int radix = 10
-    , UIntT min_val = std::numeric_limits<UIntT>::min()
-    , UIntT max_val = std::numeric_limits<UIntT>::max())
-{
-    return __to_uint(s.data(), s.data() + s.size(), success, radix, min_val, max_val);
+    PFS__ASSERT(2 <= base && base <= 36, "base not in [2, 36]");
+    auto result = parse_integer(first, last, value, base);
+    return from_chars_result{result.ptr, result.ec};
 }
 
 } // namespace pfs
