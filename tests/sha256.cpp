@@ -30,9 +30,6 @@ TEST_CASE("sha256") {
 TEST_CASE("decode") {
     std::error_code ec;
 
-    auto d1 = pfs::crypto::sha256::digest("");
-    auto d2 = pfs::crypto::to_sha256_digest("e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", ec);
-
     CHECK_EQ(pfs::crypto::to_sha256_digest("e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", ec)
         , pfs::crypto::sha256::digest(""));
 

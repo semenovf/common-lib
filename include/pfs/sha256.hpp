@@ -22,7 +22,17 @@
 namespace pfs {
 namespace crypto {
 
-struct sha256_digest : std::array<std::uint8_t, 32> {};
+struct sha256_digest : std::array<std::uint8_t, 32>
+{
+    sha256_digest () { fill(0); }
+    sha256_digest (std::string const & s, std::error_code & ec) noexcept;
+    sha256_digest (std::string const & s);
+};
+
+inline bool is_valid (sha256_digest const & digest) noexcept
+{
+    return digest != sha256_digest{};
+}
 
 inline std::string to_string (sha256_digest const & digest)
 {
@@ -69,6 +79,20 @@ inline sha256_digest to_sha256_digest (std::string const & s, std::error_code & 
     }
 
     return to_sha256_digest_unsafe(s.c_str(), ec);
+}
+
+inline sha256_digest::sha256_digest (std::string const & s, std::error_code & ec) noexcept
+{
+    *this = to_sha256_digest(s, ec);
+}
+
+inline sha256_digest::sha256_digest (std::string const & s)
+{
+    std::error_code ec;
+    *this = to_sha256_digest(s, ec);
+
+    if (ec)
+        throw error{ec};
 }
 
 }} // namespace pfs::crypto
