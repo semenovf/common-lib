@@ -230,7 +230,7 @@ inline IntT
 to_integer (CharIt first, CharIt last, int radix, std::error_code & ec)
 {
     IntT value = 0;
-    auto res = parse_integer(first, last, value, radix);
+    auto res = parse_integer<IntT, CharIt>(first, last, value, radix);
 
     if (res.ec != std::errc{}) {
         ec = make_error_code(res.ec);
@@ -250,7 +250,7 @@ template <typename IntT, typename CharIt
 inline IntT
 to_integer (CharIt first, CharIt last, std::error_code & ec)
 {
-    return to_integer(first, last, 10, ec);
+    return to_integer<IntT, CharIt>(first, last, 10, ec);
 }
 
 template <typename IntT, typename CharIt
@@ -259,7 +259,46 @@ inline IntT
 to_integer (CharIt first, CharIt last, int radix = 10)
 {
     std::error_code ec;
-    auto n = to_integer(first, last, radix, ec);
+    auto n = to_integer<IntT, CharIt>(first, last, radix, ec);
+
+    if (ec)
+        throw error{ec, "bad integer string representation"};
+
+    return n;
+}
+
+template <typename IntT, typename CharIt
+    , typename std::enable_if<std::is_integral<IntT>::value, int>::type = 0>
+inline IntT
+to_integer (CharIt first, CharIt last, IntT min_value, IntT max_value, int radix, std::error_code & ec)
+{
+    auto n = to_integer<IntT, CharIt>(first, last, radix, ec);
+
+    if (!ec) {
+        if (n < min_value || n > max_value) {
+            ec = make_error_code(std::errc::result_out_of_range);
+            return 0;
+        }
+    }
+
+    return n;
+}
+
+template <typename IntT, typename CharIt
+    , typename std::enable_if<std::is_integral<IntT>::value, int>::type = 0>
+inline IntT
+to_integer (CharIt first, CharIt last, IntT min_value, IntT max_value, std::error_code & ec)
+{
+    return to_integer<IntT, CharIt>(first, last, min_value, max_value, 10, ec);
+}
+
+template <typename IntT, typename CharIt
+    , typename std::enable_if<std::is_integral<IntT>::value, int>::type = 0>
+inline IntT
+to_integer (CharIt first, CharIt last, IntT min_value, IntT max_value, int radix = 10)
+{
+    std::error_code ec;
+    auto n = to_integer<IntT, CharIt>(first, last, min_value, max_value, radix, ec);
 
     if (ec)
         throw error{ec, "bad integer string representation"};
