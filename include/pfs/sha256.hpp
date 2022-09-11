@@ -14,6 +14,7 @@
 #include "fmt.hpp"
 #include <array>
 #include <system_error>
+#include <fstream>
 #include <istream>
 #include <string>
 #include <cstdint>
@@ -106,6 +107,10 @@ namespace crypto {
 class sha256
 {
 public:
+    using batch_context = details::batch_context;
+    using batch_context_ptr = std::unique_ptr<batch_context>;
+
+public:
     static inline sha256_digest digest (std::uint8_t const * src
         , std::size_t n) noexcept
     {
@@ -155,8 +160,8 @@ public:
     }
 
     /**
-     * @throws error @c std::errc::no_such_file_or_directory.
-     * @throws error with @c std::ios_base::failure error codes.
+     * @throws error{std::errc::no_such_file_or_directory}.
+     * @throws error{std::ios_base::failure}.
      */
     static sha256_digest digest (filesystem::path const & path)
     {
@@ -167,6 +172,24 @@ public:
             throw error(ec);
 
         return res;
+    }
+
+    static batch_context_ptr start_batch (filesystem::path const & path
+        , std::error_code & ec)
+    {
+        if (!filesystem::exists(path)) {
+            ec = std::make_error_code(std::errc::no_such_file_or_directory);
+            return nullptr;
+        }
+
+        auto ifs = pfs::make_unique<std::ifstream>(filesystem::utf8_encode(path), std::ios::binary);
+        return details::sha256::start_batch(std::move(ifs), ec);
+    }
+
+    static bool digest (batch_context_ptr & ctx, std::streamsize limit
+        , std::error_code & ec) noexcept
+    {
+        return details::sha256::digest(ctx, limit, ec);
     }
 };
 

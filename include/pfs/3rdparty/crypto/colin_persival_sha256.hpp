@@ -25,12 +25,17 @@
  *
  */
 #pragma once
+#include "pfs/memory.hpp"
+#include <ios>
+#include <istream>
 #include <cstdint>
 #include <cstring>
 
 namespace pfs {
 namespace crypto {
 namespace details {
+
+struct batch_context;
 
 // https://en.wikipedia.org/wiki/SHA-2
 class sha256
@@ -40,26 +45,6 @@ class sha256
     std::uint8_t  _buf[64];
 
 private:
-    sha256 ()
-    {
-        _state[0] = 0x6a09e667UL;
-        _state[1] = 0xbb67ae85UL;
-        _state[2] = 0x3c6ef372UL;
-        _state[3] = 0xa54ff53aUL;
-        _state[4] = 0x510e527fUL;
-        _state[5] = 0x9b05688cUL;
-        _state[6] = 0x1f83d9abUL;
-        _state[7] = 0x5be0cd19UL;
-    }
-
-    ~sha256 ()
-    {
-        /* Clear the context state */
-        _count = 0;
-        std::memset(& _state[0], 0, sizeof(_state));
-        std::memset(& _buf[0]  , 0, sizeof(_buf));
-    }
-
     static inline void store32_be (std::uint8_t dst[4], std::uint32_t w)
     {
 #if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
@@ -313,6 +298,27 @@ private:
     }
 
 public:
+    sha256 ()
+    {
+        _state[0] = 0x6a09e667UL;
+        _state[1] = 0xbb67ae85UL;
+        _state[2] = 0x3c6ef372UL;
+        _state[3] = 0xa54ff53aUL;
+        _state[4] = 0x510e527fUL;
+        _state[5] = 0x9b05688cUL;
+        _state[6] = 0x1f83d9abUL;
+        _state[7] = 0x5be0cd19UL;
+    }
+
+    ~sha256 ()
+    {
+        /* Clear the context state */
+        _count = 0;
+        std::memset(& _state[0], 0, sizeof(_state));
+        std::memset(& _buf[0]  , 0, sizeof(_buf));
+    }
+
+public:
     static sha256_digest digest (std::uint8_t const * src, std::size_t n)
     {
         sha256 hash;
@@ -359,6 +365,83 @@ public:
         hash.final(result.data());
         return result;
     }
+
+    static std::unique_ptr<batch_context> start_batch (std::unique_ptr<std::istream> is
+        , std::error_code & ec) noexcept;
+
+    /**
+     * @return @c false if hash is complete (end of file reached) or on error
+     *         (exemine @c ec), @c true if hash is incomplete yet.
+     */
+    static bool digest (std::unique_ptr<batch_context> & ctx, std::streamsize limit
+        , std::error_code & ec) noexcept;
 };
+
+struct batch_context
+{
+    std::unique_ptr<std::istream> is;
+    sha256 hash;
+    sha256_digest digest;
+    std::ios_base::iostate saved_exceptions;
+};
+
+inline std::unique_ptr<batch_context> sha256::start_batch (std::unique_ptr<std::istream> is
+    , std::error_code & ec) noexcept
+{
+    auto saved_exceptions = is->exceptions();
+
+    try {
+        is->exceptions(std::ios::failbit | std::ios::badbit);
+        is->seekg(0, std::ios::beg);
+    } catch (std::ios_base::failure ex) {
+        is->exceptions(saved_exceptions);
+        ec = ex.code();
+        return nullptr;
+    } catch (...) {
+        is->exceptions(saved_exceptions);
+        ec = make_error_code(errc::unexpected_error);
+        return nullptr;
+    }
+
+    auto ctx = pfs::make_unique<batch_context>(batch_context{std::move(is)});
+    ctx->saved_exceptions = saved_exceptions;
+    return ctx;
+}
+
+/**
+ * @return @c false if hash is complete (end of file reached) or on error
+ *         (exemine @c ec), @c true if hash is incomplete yet.
+ */
+inline bool sha256::digest (std::unique_ptr<batch_context> & ctx, std::streamsize limit
+    , std::error_code & ec) noexcept
+{
+    constexpr std::size_t kBUFSZ = 256;
+    std::vector<std::uint8_t> buffer(kBUFSZ);
+
+    try {
+        while (ctx->is->good() && limit > 0) {
+            auto len = limit < buffer.size() ? limit : buffer.size();
+            ctx->is->read(reinterpret_cast<char *>(buffer.data()), len);
+            ctx->hash.update(buffer.data(), ctx->is->gcount());
+            limit -= ctx->is->gcount();
+        }
+    } catch (std::ios_base::failure ex) {
+        if (ctx->is->eof()) {
+            ctx->hash.update(buffer.data(), ctx->is->gcount());
+            ctx->is->exceptions(ctx->saved_exceptions);
+            ctx->hash.final(ctx->digest.data());
+            return false;
+        } else {
+            ec = ex.code();
+            ctx->is->exceptions(ctx->saved_exceptions);
+            return false;
+        }
+    } catch (...) {
+        ec = make_error_code(errc::unexpected_error);
+        return false;
+    }
+
+    return true;
+}
 
 }}} // namespace pfs::crypto::details
