@@ -7,18 +7,20 @@
 //      2021.12.06 Initial version.
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
+#include "3rdparty/crypto/colin_persival_sha256.hpp"
 #include "bits/endian.h"
 #include "integer.hpp"
 #include "error.hpp"
 #include "filesystem.hpp"
 #include "fmt.hpp"
+#include <cstdint>
+#include <cstring>
 #include <array>
-#include <system_error>
 #include <fstream>
 #include <istream>
 #include <string>
-#include <cstdint>
-#include <cstring>
+#include <system_error>
+#include <vector>
 
 namespace pfs {
 namespace crypto {
@@ -28,6 +30,138 @@ struct sha256_digest : std::array<std::uint8_t, 32>
     sha256_digest () { fill(0); }
     sha256_digest (std::string const & s, std::error_code & ec) noexcept;
     sha256_digest (std::string const & s);
+};
+
+class sha256
+{
+public:
+    using batch_context = details::batch_context;
+    using batch_context_ptr = std::unique_ptr<batch_context>;
+
+private:
+    details::sha256 _hash;
+
+public:
+    sha256 () = default;
+
+    void update (std::uint8_t const * chunk, std::size_t len)
+    {
+        _hash.update(chunk, len);
+    }
+
+    void update (char const * chunk, std::size_t len)
+    {
+        _hash.update(reinterpret_cast<std::uint8_t const *>(chunk), len);
+    }
+
+    sha256_digest digest ()
+    {
+        sha256_digest result;
+        _hash.final(result.data());
+        return result;
+    }
+
+public: // static
+    static inline sha256_digest digest (std::uint8_t const * src, std::size_t n) noexcept
+    {
+        sha256 hash;
+        hash.update(src, n);
+        return hash.digest();
+    }
+
+    static inline sha256_digest digest (char const * src, std::size_t n) noexcept
+    {
+        sha256 hash;
+        hash.update(src, n);
+        return hash.digest();
+    }
+
+    static inline sha256_digest digest (char const * src) noexcept
+    {
+        return digest(reinterpret_cast<std::uint8_t const *>(src), std::strlen(src));
+    }
+
+    static inline sha256_digest digest (std::string const & src) noexcept
+    {
+        return digest(reinterpret_cast<std::uint8_t const *>(src.data()), src.size());
+    }
+
+    static inline sha256_digest digest (std::istream & is, std::error_code & ec) noexcept
+    {
+        //return details::sha256::digest(is, ec);
+        constexpr std::size_t kBUFSZ = 256;
+        std::vector<std::uint8_t> buffer(kBUFSZ);
+
+        sha256 hash;
+
+        auto saved_exceptions = is.exceptions();
+
+        try {
+            is.exceptions(std::ios::failbit | std::ios::badbit);
+            is.seekg(0, std::ios::beg);
+
+            while (is.good()) {
+                is.read(reinterpret_cast<char *>(buffer.data()), buffer.size());
+                hash.update(buffer.data(), is.gcount());
+            }
+        } catch (std::ios_base::failure ex) {
+            if (is.eof()) {
+                hash.update(buffer.data(), is.gcount());
+            } else {
+                ec = ex.code();
+                is.exceptions(saved_exceptions);
+                return sha256_digest{};
+            }
+        } catch (...) {
+            ec = make_error_code(errc::unexpected_error);
+            return sha256_digest{};
+        }
+
+        is.exceptions(saved_exceptions);
+        return hash.digest();
+    }
+
+    /**
+     * @throws error with @c std::ios_base::failure error codes.
+     */
+    static sha256_digest digest (std::istream & is)
+    {
+        std::error_code ec;
+        auto res = digest(is, ec);
+
+        if (ec)
+            throw error(ec);
+
+        return res;
+    }
+
+    /**
+     */
+    static sha256_digest digest (filesystem::path const & path, std::error_code & ec) noexcept
+    {
+        if (!filesystem::exists(path)) {
+            ec = std::make_error_code(std::errc::no_such_file_or_directory);
+            return sha256_digest{};
+        }
+
+        std::ifstream ifs{filesystem::utf8_encode(path), std::ios::binary};
+        return digest(ifs, ec);
+    }
+
+    /**
+     * @throws error{std::errc::no_such_file_or_directory}.
+     * @throws error{std::ios_base::failure}.
+     */
+    static sha256_digest digest (filesystem::path const & path)
+    {
+        std::error_code ec;
+        auto res = digest(path, ec);
+
+        if (ec)
+            throw error(ec);
+
+        return res;
+    }
 };
 
 inline bool is_valid (sha256_digest const & digest) noexcept
@@ -95,102 +229,5 @@ inline sha256_digest::sha256_digest (std::string const & s)
     if (ec)
         throw error{ec};
 }
-
-}} // namespace pfs::crypto
-
-//#include "3rdparty/crypto/colin_persival_sha256_mod.hpp"
-#include "3rdparty/crypto/colin_persival_sha256.hpp"
-
-namespace pfs {
-namespace crypto {
-
-class sha256
-{
-public:
-    using batch_context = details::batch_context;
-    using batch_context_ptr = std::unique_ptr<batch_context>;
-
-public:
-    static inline sha256_digest digest (std::uint8_t const * src
-        , std::size_t n) noexcept
-    {
-        return details::sha256::digest(src, n);
-    }
-
-    static inline sha256_digest digest (char const * src) noexcept
-    {
-        return digest(reinterpret_cast<std::uint8_t const *>(src), std::strlen(src));
-    }
-
-    static inline sha256_digest digest (std::string const & src) noexcept
-    {
-        return digest(reinterpret_cast<std::uint8_t const *>(src.data()), src.size());
-    }
-
-    static inline sha256_digest digest (std::istream & is, std::error_code & ec) noexcept
-    {
-        return details::sha256::digest(is, ec);
-    }
-
-    /**
-     * @throws error with @c std::ios_base::failure error codes.
-     */
-    static sha256_digest digest (std::istream & is)
-    {
-        std::error_code ec;
-        auto res = digest(is, ec);
-
-        if (ec)
-            throw error(ec);
-
-        return res;
-    }
-
-    /**
-     */
-    static sha256_digest digest (filesystem::path const & path, std::error_code & ec) noexcept
-    {
-        if (!filesystem::exists(path)) {
-            ec = std::make_error_code(std::errc::no_such_file_or_directory);
-            return sha256_digest{};
-        }
-
-        std::ifstream ifs{filesystem::utf8_encode(path), std::ios::binary};
-        return digest(ifs, ec);
-    }
-
-    /**
-     * @throws error{std::errc::no_such_file_or_directory}.
-     * @throws error{std::ios_base::failure}.
-     */
-    static sha256_digest digest (filesystem::path const & path)
-    {
-        std::error_code ec;
-        auto res = digest(path, ec);
-
-        if (ec)
-            throw error(ec);
-
-        return res;
-    }
-
-    static batch_context_ptr start_batch (filesystem::path const & path
-        , std::error_code & ec)
-    {
-        if (!filesystem::exists(path)) {
-            ec = std::make_error_code(std::errc::no_such_file_or_directory);
-            return nullptr;
-        }
-
-        auto ifs = pfs::make_unique<std::ifstream>(filesystem::utf8_encode(path), std::ios::binary);
-        return details::sha256::start_batch(std::move(ifs), ec);
-    }
-
-    static bool digest (batch_context_ptr & ctx, std::streamsize limit
-        , std::error_code & ec) noexcept
-    {
-        return details::sha256::digest(ctx, limit, ec);
-    }
-};
 
 }} // namespace pfs::crypto
