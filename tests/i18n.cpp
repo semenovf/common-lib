@@ -102,17 +102,33 @@ TEST_CASE("translate") {
 
     // Plural
     {
-        auto text1 = fmt::format(tr::n_({"{} day left", "{} days left", 0}), 0);
-        auto text2 = fmt::format(tr::n_({"{} day left", "{} days left", 1}), 1);
-        auto text3 = fmt::format(tr::n_({"{} day left", "{} days left", 2}), 2);
-        auto text4 = fmt::format(tr::n_({"{} day left", "{} days left", 5}), 5);
-        auto text5 = fmt::format(tr::n_({"{} day left", "{} days left", 42}), 42);
+        {
+            auto text1 = fmt::format(tr::n_({"{} day left", "{} days left", 0}), 0);
+            auto text2 = fmt::format(tr::n_({"{} day left", "{} days left", 1}), 1);
+            auto text3 = fmt::format(tr::n_({"{} day left", "{} days left", 2}), 2);
+            auto text4 = fmt::format(tr::n_({"{} day left", "{} days left", 5}), 5);
+            auto text5 = fmt::format(tr::n_({"{} day left", "{} days left", 42}), 42);
 
-        CHECK_EQ(text1, std::string{"0 days left"});
-        CHECK_EQ(text2, std::string{"1 day left"});
-        CHECK_EQ(text3, std::string{"2 days left"});
-        CHECK_EQ(text4, std::string{"5 days left"});
-        CHECK_EQ(text5, std::string{"42 days left"});
+            CHECK_EQ(text1, std::string{"0 days left"});
+            CHECK_EQ(text2, std::string{"1 day left"});
+            CHECK_EQ(text3, std::string{"2 days left"});
+            CHECK_EQ(text4, std::string{"5 days left"});
+            CHECK_EQ(text5, std::string{"42 days left"});
+        }
+
+        {
+            auto text1 = tr::fn_({"{} day left", "{} days left", 0});
+            auto text2 = tr::fn_({"{} day left", "{} days left", 1});
+            auto text3 = tr::fn_({"{} day left", "{} days left", 2});
+            auto text4 = tr::fn_({"{} day left", "{} days left", 5});
+            auto text5 = tr::fn_({"{} day left", "{} days left", 42});
+
+            CHECK_EQ(text1, std::string{"0 days left"});
+            CHECK_EQ(text2, std::string{"1 day left"});
+            CHECK_EQ(text3, std::string{"2 days left"});
+            CHECK_EQ(text4, std::string{"5 days left"});
+            CHECK_EQ(text5, std::string{"42 days left"});
+        }
     }
 
     // Plural, domain name and category
@@ -123,7 +139,7 @@ TEST_CASE("translate") {
         auto text3 = fmt::format(tr::n_({"Domain: {} day left", "Domain: {} days left", 2}, {"domain", LC_ALL}), 2);
         auto text4 = fmt::format(tr::n_({"Domain: {} day left", "Domain: {} days left", 5}, {"domain", LC_ALL}), 5);
         auto text5 = fmt::format(tr::n_({"Domain: {} day left", "Domain: {} days left", 42}, {"domain", LC_ALL}), 42);
-#else        
+#else
         auto text1 = fmt::format(tr::n_({"Domain: {} day left", "Domain: {} days left", 0}, {"domain", LC_MESSAGES}), 0);
         auto text2 = fmt::format(tr::n_({"Domain: {} day left", "Domain: {} days left", 1}, {"domain", LC_MESSAGES}), 1);
         auto text3 = fmt::format(tr::n_({"Domain: {} day left", "Domain: {} days left", 2}, {"domain", LC_MESSAGES}), 2);
@@ -146,7 +162,7 @@ TEST_CASE("translate") {
 
 #if _MSC_VER
         auto text4 = tr::f_("Hello, {}", {"domain", LC_ALL}, tr::_("Domain!"));
-#else        
+#else
         auto text4 = tr::f_("Hello, {}", {"domain", LC_MESSAGES}, tr::_("Domain!"));
 #endif
 

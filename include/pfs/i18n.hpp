@@ -111,6 +111,20 @@ inline std::string f_ (char const * msgid, domain_category const & dc, T &&... a
         , std::forward<T>(args)...);
 }
 
+inline std::string fn_ (plural const & p)
+{
+    return fmt::format(ngettext(p.msgid, p.msgid_plural, p.n), p.n);
+}
+
+inline std::string fn_ (plural const & p, domain_category const & dc)
+{
+    return fmt::format((dc.domainname && dc.category > 0)
+        ? dcngettext(dc.domainname, p.msgid, p.msgid_plural, p.n, dc.category)
+        : dc.domainname
+            ? dngettext(dc.domainname, p.msgid, p.msgid_plural, p.n)
+            : ngettext(p.msgid, p.msgid_plural, p.n), p.n);
+}
+
 constexpr char const * noop_ (char const * msgid)
 {
     return msgid;
