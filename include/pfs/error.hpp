@@ -13,34 +13,6 @@
 
 namespace pfs {
 
-// DEPRECATED
-// #ifndef PFS__THROW
-// #   if PFS__EXCEPTIONS_ENABLED
-// #       define PFS__THROW(x) throw x
-// #   else
-// #       define PFS__THROW(x)                                                \
-//             do {                                                            \
-//                 ::pfs::assert_fail(__FILE__, __LINE__, (x).what().c_str()); \
-//             } while (false)
-// #   endif
-// #endif
-//
-// #if defined(TRY)
-// #   undef TRY
-// #endif
-//
-// #if defined(CATCH)
-// #   undef CATCH
-// #endif
-//
-// #if PFS__EXCEPTIONS_ENABLED
-// #   define TRY try
-// #   define CATCH(x) catch (x)
-// #else
-// #   define TRY if (true)
-// #   define CATCH(x) if (false)
-// #endif
-
 using error_code = std::error_code;
 
 enum class errc
