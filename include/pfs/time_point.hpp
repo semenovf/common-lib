@@ -21,6 +21,16 @@ namespace pfs {
 
 using clock_type = std::chrono::system_clock;
 
+struct date_time {
+    int year;
+    int month;
+    int day;
+    int hours;
+    int minutes;
+    int seconds;
+    int millis;
+};
+
 /**
  * UTC offset in seconds
  */
@@ -47,11 +57,47 @@ inline std::time_t utc_offset ()
     return (std::mktime(& local_time) - std::mktime(& utc_time));
 }
 
-class basic_time_point: public std::chrono::time_point<std::chrono::system_clock>
+/**
+ * Returns string representation of UTC offset in format [+-]HHMM
+ */
+inline std::string stringify_utc_offset (std::time_t off)
+{
+    int sign = off < 0 ? -1 : 1;
+    off *= sign;
+    off /= 60;            // seconds
+    auto min = off % 60;
+    auto hour = off / 60;
+
+    std::string result;
+    result.reserve(5);
+
+    result.append(1, sign > 0 ? '+' : '-');
+
+    if (hour < 10)
+        result.append(1, '0');
+
+    result.append(std::to_string(hour));
+
+    if (min < 10)
+        result.append(1, '0');
+
+    result.append(std::to_string(min));
+
+    return result;
+}
+
+/**
+ * Basic time point
+ */
+template <typename Derived>
+class basic_time_point: public std::chrono::time_point<clock_type>
 {
 protected:
     using time_point = std::chrono::time_point<clock_type>;
     using base_class = time_point;
+
+protected:
+    basic_time_point (time_point const & t) : base_class(t) {}
 
 public:
     basic_time_point () : base_class() {}
@@ -62,27 +108,114 @@ public:
     {
         return std::chrono::duration_cast<std::chrono::milliseconds>(time_since_epoch());
     }
+
+    date_time to_date_time () const noexcept
+    {
+        date_time dt {0,0,0,0,0,0,0};
+        std::tm tm{};
+
+        auto duration_since_epoch = time_since_epoch();
+        auto seconds_since_epoch = std::chrono::duration_cast<std::chrono::seconds>(duration_since_epoch);
+        auto millis_since_epoch = std::chrono::duration_cast<std::chrono::milliseconds>(duration_since_epoch);
+        std::time_t t = seconds_since_epoch.count();
+
+        // Calculate floor accurate to seconds for negative duration since epoch
+        if (duration_since_epoch.count() < 0) {
+            if (millis_since_epoch.count() % 1000 != 0) {
+                t -= 1;
+            }
+        }
+
+        std::memcpy(& tm, std::gmtime(& t), sizeof(std::tm));
+
+        dt.year    = tm.tm_year + 1900;
+        dt.month   = tm.tm_mon + 1;
+        dt.day     = tm.tm_mday;
+        dt.hours   = tm.tm_hour;
+        dt.minutes = tm.tm_min;
+        dt.seconds = tm.tm_sec;
+
+        if (millis_since_epoch.count() % 1000 != 0) {
+            if (millis_since_epoch.count() >= 0) {
+                auto diff = millis_since_epoch
+                    - std::chrono::duration_cast<std::chrono::milliseconds>(seconds_since_epoch);
+                dt.millis = diff.count();
+            } else {
+                auto diff = millis_since_epoch
+                    - std::chrono::duration_cast<std::chrono::milliseconds>(seconds_since_epoch);
+                dt.millis = 1000 + diff.count();
+            }
+        }
+
+        return dt;
+    }
+
+    ////////////////////////////////////////////////////////////////////////////
+    // Arithmetic operators
+    ////////////////////////////////////////////////////////////////////////////
+    Derived & operator += (duration const & d)
+    {
+        base_class::operator += (d);
+        return static_cast<Derived &>(*this);
+    }
+
+    Derived & operator -= (duration const & d)
+    {
+        base_class::operator -= (d);
+        return static_cast<Derived &>(*this);
+    }
+
+    template <typename Rep, typename Period>
+    friend Derived operator + (Derived const & pt
+        , std::chrono::duration<Rep, Period> const & d)
+    {
+        return Derived{std::chrono::operator + (pt, d)};
+    }
+
+    template <typename Rep, typename Period>
+    friend Derived operator + (std::chrono::duration<Rep, Period> const & d
+        , Derived const & pt)
+    {
+        return Derived{std::chrono::operator + (d, pt)};
+    }
+
+    template <typename Rep, typename Period>
+    friend Derived operator - (Derived const & pt
+        , std::chrono::duration<Rep, Period> const & d)
+    {
+        return Derived{std::chrono::operator - (pt, d)};
+    }
+
+    template <typename Rep, typename Period>
+    friend Derived operator - (Derived const & lhs
+        , Derived const & rhs)
+    {
+        return Derived{std::chrono::operator - (lhs, rhs)};
+    }
 };
 
 /**
  * Time point representation in UTC.
  */
-class utc_time_point: public basic_time_point
+class utc_time_point: public basic_time_point<utc_time_point>
 {
+    using base_class = basic_time_point<utc_time_point>;
+
 public:
-    utc_time_point (): basic_time_point() {}
+    utc_time_point (): base_class() {}
+    utc_time_point (base_class::time_point const & t) : base_class(t) {}
 
     template <typename Rep, typename Period>
     explicit utc_time_point (std::chrono::duration<Rep, Period> const & d)
-        : basic_time_point(std::chrono::duration_cast<basic_time_point::duration>(d))
+        : base_class(std::chrono::duration_cast<base_class::duration>(d))
     {}
 
     std::string to_iso8601 () const
     {
-        auto millis_part = to_millis().count() % 1000;
-        return fmt::format("{0:%Y-%m-%dT%H:%M:%S}.{1:03}+0000"
-            , *reinterpret_cast<basic_time_point::base_class const *>(this)
-            , millis_part);
+        auto dt = to_date_time();
+        return fmt::format("{}-{:02}-{:02}T{:02}:{:02}:{:02}.{:03}+0000"
+            , dt.year, dt.month, dt.day, dt.hours, dt.minutes, dt.seconds
+            , dt.millis);
     }
 
 public: // static
@@ -102,7 +235,8 @@ public: // static
      *        error.
      */
     static utc_time_point make (int year, int mon, int day, int hour, int min
-        , int sec, int millis, int hour_offset, int min_offset, std::error_code & ec) noexcept
+        , int sec, int millis, int hour_offset, int min_offset
+        , std::error_code & ec) noexcept
     {
         auto offset_sign = hour_offset >= 0 ? 1 : -1;
         auto abs_hour_offset = hour_offset >= 0 ? hour_offset : -1 * hour_offset;
@@ -135,7 +269,11 @@ public: // static
         tm.tm_mon   = mon - 1;
         tm.tm_year  = year - 1900;
 
+        // Make
         std::time_t seconds_since_epoch = std::mktime(& tm);
+
+        // Adjust by UTC offset since std::mktime created UTC based time.
+        seconds_since_epoch += utc_offset();
 
         // Time offset in seconds
         int utc_offset = abs_hour_offset * 3600 + min_offset * 60;
@@ -149,6 +287,24 @@ public: // static
         auto tp = std::chrono::system_clock::from_time_t(seconds_since_epoch);
         tp += std::chrono::milliseconds{millis};
         return utc_time_point{tp.time_since_epoch()};
+    }
+
+    static utc_time_point make (int year, int mon, int day, int hour, int min
+        , int sec, int millis, std::error_code & ec) noexcept
+    {
+        return make(year, mon, day, hour, min, sec, millis, 0, 0, ec);
+    }
+
+    static utc_time_point make (int year, int mon, int day, int hour, int min
+        , int sec, int millis, int hour_offset = 0, int min_offset = 0)
+    {
+        std::error_code ec;
+        auto t = make(year, mon, day, hour, min, sec, millis, hour_offset, min_offset, ec);
+
+        if (ec)
+            throw error{ec};
+
+        return t;
     }
 
     /**
@@ -248,105 +404,36 @@ public: // static
 /**
  * Time point representation in local time.
  */
-class local_time_point: public basic_time_point
+class local_time_point: public basic_time_point<local_time_point>
 {
+    using base_class = basic_time_point<local_time_point>;
+
 public:
-    local_time_point (): basic_time_point() {}
+    local_time_point (): base_class() {}
+    local_time_point (base_class::time_point const & t) : base_class(t) {}
 
     template <typename Rep, typename Period>
     explicit local_time_point (std::chrono::duration<Rep, Period> const & d)
-        : basic_time_point(std::chrono::duration_cast<basic_time_point::duration>(d))
+        : base_class(std::chrono::duration_cast<base_class::duration>(d))
     {}
 
-    /**
-     * Represents time point as string according to ISO 8601 standard.
-     *
-     * @note May be used as Date and Time value in sqlite3.
-     */
     std::string to_iso8601 () const
     {
-        auto millis_part = to_millis().count() % 1000;
-        return fmt::format("{0:%Y-%m-%dT%H:%M:%S}.{1:03}{0:%z}"
-            , *reinterpret_cast<basic_time_point::base_class const *>(this)
-            , millis_part);
-    }
-
-private: // static
-    static local_time_point cast (utc_time_point const & t)
-    {
-        auto since_epoch = t.time_since_epoch();
-        auto off = utc_offset();
-        since_epoch += std::chrono::seconds{off};
-        return local_time_point{since_epoch};
-    }
-
-public: // static
-    static local_time_point make (int year, int mon, int day, int hour, int min
-        , int sec, int millis, int hour_offset, int min_offset
-        , std::error_code & ec) noexcept
-    {
-        auto u = utc_time_point::make(year, mon, day, hour, min, sec, millis
-            , hour_offset, min_offset, ec);
-        return ec ? local_time_point{} : cast(u);
-    }
-
-    /**
-     * Converts ISO 8601 standard string representation
-     * (in formats YYYY-mm-ddTHH:MM:SS.SSS+ZZZZ or YYYY-mm-ddTHH:MM:SSZ)
-     * of time to local time point.
-     */
-    static local_time_point from_iso8601 (std::string const & s, std::error_code & ec) noexcept
-    {
-        auto u = utc_time_point::from_iso8601(s, ec);
-        return ec ? local_time_point{} : cast(u);
-    }
-
-    /**
-     * Converts ISO 8601 standard string representation
-     * (in formats YYYY-mm-ddTHH:MM:SS.SSS+ZZZZ or YYYY-mm-ddTHH:MM:SSZ)
-     * of time to local time point.
-     *
-     * @throw pfs::error {std::errc::invalid_argument} on parse error.
-     */
-    static local_time_point from_iso8601 (std::string const & s)
-    {
-        std::error_code ec;
-        auto t = from_iso8601(s, ec);
-
-        if (ec)
-            throw error{ec};
-
-        return t;
+        auto dt = to_date_time();
+        return fmt::format("{}-{:02}-{:02}T{:02}:{:02}:{:02}.{:03}{}"
+            , dt.year, dt.month, dt.day, dt.hours, dt.minutes, dt.seconds
+            , dt.millis
+            , stringify_utc_offset(utc_offset()));
     }
 };
 
 /**
- * Returns string representation of UTC offset in format [+-]HHMM
+ * Returns current time point in UTC with precision in milliseconds
  */
-inline std::string stringify_utc_offset (std::time_t off)
+inline utc_time_point current_utc_time_point ()
 {
-    int sign = off < 0 ? -1 : 1;
-    off *= sign;
-    off /= 60;            // seconds
-    auto min = off % 60;
-    auto hour = off / 60;
-
-    std::string result;
-    result.reserve(5);
-
-    result.append(1, sign > 0 ? '+' : '-');
-
-    if (hour < 10)
-        result.append(1, '0');
-
-    result.append(std::to_string(hour));
-
-    if (min < 10)
-        result.append(1, '0');
-
-    result.append(std::to_string(min));
-
-    return result;
+    auto now = clock_type::now();
+    return utc_time_point{now.time_since_epoch()};
 }
 
 /**
@@ -354,18 +441,9 @@ inline std::string stringify_utc_offset (std::time_t off)
  */
 inline local_time_point current_local_time_point ()
 {
-    return local_time_point{clock_type::now().time_since_epoch()};
-}
-
-/**
- * Returns current time point in UTC with precision in milliseconds
- */
-inline utc_time_point current_utc_time_point ()
-{
-    auto now = current_local_time_point();
-    auto off = utc_offset();
-    now -= std::chrono::seconds{off};
-    return utc_time_point{now.time_since_epoch()};
+    auto now = clock_type::now().time_since_epoch();
+    now += std::chrono::seconds{utc_offset()};
+    return local_time_point{now};
 }
 
 /**
@@ -391,17 +469,17 @@ inline local_time_point local_time_point_cast (utc_time_point const & t)
 }
 
 /**
- * String representation of @c local_time_point.
+ * String representation of @c utc_time_point.
  */
-inline std::string to_string (local_time_point const & t)
+inline std::string to_string (utc_time_point const & t)
 {
     return t.to_iso8601();
 }
 
 /**
- * String representation of @c utc_time_point.
+ * String representation of @c local_time_point.
  */
-inline std::string to_string (utc_time_point const & t)
+inline std::string to_string (local_time_point const & t)
 {
     return t.to_iso8601();
 }
