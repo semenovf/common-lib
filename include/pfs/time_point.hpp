@@ -192,6 +192,81 @@ public:
     {
         return Derived{std::chrono::operator - (lhs, rhs)};
     }
+
+public: // static
+    static Derived make (int year, int mon, int day, int hour, int min
+        , int sec, int millis, std::error_code & ec) noexcept
+    {
+        return make(year, mon, day, hour, min, sec, millis, 0, 0, ec);
+    }
+
+    static Derived make (int year, int mon, int day, int hour, int min
+        , int sec, int millis, int hour_offset = 0, int min_offset = 0)
+    {
+        std::error_code ec;
+        auto t = make(year, mon, day, hour, min, sec, millis, hour_offset, min_offset, ec);
+
+        if (ec)
+            throw error{ec};
+
+        return t;
+    }
+
+protected:
+    static Derived make (int year, int mon, int day, int hour, int min
+        , int sec, int millis, int hour_offset, int min_offset
+        , std::error_code & ec) noexcept
+    {
+        auto offset_sign = hour_offset >= 0 ? 1 : -1;
+        auto abs_hour_offset = hour_offset >= 0 ? hour_offset : -1 * hour_offset;
+
+        auto success (mon > 0 && mon <= 12);
+        success = success && (day > 0 && day <= 31);
+        success = success && (hour >= 0 && hour < 24);
+        success = success && (min >= 0 && min < 60);
+        success = success && (sec >= 0 && sec < 60);
+        success = success && (hour_offset >= -12 && hour_offset <= 14);
+        success = success && (min_offset >= 0 && min_offset < 60);
+
+        if (hour_offset >= 0) {
+            success = success && (hour_offset * 3600 + min_offset * 60 <= 14 * 3600);
+        } else {
+            success = success && (hour_offset * 3600 - min_offset * 60 >= -12 * 3600);
+        }
+
+        if (!success) {
+            ec = make_error_code(std::errc::invalid_argument);
+            return Derived{};
+        }
+
+        std::tm tm;
+        std::memset(& tm, 0, sizeof(std::tm));
+        tm.tm_sec   = sec;
+        tm.tm_min   = min;
+        tm.tm_hour  = hour;
+        tm.tm_mday  = day;
+        tm.tm_mon   = mon - 1;
+        tm.tm_year  = year - 1900;
+
+        // Make
+        std::time_t seconds_since_epoch = std::mktime(& tm);
+
+        // Adjust by UTC offset since std::mktime created UTC based time.
+        seconds_since_epoch += utc_offset();
+
+        // Time offset in seconds
+        int utc_offset = abs_hour_offset * 3600 + min_offset * 60;
+
+        if (offset_sign > 0) {
+            seconds_since_epoch -= utc_offset;
+        } else {
+            seconds_since_epoch += utc_offset;
+        }
+
+        auto tp = std::chrono::system_clock::from_time_t(seconds_since_epoch);
+        tp += std::chrono::milliseconds{millis};
+        return Derived{tp.time_since_epoch()};
+    }
 };
 
 /**
@@ -202,6 +277,8 @@ class utc_time_point: public basic_time_point<utc_time_point>
     using base_class = basic_time_point<utc_time_point>;
 
 public:
+    using base_class::make;
+
     utc_time_point (): base_class() {}
     utc_time_point (base_class::time_point const & t) : base_class(t) {}
 
@@ -238,73 +315,8 @@ public: // static
         , int sec, int millis, int hour_offset, int min_offset
         , std::error_code & ec) noexcept
     {
-        auto offset_sign = hour_offset >= 0 ? 1 : -1;
-        auto abs_hour_offset = hour_offset >= 0 ? hour_offset : -1 * hour_offset;
-
-        auto success (mon > 0 && mon <= 12);
-        success = success && (day > 0 && day <= 31);
-        success = success && (hour >= 0 && hour < 24);
-        success = success && (min >= 0 && min < 60);
-        success = success && (sec >= 0 && sec < 60);
-        success = success && (hour_offset >= -12 && hour_offset <= 14);
-        success = success && (min_offset >= 0 && min_offset < 60);
-
-        if (hour_offset >= 0) {
-            success = success && (hour_offset * 3600 + min_offset * 60 <= 14 * 3600);
-        } else {
-            success = success && (hour_offset * 3600 - min_offset * 60 >= -12 * 3600);
-        }
-
-        if (!success) {
-            ec = make_error_code(std::errc::invalid_argument);
-            return utc_time_point{};
-        }
-
-        std::tm tm;
-        std::memset(& tm, 0, sizeof(std::tm));
-        tm.tm_sec   = sec;
-        tm.tm_min   = min;
-        tm.tm_hour  = hour;
-        tm.tm_mday  = day;
-        tm.tm_mon   = mon - 1;
-        tm.tm_year  = year - 1900;
-
-        // Make
-        std::time_t seconds_since_epoch = std::mktime(& tm);
-
-        // Adjust by UTC offset since std::mktime created UTC based time.
-        seconds_since_epoch += utc_offset();
-
-        // Time offset in seconds
-        int utc_offset = abs_hour_offset * 3600 + min_offset * 60;
-
-        if (offset_sign > 0) {
-            seconds_since_epoch -= utc_offset;
-        } else {
-            seconds_since_epoch += utc_offset;
-        }
-
-        auto tp = std::chrono::system_clock::from_time_t(seconds_since_epoch);
-        tp += std::chrono::milliseconds{millis};
-        return utc_time_point{tp.time_since_epoch()};
-    }
-
-    static utc_time_point make (int year, int mon, int day, int hour, int min
-        , int sec, int millis, std::error_code & ec) noexcept
-    {
-        return make(year, mon, day, hour, min, sec, millis, 0, 0, ec);
-    }
-
-    static utc_time_point make (int year, int mon, int day, int hour, int min
-        , int sec, int millis, int hour_offset = 0, int min_offset = 0)
-    {
-        std::error_code ec;
-        auto t = make(year, mon, day, hour, min, sec, millis, hour_offset, min_offset, ec);
-
-        if (ec)
-            throw error{ec};
-
-        return t;
+        return base_class::make(year, mon, day, hour, min, sec, millis
+            , hour_offset, min_offset, ec);
     }
 
     /**
@@ -328,6 +340,7 @@ public: // static
 
         int hour_offset = 0;
         int min_offset = 0;
+        int offset_sign = 1;
 
         // 0         1         2
         // 0123456789012345678901234567
@@ -368,7 +381,7 @@ public: // static
 
             if (success) {
                 millis = (s[20] - '0') * 100 + (s[21] - '0') * 10 + (s[22] - '0');
-
+                offset_sign = s[23] == '-' ? -1 : 1;
                 hour_offset = (s[24] - '0') * 10 + (s[25] - '0');
                 min_offset = (s[26] - '0') * 10 + (s[27] - '0');
             }
@@ -379,7 +392,7 @@ public: // static
             return utc_time_point{};
         }
 
-        return make(year, mon, day, hour, min, sec, millis, hour_offset, min_offset, ec);
+        return make(year, mon, day, hour, min, sec, millis, offset_sign * hour_offset, min_offset, ec);
     }
 
     /**
@@ -409,6 +422,8 @@ class local_time_point: public basic_time_point<local_time_point>
     using base_class = basic_time_point<local_time_point>;
 
 public:
+    using base_class::make;
+
     local_time_point (): base_class() {}
     local_time_point (base_class::time_point const & t) : base_class(t) {}
 

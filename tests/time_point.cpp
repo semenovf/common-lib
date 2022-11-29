@@ -97,6 +97,15 @@ TEST_CASE("make/date_time") {
         CHECK(ldt.seconds == udt.seconds);
         CHECK(ldt.millis  == udt.millis);
     }
+
+    {
+        auto u1 = pfs::utc_time_point::make(2022, 11, 28, 13, 52, 34, 234);
+        auto l1 = pfs::local_time_point::make(2022, 11, 28, 13, 52, 34, 234);
+        auto u2 = pfs::utc_time_point_cast(l1);
+        fmt::print("-- UTC time            : {} {}\n", u1.to_iso8601(), u1.to_millis());
+        fmt::print("-- Local time          : {} {}\n", l1.to_iso8601(), l1.to_millis());
+        fmt::print("-- UTC time (converted): {} {}\n", u2.to_iso8601(), u2.to_millis());
+    }
 }
 
 TEST_CASE("from_iso8601") {
@@ -106,24 +115,24 @@ TEST_CASE("from_iso8601") {
     REQUIRE_FALSE(ec);
     CHECK(u1.to_iso8601() == "1970-01-01T00:00:00.000+0000");
 
-    auto u2 = pfs::utc_time_point::make(1969, 12, 31, 23, 59, 59, 234, ec);
+    auto u2 = pfs::utc_time_point::from_iso8601("1969-12-31T23:59:59.234+0000", ec);
     REQUIRE_FALSE(ec);
     CHECK(u2.to_iso8601() == "1969-12-31T23:59:59.234+0000");
 
-    auto u3 = pfs::utc_time_point::make(1970, 1, 1, 0, 0, 0, 234, ec);
+    auto u3 = pfs::utc_time_point::from_iso8601("1970-01-01T00:00:00.234+0000", ec);
     REQUIRE_FALSE(ec);
     CHECK(u3.to_iso8601() == "1970-01-01T00:00:00.234+0000");
 
-    auto u4 = pfs::utc_time_point::make(2022, 11, 28, 13, 52, 34, 234, 6, 0, ec);
+    auto u4 = pfs::utc_time_point::from_iso8601("2022-11-28T13:52:34.234+0600", ec);
     REQUIRE_FALSE(ec);
     CHECK(u4.to_iso8601() == "2022-11-28T07:52:34.234+0000");
 
-    auto u5 = pfs::utc_time_point::make(2022, 11, 28, 13, 52, 34, 234, -4, 0, ec);
+    auto u5 = pfs::utc_time_point::from_iso8601("2022-11-28T13:52:34.234-0400", ec);
     REQUIRE_FALSE(ec);
     CHECK(u5.to_iso8601() == "2022-11-28T17:52:34.234+0000");
 
     char const * BADS[] = {
-         "202y-11-22T11:33:42.999+0500" // bad year
+          "202y-11-22T11:33:42.999+0500" // bad year
         , "2021-13-22T11:33:42.999+0500" // bad month
         , "2021-11-32T11:33:42.999+0500" // bad day
         , "2021-11-22T25:33:42.999+0500" // bad hour
@@ -206,6 +215,3 @@ TEST_CASE("cast") {
         CHECK_EQ(loc - std::chrono::seconds{pfs::utc_offset()}, utc);
     }
 }
-
-
-
