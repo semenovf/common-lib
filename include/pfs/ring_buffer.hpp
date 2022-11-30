@@ -443,9 +443,11 @@ public:
             if (_head == end())
                 _head = begin();
         }
-
-        // Destroy last element
-        reinterpret_cast<pointer>(& *_head)->~value_type();
+        
+		// NOTE: Exception on Windows
+		// NOTE: Success on Linux
+		// Destroy last element
+        //reinterpret_cast<pointer>(& *_head)->~value_type();
 
         _head = begin();
         _tail = end();
