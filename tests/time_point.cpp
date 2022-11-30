@@ -141,6 +141,10 @@ TEST_CASE("from_iso8601") {
         , "2021-11-22T11:33:42.9w9+0500" // bad millis
         , "2021-11-22T11:33:42.999+2401" // bad timezone offset
         , "2021-11-22 11:33:42.999+2401" // bad delimiter
+
+        , "2022-02-30 11:33:42.999+0000" // Feb 30 does not exist
+        , "2006-02-29 11:33:42.999+0000" // 2006 is not a leap year
+        , "2100-02-29 11:33:42.999+0000" // 2100 is not a leap year
     };
 
     for (auto const & s: BADS) {
