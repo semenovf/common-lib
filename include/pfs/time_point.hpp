@@ -297,6 +297,15 @@ public:
 
 public: // static
     /**
+     * Returns current time point.
+     */
+    static utc_time_point now ()
+    {
+        auto moment = clock_type::now();
+        return utc_time_point{moment.time_since_epoch()};
+    }
+
+    /**
      * Makes UTC time point from date and time components.
      *
      * @param year
@@ -440,25 +449,33 @@ public:
             , dt.millis
             , stringify_utc_offset(utc_offset()));
     }
+
+public: // static
+    /**
+     * Returns current time point.
+     */
+    static local_time_point now ()
+    {
+        auto moment = clock_type::now().time_since_epoch();
+        moment += std::chrono::seconds{utc_offset()};
+        return local_time_point{moment};
+    }
 };
 
 /**
- * Returns current time point in UTC with precision in milliseconds
+ * Returns current time point in UTC.
  */
 inline utc_time_point current_utc_time_point ()
 {
-    auto now = clock_type::now();
-    return utc_time_point{now.time_since_epoch()};
+    return utc_time_point::now();
 }
 
 /**
- * Returns current local time point with precision in milliseconds
+ * Returns current local time point.
  */
 inline local_time_point current_local_time_point ()
 {
-    auto now = clock_type::now().time_since_epoch();
-    now += std::chrono::seconds{utc_offset()};
-    return local_time_point{now};
+    return local_time_point::now();
 }
 
 /**
@@ -498,5 +515,8 @@ inline std::string to_string (local_time_point const & t)
 {
     return t.to_iso8601();
 }
+
+using utc_time = utc_time_point;
+using local_time = local_time_point;
 
 } // namespace pfs
