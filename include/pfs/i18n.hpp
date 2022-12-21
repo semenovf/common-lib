@@ -180,6 +180,16 @@ inline std::string f_ (char const * msgid, domain_category const & /*dc*/, T &&.
     return fmt::format(msgid, std::forward<T>(args)...);
 }
 
+inline std::string fn_ (plural const & p)
+{
+    return fmt::format(p.msgid, p.n);
+}
+
+inline std::string fn_ (plural const & p, domain_category const & /*dc*/)
+{
+    return fmt::format(p.msgid, p.n);
+}
+
 constexpr char const * noop_ (char const * msgid)
 {
     return msgid;
@@ -188,3 +198,21 @@ constexpr char const * noop_ (char const * msgid)
 #endif // !PFS__ENABLE_NLS
 
 } // namespace tr
+
+#if PFS__ENABLE_NLS
+#else
+constexpr char const * textdomain (char const * domainname)
+{
+    return "";
+}
+
+constexpr char const * bindtextdomain (char const * domainname, char const * dirname)
+{
+    return "";
+}
+
+constexpr char const * bind_textdomain_codeset (char const * domainname, char const * codeset)
+{
+    return "";
+}
+#endif

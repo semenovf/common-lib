@@ -16,7 +16,7 @@ template <>
 struct formatter<QString>
 {
     template <typename ParseContext>
-    constexpr auto parse (ParseContext & ctx) -> decltype(ctx.begin())
+    constexpr auto parse (ParseContext & ctx) const -> decltype(ctx.begin())
     {
         return ctx.begin();
     }

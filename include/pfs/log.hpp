@@ -78,7 +78,7 @@ inline std::string stringify_trace_time ()
                   ANDROID_LOG_VERBOSE                                          \
                 , "-- TRACE(1)", fmt::format(f , ##__VA_ARGS__).c_str())
 #       else
-#           define define LOG_TRACE_1(f, ...)
+#           define LOG_TRACE_1(f, ...)
 #       endif
 
 #       if PFS__LOG_LEVEL >= 2
@@ -86,7 +86,7 @@ inline std::string stringify_trace_time ()
                   ANDROID_LOG_VERBOSE                                          \
                 , "-- TRACE(2)", fmt::format(f , ##__VA_ARGS__).c_str())
 #       else
-#           define define LOG_TRACE_2(f, ...)
+#           define LOG_TRACE_2(f, ...)
 #       endif
 
 #       if PFS__LOG_LEVEL >= 3
@@ -94,7 +94,7 @@ inline std::string stringify_trace_time ()
                   ANDROID_LOG_VERBOSE                                          \
                 , "-- TRACE(3)", fmt::format(f , ##__VA_ARGS__).c_str())
 #       else
-#           define define LOG_TRACE_3(f, ...)
+#           define LOG_TRACE_3(f, ...)
 #       endif
 #   else  //  ANDROID
 #       define LOGD(t, f, ...) {                                               \
