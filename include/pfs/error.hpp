@@ -10,6 +10,11 @@
 #include "assert.hpp"
 #include <string>
 #include <system_error>
+#include <string.h>
+
+#if _MSC_VER
+#   include "windows.hpp"
+#endif
 
 namespace pfs {
 
@@ -144,6 +149,45 @@ public:
 inline error make_exception (errc e)
 {
     return error(make_error_code(e));
+}
+
+inline error_code get_last_system_error ()
+{
+#if _MSC_VER
+    return error_code{::GetLastError(), std::system_category()};
+#else // _MSC_VER
+    return error_code{errno, std::generic_category()};
+#endif // POSIX
+}
+
+#if _MSC_VER
+#else
+//
+// See ghc::filesystem
+//
+inline char const * strerror_adapter (char * gnu, char *)
+{
+    return gnu;
+}
+
+inline char const * strerror_adapter (int posix, char * buffer)
+{
+    if (posix)
+        return "Error in strerror_r!";
+    return buffer;
+}
+
+#endif
+
+inline std::string system_error_text (int errn = 0)
+{
+#if _MSC_VER
+    return windows::utf8_error(errn == 0 ? GetLastError() : static_cast<DWORD>(errn));
+#else // POSIX
+    char buffer[256];
+    strerror_r(errn == 0 ? errno : errn, buffer, sizeof(buffer));
+    return strerror_adapter(strerror_r(errn == 0 ? errno : errn, buffer, sizeof(buffer)), buffer);
+#endif
 }
 
 } // namespace pfs

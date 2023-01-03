@@ -31,4 +31,11 @@ inline void assert_fail (char const * file, int line, char const * message)
 #   endif
 #endif
 
+#ifndef PFS__TERMINATE
+#   define PFS__TERMINATE(condition, message)                     \
+        ((condition)                                              \
+            ? (void)0                                             \
+            : ::pfs::assert_fail(__FILE__, __LINE__, (message)))
+#endif
+
 } // namespace pfs

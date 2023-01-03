@@ -201,6 +201,8 @@ constexpr char const * noop_ (char const * msgid)
 
 #if PFS__ENABLE_NLS
 #else
+
+#   ifndef __USE_GNU_GETTEXT
 constexpr char const * textdomain (char const * domainname)
 {
     return "";
@@ -215,4 +217,5 @@ constexpr char const * bind_textdomain_codeset (char const * domainname, char co
 {
     return "";
 }
+#   endif // __USE_GNU_GETTEXT
 #endif
