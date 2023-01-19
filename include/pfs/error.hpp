@@ -154,7 +154,7 @@ inline error make_exception (errc e)
 inline error_code get_last_system_error ()
 {
 #if _MSC_VER
-    return error_code{::GetLastError(), std::system_category()};
+    return error_code{static_cast<int>(::GetLastError()), std::system_category()};
 #else // _MSC_VER
     return error_code{errno, std::generic_category()};
 #endif // POSIX
