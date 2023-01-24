@@ -182,11 +182,11 @@ parse_integer (CharIt first, CharIt last, IntT & value, int radix = 10)
     IntT cutoff_limit = 0;
 
     if (std::is_unsigned<IntT>::value) {
-        cutoff_value = std::numeric_limits<IntT>::max() / radix;
-        cutoff_limit = std::numeric_limits<IntT>::max() % radix;
+        cutoff_value = (std::numeric_limits<IntT>::max)() / radix;
+        cutoff_limit = (std::numeric_limits<IntT>::max)() % radix;
     } else {
-        cutoff_value = std::numeric_limits<IntT>::min() / radix;
-        cutoff_limit = std::numeric_limits<IntT>::min() % radix;
+        cutoff_value = (std::numeric_limits<IntT>::min)() / radix;
+        cutoff_limit = (std::numeric_limits<IntT>::min)() % radix;
 
         cutoff_value *= -1;
         cutoff_limit *= -1;
