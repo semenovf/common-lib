@@ -126,7 +126,11 @@ public:
             }
         }
 
+#if _MSC_VER
+        ::gmtime_s(& tm, & t);
+#else
         std::memcpy(& tm, std::gmtime(& t), sizeof(std::tm));
+#endif
 
         dt.year    = tm.tm_year + 1900;
         dt.month   = tm.tm_mon + 1;
