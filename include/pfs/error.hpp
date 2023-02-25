@@ -61,43 +61,26 @@ inline std::error_code make_error_code (errc e)
 /**
  * @note This exception class may throw std::bad_alloc as it uses std::string.
  */
-class error
+class error: public std::system_error
 {
-private:
-    std::error_code _ec;
-    // FIXME Need separately-allocated reference-counted string representation
-    // for this members.
-    std::string _description;
-    std::string _cause;
-
 public:
-    error () = default;
+    error () : std::system_error(make_error_code(errc::success))
+    {}
 
     error (std::error_code ec)
-        : _ec(ec)
+        : std::system_error(ec)
     {}
 
     error (std::error_code ec
         , std::string const & description
         , std::string const & cause)
-        : _ec(ec)
-        , _description(description)
-        , _cause(cause)
+        : std::system_error(ec, description + " (" + cause  + ')')
     {}
 
     error (std::error_code ec
         , std::string const & description)
-        : _ec(ec)
-        , _description(description)
+        : std::system_error(ec, description)
     {}
-
-    // FIXME Need separately-allocated reference-counted string representation
-    // for internal members.
-    // See https://en.cppreference.com/w/cpp/error/runtime_error
-    // "Because copying std::runtime_error is not permitted to throw exceptions,
-    // this message is typically stored internally as a separately-allocated
-    // reference-counted string. This is also why there is no constructor
-    // taking std::string&&: it would have to copy the content anyway."
 
     error (error const & other ) /*noexcept*/ = default;
     error (error && other ) /*noexcept*/ = default;
@@ -106,43 +89,7 @@ public:
 
     operator bool () const noexcept
     {
-        return !!_ec;
-    }
-
-    std::error_code code () const noexcept
-    {
-        return _ec;
-    }
-
-    std::string error_message () const noexcept
-    {
-        return _ec.message();
-    }
-
-    std::string const & description () const noexcept
-    {
-        return _description;
-    }
-
-    std::string const & cause () const noexcept
-    {
-        return _cause;
-    }
-
-    std::string what () const noexcept
-    {
-        std::string result;
-
-        if (_ec)
-            result += _ec.message();
-
-        if (!_description.empty())
-            result += std::string{(result.empty() ? "" : ": ")} + _description;
-
-        if (!_cause.empty())
-            result += std::string{(result.empty() ? "" : " ")} + '(' + _cause + ')';
-
-        return result;
+        return this->code().value() != 0;
     }
 };
 
