@@ -1,6 +1,6 @@
 #!/bin/bash
 ################################################################################
-# Copyright (c) 2021 Vladislav Trifochkin
+# Copyright (c) 2021,2022 Vladislav Trifochkin
 #
 # Unified build script for Linux distributions
 #
@@ -10,10 +10,16 @@
 #      2021.11.08 SOURCE_DIR recognition modified.
 #      2021.11.19 Added support for profiling.
 #      2022.07.06 Added CTEST_OPTIONS.
+#      2022.07.26 Fixed conditions for run tests and coverage tests.
 ################################################################################
 
 CMAKE_OPTIONS="${CMAKE_OPTIONS}"
 CTEST_OPTIONS="${CTEST_OPTIONS}"
+
+if [ -z "$PROJECT_NAME" ] ; then
+    echo "ERROR: PROJECT_NAME is mandatory." >&2
+    exit 1
+fi
 
 if [ -z "$PROJECT_OPT_PREFIX" ] ; then
     echo "ERROR: PROJECT_OPT_PREFIX is mandatory." >&2
@@ -132,7 +138,9 @@ if [ -n "$ENABLE_PROFILER" ] ; then
     CMAKE_OPTIONS="$CMAKE_OPTIONS -D${PROJECT_OPT_PREFIX}ENABLE_PROFILER=$ENABLE_PROFILER"
 fi
 
-BUILD_DIR=builds/${CXX_COMPILER:-default}.cxx${CXX_STANDARD:-}${ENABLE_COVERAGE:+.coverage}${ENABLE_PROFILER:+.profiler}${BUILD_DIR_SUFFIX:-}
+if [ -z "$BUILD_DIR" ] ; then
+    BUILD_DIR=builds/${PROJECT_NAME}-${CXX_COMPILER:-default}.cxx${CXX_STANDARD:-}${ENABLE_COVERAGE:+.coverage}${ENABLE_PROFILER:+.profiler}${BUILD_DIR_SUFFIX:+-}${BUILD_DIR_SUFFIX:-}
+fi
 
 # We are inside source directory
 if [ -d .git ] ; then
@@ -156,6 +164,16 @@ fi
 mkdir -p ${BUILD_DIR} \
     && cd ${BUILD_DIR} \
     && cmake -G "${BUILD_GENERATOR}" $CMAKE_OPTIONS $SOURCE_DIR \
-    && cmake --build . \
-    && [ -n "$BUILD_TESTS" ] && ctest $CTEST_OPTIONS -C $BUILD_TYPE \
-    && [ -n "$ENABLE_COVERAGE" ] && cmake --build . --target Coverage
+    && cmake --build .
+
+if [ $? -eq 0 ] ; then
+    if [ -n "$BUILD_TESTS" ] ; then
+        ctest $CTEST_OPTIONS -C $BUILD_TYPE
+    fi
+fi
+
+if [ $? -eq 0 ] ; then
+    if [ -n "$ENABLE_COVERAGE" ] ; then
+        cmake --build . --target Coverage
+    fi
+fi

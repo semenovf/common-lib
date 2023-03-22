@@ -20,6 +20,7 @@ file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/unicode/utf8/data DESTINATION unicode/utf8
 
 set(TEST_NAMES
     any
+    binary_stream
     byteswap
     calendar
     charconv

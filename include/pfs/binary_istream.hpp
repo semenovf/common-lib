@@ -34,7 +34,7 @@ public:
     inline typename std::enable_if<std::is_integral<T>::value, binary_istream &>::type
     operator >> (T & v)
     {
-        if (_p + sizeof(T) < _end) {
+        if (_p + sizeof(T) <= _end) {
             T const * p = reinterpret_cast<T const *>(_p);
             v = Endian == endian::network ? to_native_order(*p) : *p;
             _p += sizeof(T);
@@ -51,21 +51,16 @@ public:
      */
     binary_istream & operator >> (float & v)
     {
-        if (_p + sizeof(std::uint32_t) < _end) {
-            union { float f; std::uint32_t d; } x;
+        union { float f; std::uint32_t d; } x;
+        this->operator >> (x.d);
+        v = x.f;
 
-            this->operator >> (x.d);
-            v = x.f;
-
-            // static constexpr auto divider = (std::numeric_limits<std::int32_t>::max)();
-            // std::int32_t exp {0};
-            // std::int32_t mant {0};
-            // this->operator >> (exp);
-            // this->operator >> (mant);
-            // v = std::ldexp(static_cast<float>(mant) / divider, exp);
-        } else {
-            throw error { std::make_error_code(std::errc::no_buffer_space) };
-        }
+        // static constexpr auto divider = (std::numeric_limits<std::int32_t>::max)();
+        // std::int32_t exp {0};
+        // std::int32_t mant {0};
+        // this->operator >> (exp);
+        // this->operator >> (mant);
+        // v = std::ldexp(static_cast<float>(mant) / divider, exp);
 
         return *this;
     }
@@ -76,21 +71,16 @@ public:
      */
     binary_istream & operator >> (double & v)
     {
-        if (_p + sizeof(std::uint64_t) < _end) {
-            union { double f; std::uint64_t d; } x;
+        union { double f; std::uint64_t d; } x;
+        this->operator >> (x.d);
+        v = x.f;
 
-            this->operator >> (x.d);
-            v = x.f;
-
-            // static constexpr auto divider = (std::numeric_limits<std::int64_t>::max)();
-            // std::int64_t exp {0};
-            // std::int64_t mant {0};
-            // this->operator >> (exp);
-            // this->operator >> (mant);
-            // v = std::ldexp(static_cast<double>(mant) / divider, exp);
-        } else {
-            throw error { std::make_error_code(std::errc::no_buffer_space) };
-        }
+        // static constexpr auto divider = (std::numeric_limits<std::int64_t>::max)();
+        // std::int64_t exp {0};
+        // std::int64_t mant {0};
+        // this->operator >> (exp);
+        // this->operator >> (mant);
+        // v = std::ldexp(static_cast<double>(mant) / divider, exp);
 
         return *this;
     }
@@ -101,16 +91,12 @@ public:
      */
     binary_istream & operator >> (string_view & v)
     {
-        if (_p + sizeof(std::int32_t) < _end) {
-            std::int32_t sz = 0;
-            this->operator >> (sz);
+        std::int32_t sz = 0;
+        this->operator >> (sz);
 
-            if (_p + sz < _end) {
-                v = string_view(_p, sz);
-                _p += sz;
-            } else {
-                throw error { std::make_error_code(std::errc::no_buffer_space) };
-            }
+        if (_p + sz <= _end) {
+            v = string_view(_p, sz);
+            _p += sz;
         } else {
             throw error { std::make_error_code(std::errc::no_buffer_space) };
         }
@@ -131,5 +117,5 @@ public:
     }
 };
 
-} //pfs
+} // namespace pfs
 
