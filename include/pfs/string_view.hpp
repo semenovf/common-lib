@@ -8,11 +8,14 @@
 //      2021.11.20 Refactored excluding use of external cmake script.
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
+#include <cstring>
 
 #if (defined(__cplusplus) && __cplusplus >= 201703L                \
         && defined(__has_include) && __has_include(<string_view>)) \
         || (defined(_MSC_VER) && __cplusplus >= 201703L)
-#   define PFS_HAVE_STD_STRING_VIEW 1
+#   define PFS_HAVE_STD_STRING_VIEW 1 // DEPRECATED
+#   define PFS__HAVE_STD_STRING_VIEW 1
+#   include <string>
 #   include <string_view>
     using string_view = std::string_view;
 #else
@@ -50,7 +53,9 @@
     } // namespace std
 #endif
 
+#ifndef PFS__HAVE_STD_STRING_VIEW
 namespace pfs {
+#endif
 
 inline bool starts_with (string_view const & str, string_view::value_type ch)
 {
@@ -98,4 +103,6 @@ inline bool ends_with (string_view const & str, string_view const & suffix)
         && str.compare(str.size() - suffix.size(), string_view::npos, suffix) == 0;
 }
 
-}
+#ifndef PFS__HAVE_STD_STRING_VIEW
+} // namespace pfs
+#endif
