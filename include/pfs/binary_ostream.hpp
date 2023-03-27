@@ -76,6 +76,13 @@ public:
         return *this;
     }
 
+    template <typename T>
+    inline typename std::enable_if<std::is_enum<T>::value, binary_ostream &>::type
+    operator << (T v)
+    {
+        return this->operator << (static_cast<typename std::underlying_type<T>::type>(v));
+    }
+
     binary_ostream & operator << (float v)
     {
         union { float f; std::uint32_t d; } x;
@@ -160,7 +167,7 @@ public:
 
     binary_ostream & operator << (char const * s)
     {
-        return this->operator << (string_view{s, std::strlen(s)});
+        return this->operator << (string_view(s, std::strlen(s)));
     }
 
     binary_ostream & operator << (std::string const & s)
@@ -170,7 +177,7 @@ public:
 
     binary_ostream & operator << (std::vector<char> const & s)
     {
-        return this->operator << (string_view{s, s.size()});
+        return this->operator << (string_view{s.data(), s.size()});
     }
 
     char const * data () const noexcept

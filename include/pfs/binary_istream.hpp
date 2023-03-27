@@ -75,6 +75,16 @@ public:
         return *this;
     }
 
+    template <typename T>
+    inline typename std::enable_if<std::is_enum<T>::value, binary_istream &>::type
+    operator >> (T & v)
+    {
+        typename std::underlying_type<T>::type tmp;
+        this->operator >> (tmp);
+        v = static_cast<T>(tmp);
+        return *this;
+    }
+
     /**
      * @throws error {std::errc::result_out_of_range} if not enough data to
      *         deserialize value.
