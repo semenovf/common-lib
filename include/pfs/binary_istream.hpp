@@ -36,6 +36,11 @@ public:
         , _end(end)
     {}
 
+    binary_istream (char const * begin, std::size_t size)
+        : _p(begin)
+        , _end(begin + size)
+    {}
+
     char const * begin () const noexcept
     {
         return _p;
