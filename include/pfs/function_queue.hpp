@@ -115,12 +115,12 @@ public:
         _q.wait();
     }
 
-    void wait_for (intmax_t microseconds)
+    bool wait_for (intmax_t microseconds)
     {
         using rep_type = std::chrono::microseconds::rep;
         using period_type = std::chrono::microseconds::period;
 
-        _q.template wait_for<rep_type, period_type>(std::chrono::microseconds(microseconds));
+        return _q.template wait_for<rep_type, period_type>(std::chrono::microseconds(microseconds));
     }
 };
 

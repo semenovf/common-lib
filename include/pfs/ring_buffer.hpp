@@ -771,6 +771,9 @@ public:
         return true;
     }
 
+    /**
+     * Infinite wait until buffer is empty.
+     */
     void wait ()
     {
         std::unique_lock<mutex_type> locker{_mtx};
@@ -782,16 +785,25 @@ public:
         }
     }
 
+    /**
+     * Waits until the buffer is empty or timeout expired.
+     *
+     * @return @c false if the buffer is empty after the @a rel_time timeout
+     *         expired, otherwise @c true.
+     * @see std::condition_variable::wait_for
+     */
     template <typename Rep, typename Period>
-    void wait_for (std::chrono::duration<Rep, Period> const & rel_time)
+    bool wait_for (std::chrono::duration<Rep, Period> const & rel_time)
     {
         std::unique_lock<mutex_type> locker{_mtx};
 
         if (base_class::empty()) {
-            _condvar.wait_for(locker, rel_time, [this] {
+            return _condvar.wait_for(locker, rel_time, [this] {
                 return !base_class::empty();
             });
         }
+
+        return true;
     }
 };
 
