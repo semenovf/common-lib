@@ -17,7 +17,9 @@
 #   define PFS__HAVE_STD_STRING_VIEW 1
 #   include <string>
 #   include <string_view>
+namespace pfs {
     using string_view = std::string_view;
+} // namespace pfs
 #else
 #   ifndef STX_NAMESPACE_NAME
 #       define STX_NAMESPACE_NAME pfs
@@ -53,9 +55,14 @@
     } // namespace std
 #endif
 
-#ifndef PFS__HAVE_STD_STRING_VIEW
+// #ifndef PFS__HAVE_STD_STRING_VIEW
 namespace pfs {
-#endif
+// #endif
+
+inline std::string to_string (string_view sw)
+{
+    return std::string(sw.begin(), sw.end());
+}
 
 inline bool starts_with (string_view const & str, string_view::value_type ch)
 {
@@ -103,6 +110,6 @@ inline bool ends_with (string_view const & str, string_view const & suffix)
         && str.compare(str.size() - suffix.size(), string_view::npos, suffix) == 0;
 }
 
-#ifndef PFS__HAVE_STD_STRING_VIEW
+// #ifndef PFS__HAVE_STD_STRING_VIEW
 } // namespace pfs
-#endif
+// #endif
