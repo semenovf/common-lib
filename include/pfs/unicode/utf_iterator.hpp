@@ -7,9 +7,10 @@
 //      2020.11.01 Initial version
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
-#include <pfs/iterator.hpp>
-#include <pfs/unicode/char.hpp>
-#include <pfs/unicode/traits.hpp>
+#include "pfs/error.hpp"
+#include "pfs/iterator.hpp"
+#include "char.hpp"
+#include "traits.hpp"
 
 namespace pfs {
 namespace unicode {
@@ -19,15 +20,15 @@ struct unicode_iterator_traits;
 
 namespace details {
 
-template <typename Derived, typename XtetInputIt, typename BrokenSeqAction>
+template <typename Derived, typename XtetInputIt>
 class utf_input_iterator : public iterator_facade<input_iterator_tag
-        , utf_input_iterator<Derived, XtetInputIt, BrokenSeqAction>
+        , utf_input_iterator<Derived, XtetInputIt>
         , char_t
         , char_t *  // unused
         , char_t &> // unused
 {
     typedef iterator_facade<input_iterator_tag
-        , utf_input_iterator<Derived, XtetInputIt, BrokenSeqAction>
+        , utf_input_iterator<Derived, XtetInputIt>
         , char_t
         , char_t *
         , char_t &> base_class;
@@ -36,78 +37,70 @@ public:
     typedef typename base_class::pointer         pointer;
     typedef typename base_class::reference       reference;
     typedef typename base_class::difference_type difference_type;
-    typedef BrokenSeqAction broken_sequence_action;
 
 protected:
-    static int8_t constexpr ATEND_FLAG  = 0x01;
-    static int8_t constexpr BROKEN_FLAG = 0x02;
+    XtetInputIt _p;
+    XtetInputIt _next;
+    XtetInputIt _last;
+    char_t      _value;
 
-    XtetInputIt * _p {nullptr};
-    XtetInputIt  _last;
-    char_t       _value;
-    int8_t       _flag;
+protected:
+    utf_input_iterator (XtetInputIt first, XtetInputIt last)
+        : _p(first)
+        , _next(first)
+        , _last(last)
+    {}
+
+    explicit utf_input_iterator (XtetInputIt last)
+        : _p(last)
+        , _next(last)
+        , _last(last)
+    {}
 
 public:
-    utf_input_iterator ()
-        : _p(0)
-        , _flag(0)
-    {}
-
-    utf_input_iterator (XtetInputIt & first, XtetInputIt last)
-        : _p(& first)
-        , _last(last)
-        , _flag(0)
+    static Derived begin (XtetInputIt first, XtetInputIt last)
     {
-        if (*_p == _last) {
-            _flag |= ATEND_FLAG;
-        } else {
-            increment(1);
-            _flag |= (_flag & BROKEN_FLAG) ? ATEND_FLAG : 0;
-        }
+        return Derived {first, last};
     }
 
-    utf_input_iterator (XtetInputIt last)
-        : _p(0)
-        , _last(last)
-        , _flag(ATEND_FLAG)
-    {}
+    static Derived end (XtetInputIt last)
+    {
+        return Derived {last};
+    }
 
 public:
     reference ref ()
     {
+        if (_p == _next)
+            _value = static_cast<Derived *>(this)->advance(_next, _last, 1);
+
         return _value;
     }
 
     pointer ptr () const
     {
+        if (_p == _next)
+            _value = static_cast<Derived *>(this)->advance(_next, _last, 1);
+
         return & _value;
     }
 
     bool equals (utf_input_iterator const & rhs) const
     {
-        return ((_flag & ATEND_FLAG) && (rhs._flag & ATEND_FLAG))
-                && (_p == rhs._p);
+        return _p == rhs._p;
     }
 
     void increment (difference_type)
     {
         static_cast<Derived *>(this)->increment(1);
+        _next = _p;
     }
 
-    bool is_broken () const
+    Derived end () const noexcept
     {
-        return _flag & BROKEN_FLAG;
+        return Derived {_last};
     }
 
-protected:
-    void broken_sequence ()
-    {
-        // Broken utf-8 sequence
-        _value = char_t::replacement_char;
-        _p = 0;
-        _flag |= (ATEND_FLAG | BROKEN_FLAG);
-        broken_sequence_action()();
-    }
 };
 
 } // details

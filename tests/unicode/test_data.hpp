@@ -4,6 +4,10 @@
 #   error "UTF subdirectory must be defined"
 #endif
 
+extern "C" unsigned char cyrillic1_txt[];
+extern "C" unsigned int  cyrillic1_txt_len;
+extern "C" unsigned char cyrillic2_txt[];
+extern "C" unsigned int  cyrillic2_txt_len;
 extern "C" unsigned char cyrillic_txt[];
 extern "C" unsigned int  cyrillic_txt_len;
 extern "C" unsigned char greek_txt[];
@@ -30,7 +34,9 @@ struct test_data {
 };
 
 static test_data data[] = {
-      { "cyrillic"  , "unicode/" UTF_SUBDIR "/data/cyrillic.txt"  , cyrillic_txt  , cyrillic_txt_len   ,   66 }
+      { "cyrillic1" , "unicode/" UTF_SUBDIR "/data/cyrillic1.txt" , cyrillic1_txt , cyrillic1_txt_len  ,    1 }
+    , { "cyrillic2" , "unicode/" UTF_SUBDIR "/data/cyrillic2.txt" , cyrillic2_txt , cyrillic2_txt_len  ,    2 }
+    , { "cyrillic"  , "unicode/" UTF_SUBDIR "/data/cyrillic.txt"  , cyrillic_txt  , cyrillic_txt_len   ,   66 }
     , { "gothic"    , "unicode/" UTF_SUBDIR "/data/gothic.txt"    , gothic_txt    , gothic_txt_len     ,   83 }
     , { "greek"     , "unicode/" UTF_SUBDIR "/data/greek.txt"     , greek_txt     , greek_txt_len      ,  204 }
     , { "mideng"    , "unicode/" UTF_SUBDIR "/data/mideng.txt"    , mideng_txt    , mideng_txt_len     ,  272 }
@@ -71,25 +77,25 @@ inline const char * iter_cast<const char *> (unsigned char * it)
 }
 
 // FIXME std::string::iterator() constructor need 2 args: pointer and owner, but nullptr is not valid value
-// template <>
-// inline std::string::iterator iter_cast<std::string::iterator> (unsigned char * it)
-// {
+template <>
+inline std::string::iterator iter_cast<std::string::iterator> (unsigned char * it)
+{
 // #if _MSC_VER
 //     return std::string::iterator(reinterpret_cast<char *>(it), nullptr); // <=== FIXME nullptr is not valid value here
 // #else    
-//     return std::string::iterator(reinterpret_cast<char *>(it));
+    return std::string::iterator(reinterpret_cast<char *>(it));
 // #endif
-// }
-//
-// template <>
-// inline std::string::const_iterator iter_cast<std::string::const_iterator> (unsigned char * it)
-// {
+}
+
+template <>
+inline std::string::const_iterator iter_cast<std::string::const_iterator> (unsigned char * it)
+{
 // #if _MSC_VER
 //     return std::string::const_iterator(reinterpret_cast<char *>(it), nullptr); // <=== FIXME nullptr is not valid value here
 // #else
-//     return std::string::const_iterator(reinterpret_cast<char *>(it));
+    return std::string::const_iterator(reinterpret_cast<char *>(it));
 // #endif    
-// }
+}
 
 template <>
 inline uint16_t * iter_cast<uint16_t *> (uint16_t * it)

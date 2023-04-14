@@ -41,4 +41,14 @@ struct is_function_pointer
 template <typename F>
 constexpr bool is_function_pointer<F>::value;
 
+template <typename Iter>
+struct pointer_dereference
+{
+    Iter p;
+    using type = typename std::decay<decltype(*p)>::type;
+};
+
+template <typename Iter>
+using pointer_dereference_t = typename pointer_dereference<Iter>::type;
+
 } // namespace pfs

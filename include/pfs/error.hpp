@@ -23,6 +23,7 @@ using error_code = std::error_code;
 enum class errc
 {
       success = 0
+    , broken_sequence
     , unexpected_error // Replaces any unexpected error
 };
 
@@ -31,16 +32,20 @@ class error_category : public std::error_category
 public:
     virtual char const * name () const noexcept override
     {
-        return "pfs_common_category";
+        return "pfs::common::category";
     }
 
     virtual std::string message (int ev) const override
     {
-        switch (ev) {
-            case static_cast<int>(errc::success):
+        switch (static_cast<errc>(ev)) {
+            case errc::success:
                 return std::string{"no error"};
-            case static_cast<int>(errc::unexpected_error):
-                return std::string{"Unexpected error"};
+
+            case errc::broken_sequence:
+                return std::string{"broken_sequence"};
+
+            case errc::unexpected_error:
+                return std::string{"unexpected error"};
 
             default: return std::string{"unknown common error"};
         }

@@ -9,8 +9,8 @@
 //      20??.??.?? Initial version.
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
-#include "pfs/unicode/u8_iterator.hpp"
-#include "pfs/unicode/u16_iterator.hpp"
+#include "utf8_iterator.hpp"
+#include "utf16_iterator.hpp"
 //#include "pfs/unicode/utf32_iterator.hpp"
 #include <limits>
 #include <string>
@@ -43,45 +43,41 @@ template <>
 struct unicode_iterator_traits<unsigned char *>
     :  unicode_iterator_limits<unsigned char *, unsigned char *>
 {
-    typedef utf8_iterator<unsigned char *> iterator;
-    typedef u8_output_iterator<unsigned char *> output_iterator;
-    typedef u8_input_iterator<unsigned char *> input_iterator;
+    typedef utf8_output_iterator<unsigned char *> output_iterator;
+    typedef utf8_input_iterator<unsigned char *> input_iterator;
 };
 
 template <>
 struct unicode_iterator_traits<unsigned char const *>
     :  unicode_iterator_limits<unsigned char const *, unsigned char const *>
 {
-    typedef utf8_iterator<unsigned char const *> iterator;
-    typedef u8_input_iterator<unsigned char const *> input_iterator;
+    typedef utf8_input_iterator<unsigned char const *> input_iterator;
 };
 
 template <>
 struct unicode_iterator_traits<char *>
     :  unicode_iterator_limits<char *, char *>
 {
-    typedef utf8_iterator<char *> iterator;
-    typedef u8_output_iterator<char *> output_iterator;
-    typedef u8_input_iterator<char *> input_iterator;
+    typedef utf8_output_iterator<char *> output_iterator;
+    typedef utf8_input_iterator<char *> input_iterator;
 };
 
 template <>
 struct unicode_iterator_traits<char const *>
     :  unicode_iterator_limits<char const *, char const *>
 {
-    //typedef utf16_iterator<char const *> iterator; // FIXME
-    typedef u8_input_iterator<char const *> input_iterator;
+    typedef utf8_input_iterator<char const *> input_iterator;
 };
 
-#if defined(_WIN32) || defined(_WIN64)
+#if _MSC_VER
 
 template <>
 struct unicode_iterator_traits<wchar_t *>
     :  unicode_iterator_limits<wchar_t *, wchar_t *>
 {
     //typedef utf16_iterator<wchar_t *> iterator; // FIXME
-    typedef u8_output_iterator<wchar_t *> output_iterator;
-    typedef u8_input_iterator<wchar_t *> input_iterator;
+    typedef utf16_output_iterator<wchar_t *> output_iterator;
+    typedef utf16_input_iterator<wchar_t *> input_iterator;
 };
 
 template <>
@@ -90,7 +86,7 @@ struct unicode_iterator_traits<wchar_t const *>
 
 {
     //typedef utf16_iterator<wchar_t const *> iterator; // FIXME
-    typedef u8_input_iterator<wchar_t const *> input_iterator;
+    typedef utf16_input_iterator<wchar_t const *> input_iterator;
 };
 
 template <>
@@ -98,8 +94,8 @@ struct unicode_iterator_traits<std::wstring::iterator>
     :  unicode_iterator_limits<std::wstring::iterator, wchar_t *>
 {
     //typedef utf16_iterator<std::wstring::iterator> iterator; // FIXME
-    typedef u8_output_iterator<std::wstring::iterator> output_iterator;
-    typedef u8_input_iterator<std::wstring::iterator> input_iterator;
+    typedef utf16_output_iterator<std::wstring::iterator> output_iterator;
+    typedef utf16_input_iterator<std::wstring::iterator> input_iterator;
 };
 
 template <>
@@ -107,7 +103,7 @@ struct unicode_iterator_traits<std::wstring::const_iterator>
     :  unicode_iterator_limits<std::wstring::const_iterator, wchar_t const*>
 {
     // typedef utf16_iterator<std::wstring::const_iterator> iterator; FIXME
-    typedef u8_input_iterator<std::wstring::const_iterator> input_iterator;
+    typedef utf8_input_iterator<std::wstring::const_iterator> input_iterator;
 };
 
 #endif

@@ -7,7 +7,7 @@
 //      2020.11.01 Initial version
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
-#include "pfs/unicode/utf_iterator.hpp"
+#include "utf_iterator.hpp"
 
 /*
  * Source: https://www.ietf.org/rfc/rfc2781.txt
@@ -36,13 +36,11 @@
 namespace pfs {
 namespace unicode {
 
-template <typename HextetInputIt, typename BrokenSeqAction = ignore_broken_sequence>
-class u16_input_iterator
-    : public details::utf_input_iterator<u16_input_iterator<HextetInputIt, BrokenSeqAction>
-        , HextetInputIt, BrokenSeqAction>
+template <typename HextetInputIt>
+class utf16_input_iterator
+    : public details::utf_input_iterator<utf16_input_iterator<HextetInputIt>, HextetInputIt>
 {
-    using base_class = details::utf_input_iterator<u16_input_iterator
-        , HextetInputIt, BrokenSeqAction>;
+    using base_class = details::utf_input_iterator<utf16_input_iterator, HextetInputIt>;
 
     bool _little_endian {true};
 
@@ -52,59 +50,52 @@ public:
 public:
     using base_class::base_class;
 
-    u16_input_iterator (bool little_endian)
+    utf16_input_iterator (bool little_endian)
         : base_class()
         , _little_endian(little_endian)
     {}
 
-    u16_input_iterator (HextetInputIt & first, HextetInputIt last, bool little_endian)
+    utf16_input_iterator (HextetInputIt & first, HextetInputIt last, bool little_endian)
         : base_class(first, last)
         , _little_endian(little_endian)
     {}
 
-    u16_input_iterator (HextetInputIt last, bool little_endian)
+    utf16_input_iterator (HextetInputIt last, bool little_endian)
         : base_class(last)
         , _little_endian(little_endian)
     {}
 
     void increment (difference_type)
     {
-        if (! this->_p)
-            return;
-
-        if (*this->_p == this->_last) {
-            this->_p = nullptr;
+        if (this->_p == this->_last) {
             this->_flag |= base_class::ATEND_FLAG;
             return;
         }
 
-        uint16_t w1 = code_point_cast<uint16_t>(**this->_p);
+        uint16_t w1 = code_point_cast<uint16_t>(*this->_p);
         uint16_t w2 = 0;
 
-        ++*this->_p;
+        ++this->_p;
 
         // Valid unit
         if (w1 < 0xD800 || w1 > 0xDFFF) {
             ;
         } else if (w1 >= 0xD800 && w1 <= 0xDBFF) {
-            if (*this->_p == this->_last) {
-                base_class::broken_sequence();
-                return;
+            if (this->_p == this->_last) {
+                throw error {make_error_code(errc::broken_sequence)};
             }
 
-            w2 = code_point_cast<uint16_t>(**this->_p);
+            w2 = code_point_cast<uint16_t>(*this->_p);
 
             // Valid unit sequence
             if (w2 >= 0xDC00 && w2 <= 0xDFFF) {
-                ++*this->_p;
+                ++this->_p;
             } else {
                 // Invalid unit
-                base_class::broken_sequence();
-                return;
+                throw error {make_error_code(errc::broken_sequence)};
             }
         } else {
-            base_class::broken_sequence();
-            return;
+            throw error {make_error_code(errc::broken_sequence)};
         }
 
         // Construct code point

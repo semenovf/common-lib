@@ -41,6 +41,7 @@ set(TEST_NAMES
     iterator_input
     iterator_output
     iterator_random_access
+    levenshtein_distance
     locale_utils
     optional
     pointer_proxy_iterator
@@ -55,17 +56,19 @@ set(TEST_NAMES
     timer_pool
     type_traits
     variant
+    utf8_iterator
     utf8_decode
     utf8_encode
-    utf16le_decode
-#     utf16le_encode
-    utf16be_decode
-#     utf16be_encode
-uuid
-)
+    #utf16le_decode
+##     utf16le_encode
+    #utf16be_decode
+##     utf16be_encode
+    uuid)
 
 set(utf8_resource_SOURCES
     unicode/utf8/cyrillic.c
+    unicode/utf8/cyrillic1.c
+    unicode/utf8/cyrillic2.c
     unicode/utf8/gothic.c
     unicode/utf8/greek.c
     unicode/utf8/mideng.c
@@ -76,6 +79,8 @@ set(utf8_resource_SOURCES
 
 set(utf16le_resource_SOURCES
     unicode/utf16le/cyrillic.c
+    unicode/utf16le/cyrillic1.c
+    unicode/utf16le/cyrillic2.c
     unicode/utf16le/gothic.c
     unicode/utf16le/greek.c
     unicode/utf16le/mideng.c
@@ -86,6 +91,8 @@ set(utf16le_resource_SOURCES
 
 set(utf16be_resource_SOURCES
     unicode/utf16be/cyrillic.c
+    unicode/utf16be/cyrillic1.c
+    unicode/utf16be/cyrillic2.c
     unicode/utf16be/gothic.c
     unicode/utf16be/greek.c
     unicode/utf16be/mideng.c
