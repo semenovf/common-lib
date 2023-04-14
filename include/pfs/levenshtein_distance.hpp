@@ -18,6 +18,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
 #include "error.hpp"
+#include "i18n.hpp"
 #include "string_view.hpp"
 #include "type_traits.hpp"
 #include <algorithm>
@@ -34,6 +35,8 @@ enum class levenshtein_distance_algo {
 
     // TODO Implement
     , damerau // Damerau–Levenshtein
+
+    , myers1999
 };
 
 template <typename Char>
@@ -225,6 +228,150 @@ SizeType levenshtein_distance_fast (ForwardIter xbegin, ForwardIter xend
 #endif
 }
 
+
+////////////
+// Original implementation in C from https://ceptord.net/20200815-Comparison.html
+// (follow `benchmark.c` href)
+//
+// Myers' bit-parallel algorithm
+//
+// G. Myers. "A fast bit-vector algorithm for approximate string
+// matching based on dynamic programming." Journal of the ACM, 1999.
+//
+// int8_t myers1999(char *s1, int8_t len1, char *s2, int8_t len2)
+// {
+//     uint64_t Peq[256];
+//     uint64_t Eq, Xv, Xh, Ph, Mh, Pv, Mv, Last;
+//     int8_t i;
+//     int8_t Score = len2;
+//
+//     memset(Peq, 0, sizeof(Peq));
+//
+//     for (i = 0; i < len2; i++)
+//         Peq[s2[i]] |= (uint64_t) 1 << i;
+//
+//     Mv = 0;
+//     Pv = (uint64_t) -1;
+//     Last = (uint64_t) 1 << (len2 - 1);
+//
+//     for (i = 0; i < len1; i++) {
+//         Eq = Peq[s1[i]];
+//
+//         Xv = Eq | Mv;
+//         Xh = (((Eq & Pv) + Pv) ^ Pv) | Eq;
+//
+//         Ph = Mv | ~ (Xh | Pv);
+//         Mh = Pv & Xh;
+//
+//         if (Ph & Last) Score++;
+//         if (Mh & Last) Score--;
+//
+//         Ph = (Ph << 1) | 1;
+//         Mh = (Mh << 1);
+//
+//         Pv = Mh | ~ (Xv | Ph);
+//         Mv = Ph & Xv;
+//     }
+//     return Score;
+// }
+
+//
+// Limitations:
+//      1. the maximum length of the each sequence must be less than or
+//         equal to 32;
+//      2. supports only Plane Unicode characters (https://en.wikipedia.org/wiki/Plane_(Unicode));
+//      3. equality сomparator is not used.
+//
+template <typename ForwardIter
+    , typename EqualityComparator = default_equality_comparator<pointer_dereference_t<ForwardIter>>
+    , typename SizeType = std::size_t>
+SizeType levenshtein_distance_myers1999 (ForwardIter xbegin, ForwardIter xend
+    , ForwardIter ybegin, ForwardIter yend)
+{
+    if (xbegin == ybegin && xend == yend)
+        return 0;
+
+    auto xlen = std::distance(xbegin, xend);
+    auto ylen = std::distance(ybegin, yend);
+
+    if (xlen == 0)
+        return ylen;
+
+    if (ylen == 0)
+        return xlen;
+
+    if (xlen > 32) {
+        throw error {
+              std::make_error_code(std::errc::invalid_argument)
+            , tr::f_("length of the sequence must be less than or equal to 32")
+        };
+    }
+
+    if (ylen > 32) {
+        throw error {
+              std::make_error_code(std::errc::invalid_argument)
+            , tr::f_("length of the sequence must be less than or equal to 32")
+        };
+    }
+
+    std::uint64_t Peq[0x10000];
+
+    std::memset(Peq, 0, sizeof(Peq));
+
+    std::int8_t i = 0;
+
+    for (auto ypos = ybegin; ypos != yend; ++ypos) {
+        auto index = static_cast<std::uint64_t>(*ypos);
+
+        if (index >= 0x10000) {
+            throw error {
+                  std::make_error_code(std::errc::invalid_argument)
+                , tr::f_("only Plane Unicode characters supported by Myers1999 algorithm")
+            };
+        }
+
+        Peq[index] |= static_cast<std::uint64_t>(1) << i++;
+    }
+
+    std::uint64_t Mv = 0;
+    std::uint64_t Pv = static_cast<std::uint64_t>(-1);
+    std::uint64_t Last = static_cast<std::uint64_t>(1) << (ylen - 1);
+    std::int8_t Score = static_cast<std::int8_t>(ylen); //len2;
+
+    for (auto xpos = xbegin; xpos != xend; ++xpos) {
+        auto index = static_cast<std::uint64_t>(*xpos);
+
+        if (index >= 0x10000) {
+            throw error {
+                  std::make_error_code(std::errc::invalid_argument)
+                , tr::f_("only Plane Unicode characters supported by Myers1999 algorithm")
+            };
+        }
+
+        std::uint64_t Eq = Peq[index];
+
+        std::uint64_t Xv = Eq | Mv;
+        std::uint64_t Xh = (((Eq & Pv) + Pv) ^ Pv) | Eq;
+
+        std::uint64_t Ph = Mv | ~ (Xh | Pv);
+        std::uint64_t Mh = Pv & Xh;
+
+        if (Ph & Last)
+            Score++;
+
+        if (Mh & Last)
+            Score--;
+
+        Ph = (Ph << 1) | 1;
+        Mh = (Mh << 1);
+
+        Pv = Mh | ~ (Xv | Ph);
+        Mv = Ph & Xv;
+    }
+
+    return Score;
+}
+
 template <typename ForwardIter
     , typename EqualityComparator = default_equality_comparator<pointer_dereference_t<ForwardIter>>
     , typename SizeType = std::size_t>
@@ -235,6 +382,9 @@ SizeType levenshtein_distance (ForwardIter xbegin, ForwardIter xend
     switch (algo) {
         case levenshtein_distance_algo::wagner_fischer:
             return levenshtein_distance_wf<ForwardIter, EqualityComparator, SizeType>(
+                xbegin, xend, ybegin, yend);
+        case levenshtein_distance_algo::myers1999:
+            return levenshtein_distance_myers1999<ForwardIter, EqualityComparator, SizeType>(
                 xbegin, xend, ybegin, yend);
         case levenshtein_distance_algo::fast:
         default:

@@ -67,6 +67,7 @@ TEST_CASE("levenshtein_distance")
 
     auto wagner_fischer = pfs::levenshtein_distance_algo::wagner_fischer;
     auto fast = pfs::levenshtein_distance_algo::fast;
+    auto myers1999 = pfs::levenshtein_distance_algo::myers1999;
 
     // Special cases
     CHECK_THROWS(pfs::levenshtein_distance<>(nullptr      , "Levenshtein", wagner_fischer));
@@ -78,11 +79,12 @@ TEST_CASE("levenshtein_distance")
     CHECK_THROWS(pfs::levenshtein_distance<>(nullptr      , nullptr      , wagner_fischer));
 
     for (auto const & x: test_suite) {
-        CHECK_EQ(pfs::levenshtein_distance<>(x.a, x.b, wagner_fischer), x.wagner_fischer_result);
-        CHECK_EQ(pfs::levenshtein_distance<>(x.a, x.b, fast), x.fast_result);
+        CHECK_MESSAGE(pfs::levenshtein_distance<>(x.a, x.b, wagner_fischer) == x.wagner_fischer_result
+            , fmt::format(R"(levenshtein_distance("{}", "{}", wagner_fischer))", x.a, x.b));
         CHECK_MESSAGE(pfs::levenshtein_distance<>(x.a, x.b, fast) == x.fast_result
-            , fmt::format(R"(levenshtein_distance("{}", "{}"))", x.a, x.b);
-        );
+            , fmt::format(R"(levenshtein_distance("{}", "{}", fast))", x.a, x.b));
+        CHECK_MESSAGE(pfs::levenshtein_distance<>(x.a, x.b, myers1999) == x.fast_result
+            , fmt::format(R"(levenshtein_distance("{}", "{}", myers1999))", x.a, x.b));
     }
 }
 #endif
