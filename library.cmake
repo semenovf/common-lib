@@ -52,39 +52,16 @@ if (ANDROID)
 endif()
 
 if (PFS__ENABLE_NLS)
-    if (PFS__USE_IMPORTED_GETTEXT_LIB)
-        if (MSVC)
-            add_library(libintl SHARED IMPORTED GLOBAL)
-            add_library(libiconv-2 SHARED IMPORTED GLOBAL)
+    if (MSVC OR ANDROID)
+        if (NOT TARGET libintl)
+            portable_target_error(${PROJECT_NAME} "Expected `libintl` TARGET to support NLS" )
+        endif()
 
-            set_target_properties(libintl PROPERTIES
-                IMPORTED_LOCATION "${CMAKE_CURRENT_LIST_DIR}/3rdparty/gettext-0.21/libintl.dll"
-                IMPORTED_IMPLIB "${CMAKE_CURRENT_LIST_DIR}/3rdparty/gettext-0.21/libintl.lib"
-                INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_CURRENT_LIST_DIR}/3rdparty/gettext-0.21"
-                # Custom target for libintl dependency
-                ICONV_LIB "${CMAKE_CURRENT_LIST_DIR}/3rdparty/gettext-0.21/libiconv-2.dll")
+        if (NOT TARGET libiconv)
+            portable_target_error(${PROJECT_NAME} "Expected `libiconv` TARGET to support NLS")
+        endif()
 
-            set_target_properties(libiconv-2 PROPERTIES
-                IMPORTED_LOCATION "${CMAKE_CURRENT_LIST_DIR}/3rdparty/gettext-0.21/libiconv-2.dll"
-                IMPORTED_IMPLIB "${CMAKE_CURRENT_LIST_DIR}/3rdparty/gettext-0.21/libiconv-2.lib"
-                INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_CURRENT_LIST_DIR}/3rdparty/gettext-0.21")
-
-            portable_target(LINK ${PROJECT_NAME} INTERFACE libintl)
-
-            # FIXME
-            # Target "pfs-common" is an INTERFACE library that may not have PRE_BUILD,
-            # PRE_LINK, or POST_BUILD commands.
-            #
-            # add_custom_command(TARGET ${PROJECT_NAME}
-            #     POST_BUILD
-            #     COMMAND ${CMAKE_COMMAND} -E copy
-            #         "$<TARGET_PROPERTY:libintl,IMPORTED_LOCATION>"
-            #         "$<TARGET_FILE_DIR:${PROJECT_NAME}>"
-            #     COMMAND ${CMAKE_COMMAND} -E copy
-            #         "$<TARGET_PROPERTY:libintl,ICONV_LIB>"
-            #         "$<TARGET_FILE_DIR:${PROJECT_NAME}>"
-            #     VERBATIM)
-        endif (MSVC)
+        portable_target(LINK ${PROJECT_NAME} INTERFACE libintl libiconv)
     endif()
 endif()
 

@@ -17,13 +17,11 @@ CMAKE_OPTIONS="${CMAKE_OPTIONS}"
 CTEST_OPTIONS="${CTEST_OPTIONS}"
 
 if [ -z "$PROJECT_NAME" ] ; then
-    echo "ERROR: PROJECT_NAME is mandatory." >&2
-    exit 1
+    PROJECT_NAME=common
 fi
 
 if [ -z "$PROJECT_OPT_PREFIX" ] ; then
-    echo "ERROR: PROJECT_OPT_PREFIX is mandatory." >&2
-    exit 1
+    PROJECT_OPT_PREFIX="PFS__"
 fi
 
 if [ -z "$BUILD_GENERATOR" ] ; then
