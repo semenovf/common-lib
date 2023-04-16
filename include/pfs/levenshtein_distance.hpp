@@ -37,6 +37,9 @@ enum class levenshtein_distance_algo {
     , damerau // Damerau–Levenshtein
 
     , myers1999
+
+    // https://en.wikipedia.org/wiki/Hamming_distance
+    , hamming
 };
 
 template <typename Char>
@@ -372,6 +375,48 @@ SizeType levenshtein_distance_myers1999 (ForwardIter xbegin, ForwardIter xend
     return Score;
 }
 
+//
+// Limitations:
+//      1. only equal sized (or empty) sequences are applicable.
+//
+template <typename ForwardIter
+    , typename EqualityComparator = default_equality_comparator<pointer_dereference_t<ForwardIter>>
+    , typename SizeType = std::size_t>
+SizeType levenshtein_distance_hamming (ForwardIter xbegin, ForwardIter xend
+    , ForwardIter ybegin, ForwardIter yend)
+{
+    if (xbegin == ybegin && xend == yend)
+        return 0;
+
+    auto xlen = std::distance(xbegin, xend);
+    auto ylen = std::distance(ybegin, yend);
+
+    if (xlen == 0)
+        return ylen;
+
+    if (ylen == 0)
+        return xlen;
+
+    if (xlen != ylen) {
+        throw error {
+              std::make_error_code(std::errc::invalid_argument)
+            , tr::f_("only equal sized (or empty) sequences are applicable for Hamming algorithm")
+        };
+    }
+
+    EqualityComparator eq;
+    auto xpos = xbegin;
+    auto ypos = ybegin;
+    SizeType counter = 0;
+
+    for (; xpos != xend; ++xpos, ++ypos) {
+        if (!eq(*xpos, *ypos))
+            counter++;
+    }
+
+    return counter;
+}
+
 template <typename ForwardIter
     , typename EqualityComparator = default_equality_comparator<pointer_dereference_t<ForwardIter>>
     , typename SizeType = std::size_t>
@@ -386,6 +431,10 @@ SizeType levenshtein_distance (ForwardIter xbegin, ForwardIter xend
         case levenshtein_distance_algo::myers1999:
             return levenshtein_distance_myers1999<ForwardIter, EqualityComparator, SizeType>(
                 xbegin, xend, ybegin, yend);
+        case levenshtein_distance_algo::hamming:
+            return levenshtein_distance_hamming<ForwardIter, EqualityComparator, SizeType>(
+                xbegin, xend, ybegin, yend);
+
         case levenshtein_distance_algo::fast:
         default:
             break;
