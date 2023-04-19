@@ -101,6 +101,10 @@ public:
         return Derived {_last};
     }
 
+    XtetInputIt base () const noexcept
+    {
+        return _p;
+    }
 };
 
 } // details
