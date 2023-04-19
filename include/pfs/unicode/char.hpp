@@ -1,5 +1,10 @@
 #pragma once
-// #include <pfs/ctype.hpp>
+#if PFS__ICU_ENABLED
+#   include <unicode/uchar.h>
+#else
+#   include <pfs/ctype.hpp>
+#endif
+
 
 namespace pfs {
 namespace unicode {
@@ -132,8 +137,23 @@ inline void invalidate (char_t & c)
     c.value = char_t::max_code_point;
 }
 
-char_t to_lower (char_t const & c);
-char_t to_upper (char_t const & c);
+inline char_t to_lower (char_t const & c)
+{
+#if PFS__ICU_ENABLED
+    return char_t{u_tolower(static_cast<std::int32_t>(c.value))};
+#else
+    return c.value < 256 ? char_t{::tolower(static_cast<int>(c.value))} : c;
+#endif
+}
+
+inline char_t to_upper (char_t const & c)
+{
+#if PFS__ICU_ENABLED
+    return char_t{u_toupper(static_cast<std::int32_t>(c.value))};
+#else
+    return c.value < 256 ? char_t{::toupper(static_cast<int>(c.value))} : c;
+#endif
+}
 
 }} // pfs::unicode
 
