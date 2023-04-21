@@ -28,7 +28,7 @@ namespace unicode {
 //////////////////////////////////////////////////////////////////////////////////////////
 //
 // ATTENTION!
-// It's not recommended for use with single-pass input iterators (i.e.
+// It's not recommended to use with single-pass input iterators (i.e.
 // std::istreambuf_iterator). Permitted operations are very limited (and they
 // change state of the underlying iterator):
 //      * prefixed increment operator (++it)
@@ -56,7 +56,7 @@ protected:
             if (pos == last)
                 throw error {make_error_code(errc::broken_sequence)};
 
-            std::uint8_t b = code_point_cast<std::uint8_t>(*pos);
+            std::uint8_t b = code_unit_cast<std::uint8_t>(*pos);
             ++pos;
             int nunits = 0;
 
@@ -86,7 +86,7 @@ protected:
                 if (pos == last)
                     throw error {make_error_code(errc::broken_sequence)};
 
-                b = code_point_cast<uint8_t>(*pos);
+                b = code_unit_cast<uint8_t>(*pos);
                 ++pos;
 
                 if ((b & 0xC0) == 0x80) {
@@ -102,13 +102,52 @@ protected:
         return result;
     }
 
-    void increment (difference_type n)
-    {
-        this->advance(this->_p, this->_last, n);
-    }
-
 public:
     using base_class::base_class;
+
+    /**
+     * Returns distance in a code points (first member in the pair) and in a
+     * code units (seconds member in the pair) bitween @a pos and @a last position.
+     *
+     * @note This implementation does not check sequence consistency and
+     *       is assumed that @a pos is before @a last.
+     */
+    static std::pair<difference_type, difference_type> distance_unsafe (OctetInputIt pos
+        , OctetInputIt last)
+    {
+        difference_type cp_count = 0;
+        difference_type cu_count = 0;
+
+        while (pos != last) {
+            std::uint8_t b = code_unit_cast<std::uint8_t>(*pos);
+            ++pos;
+
+            if (b < 128) {
+                cu_count++;
+            } else if ((b & 0xE0) == 0xC0) {
+                cu_count += 2;
+                ++pos;
+            } else if ((b & 0xF0) == 0xE0) {
+                cu_count += 3;
+                pos += 2;
+            } else if ((b & 0xF8) == 0xF0) {
+                cu_count += 4;
+                pos += 3;
+            } else if ((b & 0xFC) == 0xF8) {
+                cu_count += 5;
+                pos += 4;
+            } else if ((b & 0xFE) == 0xFC) {
+                cu_count += 6;
+                pos += 5;
+            } else {
+                throw error {make_error_code(errc::broken_sequence)};
+            }
+
+            cp_count++;
+        }
+
+        return std::make_pair(cp_count, cu_count);
+    }
 };
 
 template <typename OctetOutputIt>

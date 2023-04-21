@@ -57,6 +57,24 @@ TEST_CASE("distance") {
         auto pos = utf8_input_iterator::begin(s, s + std::strlen(s));
         CHECK_EQ(std::distance(pos, pos.end()), 66);
     }
+
+    {
+        using utf8_it1_t = pfs::unicode::utf8_input_iterator<char const *>;
+        using utf8_it2_t = pfs::unicode::utf8_input_iterator<std::string::const_iterator>;
+
+        char const * s = "АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЬЫЪЭЮЯабвгдеёжзийклмнопрстуфхцчшщьыъэюя";
+        std::string str{s};
+
+        auto res = utf8_it1_t::distance_unsafe(s, s + std::strlen(s));
+
+        CHECK_EQ(res.first, 66);      // Number of code points
+        CHECK_EQ(res.second, 2 * 66); // Number of code units
+
+        res = utf8_it2_t::distance_unsafe(str.begin(), str.end());
+
+        CHECK_EQ(res.first, 66);      // Number of code points
+        CHECK_EQ(res.second, 2 * 66); // Number of code units
+    }
 }
 
 TEST_CASE("advance") {

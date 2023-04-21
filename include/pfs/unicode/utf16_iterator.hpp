@@ -36,6 +36,8 @@
 namespace pfs {
 namespace unicode {
 
+// FIXME According utf8_input_iterator
+
 template <typename HextetInputIt>
 class utf16_input_iterator
     : public details::utf_input_iterator<utf16_input_iterator<HextetInputIt>, HextetInputIt>
@@ -72,7 +74,7 @@ public:
             return;
         }
 
-        uint16_t w1 = code_point_cast<uint16_t>(*this->_p);
+        uint16_t w1 = code_unit_cast<uint16_t>(*this->_p);
         uint16_t w2 = 0;
 
         ++this->_p;
@@ -85,7 +87,7 @@ public:
                 throw error {make_error_code(errc::broken_sequence)};
             }
 
-            w2 = code_point_cast<uint16_t>(*this->_p);
+            w2 = code_unit_cast<uint16_t>(*this->_p);
 
             // Valid unit sequence
             if (w2 >= 0xDC00 && w2 <= 0xDFFF) {

@@ -69,6 +69,7 @@ public:
     }
 
 public:
+    // Input iterator requirements
     reference ref ()
     {
         if (_p == _next)
@@ -77,6 +78,7 @@ public:
         return _value;
     }
 
+    // Input iterator requirements
     pointer ptr () const
     {
         if (_p == _next)
@@ -85,14 +87,16 @@ public:
         return & _value;
     }
 
+    // Input iterator requirements
     bool equals (utf_input_iterator const & rhs) const
     {
         return _p == rhs._p;
     }
 
-    void increment (difference_type)
+    // Input iterator requirements
+    void increment (difference_type n)
     {
-        static_cast<Derived *>(this)->increment(1);
+        static_cast<Derived *>(this)->advance(this->_p, this->_last, n);
         _next = _p;
     }
 

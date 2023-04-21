@@ -10,7 +10,7 @@ namespace pfs {
 namespace unicode {
 
 template <typename T1, typename T2>
-inline T1 code_point_cast (T2 x)
+inline T1 code_unit_cast (T2 x)
 {
     return static_cast<T1>(x);
 }
