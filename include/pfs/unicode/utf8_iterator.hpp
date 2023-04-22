@@ -148,6 +148,33 @@ public:
 
         return std::make_pair(cp_count, cu_count);
     }
+
+    /**
+     * Advance iterator @a pos by @a n code points.
+     */
+    static void advance_unsafe (OctetInputIt & pos, difference_type n)
+    {
+        while (n--) {
+            std::uint8_t b = code_unit_cast<std::uint8_t>(*pos);
+            ++pos;
+
+            if (b < 128) {
+                ;
+            } else if ((b & 0xE0) == 0xC0) {
+                ++pos;
+            } else if ((b & 0xF0) == 0xE0) {
+                pos += 2;
+            } else if ((b & 0xF8) == 0xF0) {
+                pos += 3;
+            } else if ((b & 0xFC) == 0xF8) {
+                pos += 4;
+            } else if ((b & 0xFE) == 0xFC) {
+                pos += 5;
+            } else {
+                throw error {make_error_code(errc::broken_sequence)};
+            }
+        }
+    }
 };
 
 template <typename OctetOutputIt>

@@ -90,9 +90,14 @@ TEST_CASE("advance") {
 
     {
         char const * s = "АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЬЫЪЭЮЯабвгдеёжзийклмнопрстуфхцчшщьыъэюя";
+
         auto pos = utf8_input_iterator::begin(s, s + std::strlen(s));
         auto end = pos.end();
         std::advance(pos, 66);
         CHECK_EQ(pos, end);
+
+        auto pos1 = s;
+        utf8_input_iterator::advance_unsafe(pos1, 66);
+        CHECK_EQ(pos1, s + std::strlen(s));
     }
 }
