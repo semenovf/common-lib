@@ -109,6 +109,30 @@ public:
     {
         return _p;
     }
+
+public:
+    /**
+     * Returns distance in a code points (first member in the pair) and in a
+     * code units (seconds member in the pair) bitween @a pos and @a last position.
+     *
+     * @note This implementation does not check sequence consistency and
+     *       is assumed that @a pos is before @a last.
+     */
+    static std::pair<difference_type, difference_type> distance_unsafe (
+          Derived const & first, Derived const & last)
+    {
+        return first.distance(first._p, last._p);
+    }
+
+    /**
+     * Advance iterator @a pos by @a n code points.
+     */
+    static void advance_unsafe (Derived & pos, difference_type n)
+    {
+        XtetInputIt p = pos._p;
+        pos.advance(p, n);
+        pos = begin(p, pos._last);
+    }
 };
 
 } // details

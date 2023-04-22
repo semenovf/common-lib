@@ -65,12 +65,14 @@ TEST_CASE("distance") {
         char const * s = "АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЬЫЪЭЮЯабвгдеёжзийклмнопрстуфхцчшщьыъэюя";
         std::string str{s};
 
-        auto res = utf8_it1_t::distance_unsafe(s, s + std::strlen(s));
+        auto pos1 = utf8_it1_t::begin(s, s + std::strlen(s));
+        auto res = utf8_it1_t::distance_unsafe(pos1, pos1.end());
 
         CHECK_EQ(res.first, 66);      // Number of code points
         CHECK_EQ(res.second, 2 * 66); // Number of code units
 
-        res = utf8_it2_t::distance_unsafe(str.begin(), str.end());
+        auto pos2 = utf8_it2_t::begin(str.begin(), str.end());
+        res = utf8_it2_t::distance_unsafe(pos2, pos2.end());
 
         CHECK_EQ(res.first, 66);      // Number of code points
         CHECK_EQ(res.second, 2 * 66); // Number of code units
@@ -96,8 +98,9 @@ TEST_CASE("advance") {
         std::advance(pos, 66);
         CHECK_EQ(pos, end);
 
-        auto pos1 = s;
+        auto pos1 = utf8_input_iterator::begin(s, s + std::strlen(s));
+        auto end1 = pos1.end();
         utf8_input_iterator::advance_unsafe(pos1, 66);
-        CHECK_EQ(pos1, s + std::strlen(s));
+        CHECK_EQ(pos1, end1);
     }
 }

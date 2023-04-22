@@ -48,7 +48,7 @@ public:
     using difference_type = typename base_class::difference_type;
 
 protected:
-    char_t advance (OctetInputIt & pos, OctetInputIt last, difference_type n)
+    char_t advance (OctetInputIt & pos, OctetInputIt last, difference_type n) const
     {
         char_t::value_type result;
 
@@ -102,8 +102,32 @@ protected:
         return result;
     }
 
-public:
-    using base_class::base_class;
+    /**
+     * Advance iterator @a pos by @a n code points.
+     */
+    void advance (OctetInputIt & pos, difference_type n) const
+    {
+        while (n--) {
+            std::uint8_t b = code_unit_cast<std::uint8_t>(*pos);
+            ++pos;
+
+            if (b < 128) {
+                ;
+            } else if ((b & 0xE0) == 0xC0) {
+                ++pos;
+            } else if ((b & 0xF0) == 0xE0) {
+                pos += 2;
+            } else if ((b & 0xF8) == 0xF0) {
+                pos += 3;
+            } else if ((b & 0xFC) == 0xF8) {
+                pos += 4;
+            } else if ((b & 0xFE) == 0xFC) {
+                pos += 5;
+            } else {
+                throw error {make_error_code(errc::broken_sequence)};
+            }
+        }
+    }
 
     /**
      * Returns distance in a code points (first member in the pair) and in a
@@ -112,8 +136,8 @@ public:
      * @note This implementation does not check sequence consistency and
      *       is assumed that @a pos is before @a last.
      */
-    static std::pair<difference_type, difference_type> distance_unsafe (OctetInputIt pos
-        , OctetInputIt last)
+    std::pair<difference_type, difference_type> distance (OctetInputIt pos
+        , OctetInputIt last) const
     {
         difference_type cp_count = 0;
         difference_type cu_count = 0;
@@ -149,32 +173,8 @@ public:
         return std::make_pair(cp_count, cu_count);
     }
 
-    /**
-     * Advance iterator @a pos by @a n code points.
-     */
-    static void advance_unsafe (OctetInputIt & pos, difference_type n)
-    {
-        while (n--) {
-            std::uint8_t b = code_unit_cast<std::uint8_t>(*pos);
-            ++pos;
-
-            if (b < 128) {
-                ;
-            } else if ((b & 0xE0) == 0xC0) {
-                ++pos;
-            } else if ((b & 0xF0) == 0xE0) {
-                pos += 2;
-            } else if ((b & 0xF8) == 0xF0) {
-                pos += 3;
-            } else if ((b & 0xFC) == 0xF8) {
-                pos += 4;
-            } else if ((b & 0xFE) == 0xFC) {
-                pos += 5;
-            } else {
-                throw error {make_error_code(errc::broken_sequence)};
-            }
-        }
-    }
+public:
+    using base_class::base_class;
 };
 
 template <typename OctetOutputIt>
