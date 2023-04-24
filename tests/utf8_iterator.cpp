@@ -230,4 +230,80 @@ TEST_CASE("search") {
 
         CHECK_MESSAGE(count == 5, "Wrong number of occurances");
     }
+
+    {
+        using char_t = pfs::unicode::char_t;
+        char const * haystack = "<>w<>";
+        char const * needle = "w";
+        auto first = utf8_input_iterator::begin(haystack, haystack + std::strlen(haystack));
+        auto last = first.end();
+        auto s_first = utf8_input_iterator::begin(needle, needle + std::strlen(needle));
+
+        auto pos = pfs::unicode::search(first, last, s_first, s_first.end()
+            , '<', '>', [] (char_t a, char_t b) { return a == b; });
+
+        CHECK(pos != last);
+    }
+
+    {
+        char const * haystack = "<span Лорем>Лорем</Лорем span> ипсум долор сит амет. "
+            "<p лорем>Вис лорем.</p лорем>"
+            "<div>Хис ан ЛоРеМ, куад алтера лореМ. Еи хас ЛОРЕМ.</ЛОРЕМ div>";
+
+        int count = 0;
+        char const * needle = "лоРем";
+        bool ignore_case = true;
+
+        auto first = utf8_input_iterator::begin(haystack, haystack + std::strlen(haystack));
+        auto last = first.end();
+        auto s_first = utf8_input_iterator::begin(needle, needle + std::strlen(needle));
+
+        pfs::unicode::search_all(first, last, s_first, s_first.end(), ignore_case
+            , '<', '>'
+            , [first, last, & count] (pfs::unicode::match_item const & m) {
+                std::string prefix (first.base(), first.base() + m.cu_first);
+                std::string substr (first.base() + m.cu_first, first.base() + m.cu_last);
+                std::string suffix (first.base() + m.cu_last, last.base());
+
+                fmt::print("{}[{}]{}: {}-{},{}-{}\n", prefix, substr, suffix
+                    , m.cp_first, m.cp_last, m.cu_first, m.cu_last);
+
+                count++;
+
+                switch (count) {
+                    case 1:
+                        CHECK_EQ(m.cp_first, 12);
+                        CHECK_EQ(m.cp_last , 17);
+                        CHECK_EQ(m.cu_first, 17);
+                        CHECK_EQ(m.cu_last , 27);
+                        break;
+                    case 2:
+                        CHECK_EQ(m.cp_first,  66);
+                        CHECK_EQ(m.cp_last ,  71);
+                        CHECK_EQ(m.cu_first, 106);
+                        CHECK_EQ(m.cu_last , 116);
+                        break;
+                    case 3:
+                        CHECK_EQ(m.cp_first,  94);
+                        CHECK_EQ(m.cp_last ,  99);
+                        CHECK_EQ(m.cu_first, 149);
+                        CHECK_EQ(m.cu_last , 159);
+                        break;
+                    case 4:
+                        CHECK_EQ(m.cp_first, 113);
+                        CHECK_EQ(m.cp_last , 118);
+                        CHECK_EQ(m.cu_first, 183);
+                        CHECK_EQ(m.cu_last , 193);
+                        break;
+                    case 5:
+                        CHECK_EQ(m.cp_first, 127);
+                        CHECK_EQ(m.cp_last , 132);
+                        CHECK_EQ(m.cu_first, 207);
+                        CHECK_EQ(m.cu_last , 217);
+                        break;
+                }
+        });
+
+        CHECK_MESSAGE(count == 5, "Wrong number of occurances");
+    }
 }
