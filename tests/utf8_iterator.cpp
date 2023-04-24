@@ -8,7 +8,9 @@
 ////////////////////////////////////////////////////////////////////////////////
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include "doctest.h"
+#include "pfs/fmt.hpp"
 #include "pfs/unicode/utf8_iterator.hpp"
+#include "pfs/unicode/search.hpp"
 
 TEST_CASE("iterate") {
     using utf8_input_iterator = pfs::unicode::utf8_input_iterator<char const *>;
@@ -102,5 +104,130 @@ TEST_CASE("advance") {
         auto end1 = pos1.end();
         utf8_input_iterator::advance_unsafe(pos1, 66);
         CHECK_EQ(pos1, end1);
+    }
+}
+
+TEST_CASE("search") {
+    using utf8_input_iterator = pfs::unicode::utf8_input_iterator<char const *>;
+
+    {
+        char const * haystack = "Lorem ipsum dolor sit amet. Vis lorem."
+            " His an LoReM, quod altera loreM. Ei has LOREM.";
+
+        int count = 0;
+        char const * needle = "loRem";
+        bool ignore_case = true;
+
+        auto first = utf8_input_iterator::begin(haystack, haystack + std::strlen(haystack));
+        auto last = first.end();
+        auto s_first = utf8_input_iterator::begin(needle, needle + std::strlen(needle));
+
+        pfs::unicode::search_all(first, last, s_first, s_first.end(), ignore_case
+            , [first, last, & count] (pfs::unicode::match_item const & m) {
+                std::string prefix (first.base(), first.base() + m.cu_first);
+                std::string substr (first.base() + m.cu_first, first.base() + m.cu_last);
+                std::string suffix (first.base() + m.cu_last, last.base());
+
+                fmt::print("{}[{}]{}: {}-{},{}-{}\n", prefix, substr, suffix
+                    , m.cp_first, m.cp_last, m.cu_first, m.cu_last);
+
+                count++;
+
+                switch (count) {
+                    case 1:
+                        CHECK_EQ(m.cp_first, 0);
+                        CHECK_EQ(m.cp_last , 5);
+                        CHECK_EQ(m.cu_first, 0);
+                        CHECK_EQ(m.cu_last , 5);
+                        break;
+                    case 2:
+                        CHECK_EQ(m.cp_first, 32);
+                        CHECK_EQ(m.cp_last , 37);
+                        CHECK_EQ(m.cu_first, 32);
+                        CHECK_EQ(m.cu_last , 37);
+                        break;
+                    case 3:
+                        CHECK_EQ(m.cp_first, 46);
+                        CHECK_EQ(m.cp_last , 51);
+                        CHECK_EQ(m.cu_first, 46);
+                        CHECK_EQ(m.cu_last , 51);
+                        break;
+                    case 4:
+                        CHECK_EQ(m.cp_first, 65);
+                        CHECK_EQ(m.cp_last , 70);
+                        CHECK_EQ(m.cu_first, 65);
+                        CHECK_EQ(m.cu_last , 70);
+                        break;
+                    case 5:
+                        CHECK_EQ(m.cp_first, 79);
+                        CHECK_EQ(m.cp_last , 84);
+                        CHECK_EQ(m.cu_first, 79);
+                        CHECK_EQ(m.cu_last , 84);
+                        break;
+                }
+        });
+
+        CHECK_MESSAGE(count == 5, "Wrong number of occurances");
+    }
+
+
+    {
+        char const * haystack = "Лорем ипсум долор сит амет. Вис лорем."
+            " Хис ан ЛоРеМ, куад алтера лореМ. Еи хас ЛОРЕМ.";
+
+        int count = 0;
+        char const * needle = "лоРем";
+        bool ignore_case = true;
+
+        auto first = utf8_input_iterator::begin(haystack, haystack + std::strlen(haystack));
+        auto last = first.end();
+        auto s_first = utf8_input_iterator::begin(needle, needle + std::strlen(needle));
+
+        pfs::unicode::search_all(first, last, s_first, s_first.end(), ignore_case
+            , [first, last, & count] (pfs::unicode::match_item const & m) {
+                std::string prefix (first.base(), first.base() + m.cu_first);
+                std::string substr (first.base() + m.cu_first, first.base() + m.cu_last);
+                std::string suffix (first.base() + m.cu_last, last.base());
+
+                fmt::print("{}[{}]{}: {}-{},{}-{}\n", prefix, substr, suffix
+                    , m.cp_first, m.cp_last, m.cu_first, m.cu_last);
+
+                count++;
+
+                switch (count) {
+                    case 1:
+                        CHECK_EQ(m.cp_first, 0);
+                        CHECK_EQ(m.cp_last , 5);
+                        CHECK_EQ(m.cu_first, 0);
+                        CHECK_EQ(m.cu_last , 10);
+                        break;
+                    case 2:
+                        CHECK_EQ(m.cp_first, 32);
+                        CHECK_EQ(m.cp_last , 37);
+                        CHECK_EQ(m.cu_first, 57);
+                        CHECK_EQ(m.cu_last , 67);
+                        break;
+                    case 3:
+                        CHECK_EQ(m.cp_first, 46);
+                        CHECK_EQ(m.cp_last , 51);
+                        CHECK_EQ(m.cu_first, 81);
+                        CHECK_EQ(m.cu_last , 91);
+                        break;
+                    case 4:
+                        CHECK_EQ(m.cp_first, 65);
+                        CHECK_EQ(m.cp_last , 70);
+                        CHECK_EQ(m.cu_first, 115);
+                        CHECK_EQ(m.cu_last , 125);
+                        break;
+                    case 5:
+                        CHECK_EQ(m.cp_first, 79);
+                        CHECK_EQ(m.cp_last , 84);
+                        CHECK_EQ(m.cu_first, 139);
+                        CHECK_EQ(m.cu_last , 149);
+                        break;
+                }
+        });
+
+        CHECK_MESSAGE(count == 5, "Wrong number of occurances");
     }
 }
