@@ -15,7 +15,7 @@
 namespace pfs {
 namespace unicode {
 
-    /**
+/**
  * Searches for the first occurrence of the sequence of elements
  * [@a s_first, @a s_last) in the range [@a first, @a last).
  *
@@ -107,7 +107,9 @@ void search_all (HaystackIt first, HaystackIt last, NeedleIt s_first, NeedleIt s
     match_item m {0, 0, 0, 0};
 
     auto prev_pos = first;
-    auto pos = search(prev_pos, last, s_first, s_last, predicate);
+
+    // Specifying full name to fix ambiguity with std::search
+    auto pos = pfs::unicode::search(prev_pos, last, s_first, s_last, predicate);
 
     while (pos != last) {
         auto res = HaystackIt::distance_unsafe(prev_pos, pos);
@@ -126,7 +128,8 @@ void search_all (HaystackIt first, HaystackIt last, NeedleIt s_first, NeedleIt s
         m.cp_first += s_cp_len;
         m.cu_first += s_cu_len;
 
-        pos = search(prev_pos, last, s_first, s_last, predicate);
+        // Specifying full name to fix ambiguity with std::search
+        pos = pfs::unicode::search(prev_pos, last, s_first, s_last, predicate);
     }
 }
 
