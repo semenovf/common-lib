@@ -2,7 +2,7 @@
 #if PFS__ICU_ENABLED
 #   include <unicode/uchar.h>
 #else
-#   include <pfs/ctype.hpp>
+#   include <cctype>
 #endif
 
 
