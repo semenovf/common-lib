@@ -83,6 +83,43 @@ struct match_item
 };
 
 /**
+ * Searches for the first occurrence of the sequence of elements
+ * [@a s_first, @a s_last) in the range [@a first, @a last).
+ *
+ * @return Match position specification or {-1, -1, -1, -1} if sequence not found.
+ */
+template <typename HaystackIt, typename NeedleIt>
+match_item search_first (HaystackIt first, HaystackIt last, NeedleIt s_first
+    , NeedleIt s_last, bool ignore_case)
+{
+    if (first == last)
+        return match_item {-1, -1, -1, -1};
+
+    if (s_first == s_last)
+        return match_item {-1, -1, -1, -1};
+
+    auto s_dist   = NeedleIt::distance_unsafe(s_first, s_last);
+    auto s_cp_len = s_dist.first;
+    auto s_cu_len = s_dist.second;
+
+    auto predicate = ignore_case
+        ? [] (pfs::unicode::char_t a, pfs::unicode::char_t b)->bool { return pfs::unicode::to_lower(a) == pfs::unicode::to_lower(b); }
+        : [] (pfs::unicode::char_t a, pfs::unicode::char_t b)->bool { return a == b; };
+
+    // Specifying full name to fix ambiguity with std::search
+    auto pos = pfs::unicode::search(first, last, s_first, s_last, predicate);
+
+    if (pos != last) {
+        auto res = HaystackIt::distance_unsafe(first, pos);
+
+        return match_item {static_cast<int>(res.first), static_cast<int>(res.first + s_cp_len)
+            , static_cast<int>(res.second), static_cast<int>(res.second + s_cu_len)};
+    }
+
+    return match_item {-1, -1, -1, -1};
+}
+
+/**
  * Searches for the all occurrences of the sequence of elements
  * [@a s_first, @a s_last) in the range [@a first, @a last).
  */
@@ -131,6 +168,37 @@ void search_all (HaystackIt first, HaystackIt last, NeedleIt s_first, NeedleIt s
         // Specifying full name to fix ambiguity with std::search
         pos = pfs::unicode::search(prev_pos, last, s_first, s_last, predicate);
     }
+}
+
+template <typename HaystackIt, typename NeedleIt>
+match_item search_first (HaystackIt first, HaystackIt last, NeedleIt s_first, NeedleIt s_last
+    , bool ignore_case, char_t begin_ignore_char, char_t end_ignore_char)
+{
+    if (first == last)
+        return match_item {-1, -1, -1, -1};
+
+    if (s_first == s_last)
+        return match_item {-1, -1, -1, -1};
+
+    auto s_dist   = NeedleIt::distance_unsafe(s_first, s_last);
+    auto s_cp_len = s_dist.first;
+    auto s_cu_len = s_dist.second;
+
+    auto predicate = ignore_case
+        ? [] (pfs::unicode::char_t a, pfs::unicode::char_t b)->bool { return pfs::unicode::to_lower(a) == pfs::unicode::to_lower(b); }
+        : [] (pfs::unicode::char_t a, pfs::unicode::char_t b)->bool { return a == b; };
+
+    auto pos = search(first, last, s_first, s_last, begin_ignore_char
+        , end_ignore_char, predicate);
+
+    if (pos != last) {
+        auto res = HaystackIt::distance_unsafe(first, pos);
+
+        return match_item {static_cast<int>(res.first), static_cast<int>(res.first + s_cp_len)
+            , static_cast<int>(res.second), static_cast<int>(res.second + s_cu_len)};
+    }
+
+    return match_item {-1, -1, -1, -1};
 }
 
 template <typename HaystackIt, typename NeedleIt>
