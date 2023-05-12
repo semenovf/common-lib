@@ -36,13 +36,13 @@
 namespace pfs {
 namespace unicode {
 
-// FIXME According utf8_input_iterator
+// FIXME According utf8_iterator
 
-template <typename HextetInputIt>
-class utf16_input_iterator
-    : public details::utf_input_iterator<utf16_input_iterator<HextetInputIt>, HextetInputIt>
+template <typename HextetFwdIt>
+class utf16_iterator
+    : public details::utf_iterator<utf16_iterator<HextetFwdIt>, HextetFwdIt>
 {
-    using base_class = details::utf_input_iterator<utf16_input_iterator, HextetInputIt>;
+    using base_class = details::utf_iterator<utf16_iterator, HextetFwdIt>;
 
     bool _little_endian {true};
 
@@ -52,17 +52,17 @@ public:
 public:
     using base_class::base_class;
 
-    utf16_input_iterator (bool little_endian)
+    utf16_iterator (bool little_endian)
         : base_class()
         , _little_endian(little_endian)
     {}
 
-    utf16_input_iterator (HextetInputIt & first, HextetInputIt last, bool little_endian)
+    utf16_iterator (HextetFwdIt & first, HextetFwdIt last, bool little_endian)
         : base_class(first, last)
         , _little_endian(little_endian)
     {}
 
-    utf16_input_iterator (HextetInputIt last, bool little_endian)
+    utf16_iterator (HextetFwdIt last, bool little_endian)
         : base_class(last)
         , _little_endian(little_endian)
     {}

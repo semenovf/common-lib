@@ -129,7 +129,7 @@ TEST_CASE("levenshtein_distance ignore case")
 
 TEST_CASE("levenshtein_distance for UTF8")
 {
-    using utf8_input_iterator = pfs::unicode::utf8_input_iterator<char const *>;
+    using utf8_input_iterator = pfs::unicode::utf8_iterator<char const *>;
     using eq_comparator = pfs::default_equality_comparator<pfs::pointer_dereference_t<utf8_input_iterator>>;
     using levenshtein = pfs::levenshtein_distance_env<utf8_input_iterator, eq_comparator, std::int16_t>;
 

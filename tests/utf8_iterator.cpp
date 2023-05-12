@@ -13,12 +13,12 @@
 #include "pfs/unicode/search.hpp"
 
 TEST_CASE("iterate") {
-    using utf8_input_iterator = pfs::unicode::utf8_input_iterator<char const *>;
+    using utf8_iterator = pfs::unicode::utf8_iterator<char const *>;
 
     {
         char const * s = "абв";
 
-        auto pos = utf8_input_iterator::begin(s, s + std::strlen(s));
+        auto pos = utf8_iterator::begin(s, s + std::strlen(s));
 
         CHECK_EQ(*pos++, pfs::unicode::char_t{0x0430});
         CHECK_EQ(*pos++, pfs::unicode::char_t{0x0431});
@@ -31,7 +31,7 @@ TEST_CASE("iterate") {
     {
         char const * s = "АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЬЫЪЭЮЯабвгдеёжзийклмнопрстуфхцчшщьыъэюя";
 
-        auto pos = utf8_input_iterator::begin(s, s + std::strlen(s));
+        auto pos = utf8_iterator::begin(s, s + std::strlen(s));
         auto end = pos.end();
 
         int count = 0;
@@ -46,23 +46,23 @@ TEST_CASE("iterate") {
 }
 
 TEST_CASE("distance") {
-    using utf8_input_iterator = pfs::unicode::utf8_input_iterator<char const *>;
+    using utf8_iterator = pfs::unicode::utf8_iterator<char const *>;
 
     {
         char const * s = "абв";
-        auto pos = utf8_input_iterator::begin(s, s + std::strlen(s));
+        auto pos = utf8_iterator::begin(s, s + std::strlen(s));
         CHECK_EQ(std::distance(pos, pos.end()), 3);
     }
 
     {
         char const * s = "АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЬЫЪЭЮЯабвгдеёжзийклмнопрстуфхцчшщьыъэюя";
-        auto pos = utf8_input_iterator::begin(s, s + std::strlen(s));
+        auto pos = utf8_iterator::begin(s, s + std::strlen(s));
         CHECK_EQ(std::distance(pos, pos.end()), 66);
     }
 
     {
-        using utf8_it1_t = pfs::unicode::utf8_input_iterator<char const *>;
-        using utf8_it2_t = pfs::unicode::utf8_input_iterator<std::string::const_iterator>;
+        using utf8_it1_t = pfs::unicode::utf8_iterator<char const *>;
+        using utf8_it2_t = pfs::unicode::utf8_iterator<std::string::const_iterator>;
 
         char const * s = "АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЬЫЪЭЮЯабвгдеёжзийклмнопрстуфхцчшщьыъэюя";
         std::string str{s};
@@ -82,11 +82,11 @@ TEST_CASE("distance") {
 }
 
 TEST_CASE("advance") {
-    using utf8_input_iterator = pfs::unicode::utf8_input_iterator<char const *>;
+    using utf8_iterator = pfs::unicode::utf8_iterator<char const *>;
 
     {
         char const * s = "абв";
-        auto pos = utf8_input_iterator::begin(s, s + std::strlen(s));
+        auto pos = utf8_iterator::begin(s, s + std::strlen(s));
         auto end = pos.end();
         std::advance(pos, 3);
         CHECK_EQ(pos, end);
@@ -95,20 +95,20 @@ TEST_CASE("advance") {
     {
         char const * s = "АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЬЫЪЭЮЯабвгдеёжзийклмнопрстуфхцчшщьыъэюя";
 
-        auto pos = utf8_input_iterator::begin(s, s + std::strlen(s));
+        auto pos = utf8_iterator::begin(s, s + std::strlen(s));
         auto end = pos.end();
         std::advance(pos, 66);
         CHECK_EQ(pos, end);
 
-        auto pos1 = utf8_input_iterator::begin(s, s + std::strlen(s));
+        auto pos1 = utf8_iterator::begin(s, s + std::strlen(s));
         auto end1 = pos1.end();
-        utf8_input_iterator::advance_unsafe(pos1, 66);
+        utf8_iterator::advance_unsafe(pos1, 66);
         CHECK_EQ(pos1, end1);
     }
 }
 
 TEST_CASE("search") {
-    using utf8_input_iterator = pfs::unicode::utf8_input_iterator<char const *>;
+    using utf8_iterator = pfs::unicode::utf8_iterator<char const *>;
 
     {
         char const * haystack = "Lorem ipsum dolor sit amet. Vis lorem."
@@ -118,9 +118,9 @@ TEST_CASE("search") {
         char const * needle = "loRem";
         bool ignore_case = true;
 
-        auto first = utf8_input_iterator::begin(haystack, haystack + std::strlen(haystack));
+        auto first = utf8_iterator::begin(haystack, haystack + std::strlen(haystack));
         auto last = first.end();
-        auto s_first = utf8_input_iterator::begin(needle, needle + std::strlen(needle));
+        auto s_first = utf8_iterator::begin(needle, needle + std::strlen(needle));
 
         pfs::unicode::search_all(first, last, s_first, s_first.end(), ignore_case
             , [first, last, & count] (pfs::unicode::match_item const & m) {
@@ -179,9 +179,9 @@ TEST_CASE("search") {
         char const * needle = "лоРем";
         bool ignore_case = true;
 
-        auto first = utf8_input_iterator::begin(haystack, haystack + std::strlen(haystack));
+        auto first = utf8_iterator::begin(haystack, haystack + std::strlen(haystack));
         auto last = first.end();
-        auto s_first = utf8_input_iterator::begin(needle, needle + std::strlen(needle));
+        auto s_first = utf8_iterator::begin(needle, needle + std::strlen(needle));
 
         pfs::unicode::search_all(first, last, s_first, s_first.end(), ignore_case
             , [first, last, & count] (pfs::unicode::match_item const & m) {
@@ -235,9 +235,9 @@ TEST_CASE("search") {
         using char_t = pfs::unicode::char_t;
         char const * haystack = "<>w<>";
         char const * needle = "w";
-        auto first = utf8_input_iterator::begin(haystack, haystack + std::strlen(haystack));
+        auto first = utf8_iterator::begin(haystack, haystack + std::strlen(haystack));
         auto last = first.end();
-        auto s_first = utf8_input_iterator::begin(needle, needle + std::strlen(needle));
+        auto s_first = utf8_iterator::begin(needle, needle + std::strlen(needle));
 
         auto pos = pfs::unicode::search(first, last, s_first, s_first.end()
             , '<', '>', [] (char_t a, char_t b) { return a == b; });
@@ -254,9 +254,9 @@ TEST_CASE("search") {
         char const * needle = "лоРем";
         bool ignore_case = true;
 
-        auto first = utf8_input_iterator::begin(haystack, haystack + std::strlen(haystack));
+        auto first = utf8_iterator::begin(haystack, haystack + std::strlen(haystack));
         auto last = first.end();
-        auto s_first = utf8_input_iterator::begin(needle, needle + std::strlen(needle));
+        auto s_first = utf8_iterator::begin(needle, needle + std::strlen(needle));
 
         pfs::unicode::search_all(first, last, s_first, s_first.end(), ignore_case
             , '<', '>'

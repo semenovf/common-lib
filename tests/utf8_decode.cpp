@@ -22,8 +22,8 @@ bool decode (const char * itertype)
 
         size_t count = 0;
         pfs::unicode::char_t uc = 0;
-        auto inp_first = pfs::unicode::utf8_input_iterator<OctetIt>::begin(first, last);
-        auto inp_last  = pfs::unicode::utf8_input_iterator<OctetIt>::end(last);
+        auto inp_first = pfs::unicode::utf8_iterator<OctetIt>::begin(first, last);
+        auto inp_last  = pfs::unicode::utf8_iterator<OctetIt>::end(last);
 
         while (inp_first != inp_last) {
             uc = *inp_first++;
@@ -62,8 +62,8 @@ bool decode_files ()
             std::istreambuf_iterator<char> first(ifs);
             std::istreambuf_iterator<char> last;
 
-            auto inp_first = pfs::unicode::utf8_input_iterator<std::istreambuf_iterator<char>>::begin(first, last);
-            auto inp_last  = pfs::unicode::utf8_input_iterator<std::istreambuf_iterator<char>>::end(last);
+            auto inp_first = pfs::unicode::utf8_iterator<std::istreambuf_iterator<char>>::begin(first, last);
+            auto inp_last  = pfs::unicode::utf8_iterator<std::istreambuf_iterator<char>>::end(last);
 
             CHECK_EQ(std::distance(inp_first, inp_last), data[i].nchars);
         }
@@ -79,8 +79,8 @@ bool decode_files ()
 
             size_t count = 0;
             pfs::unicode::char_t uc = 0;
-            auto inp_first = pfs::unicode::utf8_input_iterator<std::istreambuf_iterator<char>>::begin(first, last);
-            auto inp_last  = pfs::unicode::utf8_input_iterator<std::istreambuf_iterator<char>>::end(last);
+            auto inp_first = pfs::unicode::utf8_iterator<std::istreambuf_iterator<char>>::begin(first, last);
+            auto inp_last  = pfs::unicode::utf8_iterator<std::istreambuf_iterator<char>>::end(last);
 
             while (inp_first != inp_last) {
                 ++inp_first;
