@@ -7,6 +7,7 @@
 //      ????.??.?? Initial version
 //      2020.11.01 Refactored u8_input_iterator
 //      2023.04.13 Added `advance` method.
+//      2023.05.12 Renamed `utf8_input_iterator` into `utf8_iterator`.
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
 #include "utf_iterator.hpp"
@@ -36,19 +37,19 @@ namespace unicode {
 //
 //////////////////////////////////////////////////////////////////////////////////////////
 
-template <typename OctetInputIt>
-class utf8_input_iterator
-    : public details::utf_input_iterator<utf8_input_iterator<OctetInputIt>, OctetInputIt>
+template <typename OctetFwdIt>
+class utf8_iterator
+    : public details::utf_iterator<utf8_iterator<OctetFwdIt>, OctetFwdIt>
 {
-    using base_class = details::utf_input_iterator<utf8_input_iterator, OctetInputIt>;
+    using base_class = details::utf_iterator<utf8_iterator, OctetFwdIt>;
 
-    friend class details::utf_input_iterator<utf8_input_iterator, OctetInputIt>;
+    friend class details::utf_iterator<utf8_iterator, OctetFwdIt>;
 
 public:
     using difference_type = typename base_class::difference_type;
 
 protected:
-    char_t advance (OctetInputIt & pos, OctetInputIt last, difference_type n) const
+    char_t advance (OctetFwdIt & pos, OctetFwdIt last, difference_type n) const
     {
         char_t::value_type result;
 
@@ -105,7 +106,7 @@ protected:
     /**
      * Advance iterator @a pos by @a n code points.
      */
-    void advance (OctetInputIt & pos, difference_type n) const
+    void advance (OctetFwdIt & pos, difference_type n) const
     {
         while (n--) {
             std::uint8_t b = code_unit_cast<std::uint8_t>(*pos);
@@ -136,8 +137,8 @@ protected:
      * @note This implementation does not check sequence consistency and
      *       is assumed that @a pos is before @a last.
      */
-    std::pair<difference_type, difference_type> distance (OctetInputIt pos
-        , OctetInputIt last) const
+    std::pair<difference_type, difference_type> distance (OctetFwdIt pos
+        , OctetFwdIt last) const
     {
         difference_type cp_count = 0;
         difference_type cu_count = 0;

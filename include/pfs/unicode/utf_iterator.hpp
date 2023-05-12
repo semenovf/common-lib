@@ -1,10 +1,12 @@
 ////////////////////////////////////////////////////////////////////////////////
-// Copyright (c) 2020 Vladislav Trifochkin
+// Copyright (c) 2020-2023 Vladislav Trifochkin
 //
 // This file is part of `common-lib`.
 //
 // Changelog:
 //      2020.11.01 Initial version
+//      2023.05.12 Renamed `utf_input_iterator` into `utf_iterator` and changed
+//                 category from `input` to `forward` iterator.
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
 #include "pfs/error.hpp"
@@ -20,15 +22,15 @@ struct unicode_iterator_traits;
 
 namespace details {
 
-template <typename Derived, typename XtetInputIt>
-class utf_input_iterator : public iterator_facade<input_iterator_tag
-        , utf_input_iterator<Derived, XtetInputIt>
+template <typename Derived, typename XtetFwdIt>
+class utf_iterator : public iterator_facade<forward_iterator_tag
+        , utf_iterator<Derived, XtetFwdIt>
         , char_t
         , char_t *  // unused
         , char_t &> // unused
 {
-    typedef iterator_facade<input_iterator_tag
-        , utf_input_iterator<Derived, XtetInputIt>
+    typedef iterator_facade<forward_iterator_tag
+        , utf_iterator<Derived, XtetFwdIt>
         , char_t
         , char_t *
         , char_t &> base_class;
@@ -39,31 +41,31 @@ public:
     typedef typename base_class::difference_type difference_type;
 
 protected:
-    XtetInputIt _p;
-    XtetInputIt _next;
-    XtetInputIt _last;
+    XtetFwdIt _p;
+    XtetFwdIt _next;
+    XtetFwdIt _last;
     char_t      _value;
 
 protected:
-    utf_input_iterator (XtetInputIt first, XtetInputIt last)
+    utf_iterator (XtetFwdIt first, XtetFwdIt last)
         : _p(first)
         , _next(first)
         , _last(last)
     {}
 
-    explicit utf_input_iterator (XtetInputIt last)
+    explicit utf_iterator (XtetFwdIt last)
         : _p(last)
         , _next(last)
         , _last(last)
     {}
 
 public:
-    static Derived begin (XtetInputIt first, XtetInputIt last)
+    static Derived begin (XtetFwdIt first, XtetFwdIt last)
     {
         return Derived {first, last};
     }
 
-    static Derived end (XtetInputIt last)
+    static Derived end (XtetFwdIt last)
     {
         return Derived {last};
     }
@@ -88,7 +90,7 @@ public:
     }
 
     // Input iterator requirements
-    bool equals (utf_input_iterator const & rhs) const
+    bool equals (utf_iterator const & rhs) const
     {
         return _p == rhs._p;
     }
@@ -105,7 +107,7 @@ public:
         return Derived {_last};
     }
 
-    XtetInputIt base () const noexcept
+    XtetFwdIt base () const noexcept
     {
         return _p;
     }
@@ -129,7 +131,7 @@ public:
      */
     static void advance_unsafe (Derived & pos, difference_type n)
     {
-        XtetInputIt p = pos._p;
+        XtetFwdIt p = pos._p;
         pos.advance(p, n);
         pos = begin(p, pos._last);
     }

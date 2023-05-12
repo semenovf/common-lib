@@ -44,14 +44,14 @@ struct unicode_iterator_traits<unsigned char *>
     :  unicode_iterator_limits<unsigned char *, unsigned char *>
 {
     typedef utf8_output_iterator<unsigned char *> output_iterator;
-    typedef utf8_input_iterator<unsigned char *> input_iterator;
+    typedef utf8_iterator<unsigned char *> iterator;
 };
 
 template <>
 struct unicode_iterator_traits<unsigned char const *>
     :  unicode_iterator_limits<unsigned char const *, unsigned char const *>
 {
-    typedef utf8_input_iterator<unsigned char const *> input_iterator;
+    typedef utf8_iterator<unsigned char const *> iterator;
 };
 
 template <>
@@ -59,14 +59,14 @@ struct unicode_iterator_traits<char *>
     :  unicode_iterator_limits<char *, char *>
 {
     typedef utf8_output_iterator<char *> output_iterator;
-    typedef utf8_input_iterator<char *> input_iterator;
+    typedef utf8_iterator<char *> iterator;
 };
 
 template <>
 struct unicode_iterator_traits<char const *>
     :  unicode_iterator_limits<char const *, char const *>
 {
-    typedef utf8_input_iterator<char const *> input_iterator;
+    typedef utf8_iterator<char const *> iterator;
 };
 
 #if _MSC_VER
@@ -103,7 +103,7 @@ struct unicode_iterator_traits<std::wstring::const_iterator>
     :  unicode_iterator_limits<std::wstring::const_iterator, wchar_t const*>
 {
     // typedef utf16_iterator<std::wstring::const_iterator> iterator; FIXME
-    typedef utf8_input_iterator<std::wstring::const_iterator> input_iterator;
+    typedef utf8_iterator<std::wstring::const_iterator> iterator;
 };
 
 #endif
