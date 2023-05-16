@@ -98,39 +98,50 @@ inline std::string::const_iterator iter_cast<std::string::const_iterator> (unsig
 }
 
 template <>
-inline uint16_t * iter_cast<uint16_t *> (uint16_t * it)
+inline std::uint16_t * iter_cast<std::uint16_t *> (std::uint16_t * it)
 {
     return it;
 }
 
 template <>
-inline uint16_t const * iter_cast<uint16_t const *> (uint16_t * it)
+inline std::uint16_t const * iter_cast<std::uint16_t const *> (std::uint16_t * it)
 {
-    return reinterpret_cast<uint16_t const *>(it);
+    return reinterpret_cast<std::uint16_t const *>(it);
 }
 
 //
 template <>
-inline int16_t * iter_cast<int16_t *> (uint16_t * it)
+inline std::int16_t * iter_cast<std::int16_t *> (std::uint16_t * it)
 {
     return reinterpret_cast<int16_t *>(it);
 }
 
 template <>
-inline int16_t const * iter_cast<int16_t const *> (uint16_t * it)
+inline std::int16_t const * iter_cast<std::int16_t const *> (std::uint16_t * it)
 {
-    return reinterpret_cast<int16_t const *>(it);
+    return reinterpret_cast<std::int16_t const *>(it);
 }
 
-// FIXME
-// template <>
-// inline std::basic_string<uint16_t>::iterator iter_cast<std::basic_string<uint16_t>::iterator> (uint16_t * it)
-// {
-//     return std::basic_string<uint16_t>::iterator(reinterpret_cast<uint16_t *>(it));
-// }
-//
-// template <>
-// inline std::basic_string<uint16_t>::const_iterator iter_cast<std::basic_string<uint16_t>::const_iterator> (uint16_t * it)
-// {
-//     return std::basic_string<uint16_t>::const_iterator(reinterpret_cast<uint16_t *>(it));
-// }
+template <>
+inline std::basic_string<std::int16_t>::iterator iter_cast<std::basic_string<std::int16_t>::iterator> (std::uint16_t * it)
+{
+    return std::basic_string<std::int16_t>::iterator(reinterpret_cast<std::int16_t *>(it));
+}
+
+template <>
+inline std::basic_string<std::int16_t>::const_iterator iter_cast<std::basic_string<std::int16_t>::const_iterator> (std::uint16_t * it)
+{
+    return std::basic_string<std::int16_t>::const_iterator(reinterpret_cast<std::int16_t *>(it));
+}
+
+template <>
+inline std::basic_string<std::uint16_t>::iterator iter_cast<std::basic_string<std::uint16_t>::iterator> (std::uint16_t * it)
+{
+    return std::basic_string<std::uint16_t>::iterator(it);
+}
+
+template <>
+inline std::basic_string<std::uint16_t>::const_iterator iter_cast<std::basic_string<std::uint16_t>::const_iterator> (std::uint16_t * it)
+{
+    return std::basic_string<std::uint16_t>::const_iterator(it);
+}

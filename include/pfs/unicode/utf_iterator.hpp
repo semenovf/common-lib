@@ -44,7 +44,7 @@ protected:
     XtetFwdIt _p;
     XtetFwdIt _next;
     XtetFwdIt _last;
-    char_t      _value;
+    char_t    _value;
 
 protected:
     utf_iterator (XtetFwdIt first, XtetFwdIt last)

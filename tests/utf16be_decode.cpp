@@ -1,23 +1,26 @@
 ////////////////////////////////////////////////////////////////////////////////
-// Copyright (c) 2020 Vladislav Trifochkin
+// Copyright (c) 2020-2023 Vladislav Trifochkin
 //
 // This file is part of `common-lib`.
 //
 // Changelog:
 //      2020.11.08 Initial version
-//
+//      2022.05.16 Fixed tests for std::basic_string<>::iterator family.
 ////////////////////////////////////////////////////////////////////////////////
 #define UTF_SUBDIR "utf16be"
 #include "utf16_decode.hpp"
 
 TEST_CASE("Decode utf16be") {
-    decode<uint16_t *>("uint16 *", false);
-    decode<uint16_t const *>("uint16_t const *", false);
-    decode<int16_t *>("int16_t *", false);
-    decode<int16_t const *>("int16_t const *", false);
-    // FIXME
-//     decode<std::basic_string<int16_t>::iterator>("std::basic_string<int16_t>::iterator", false);
-//     decode<std::basic_string<int16_t>::const_iterator>("std::basic_string<int16_t>::const_iterator");
-    // FIXME
-//     decode_files(false);
+    decode<std::uint16_t *, pfs::unicode::utf16be_byteswap>("uint16 *");
+    decode<std::uint16_t const *, pfs::unicode::utf16be_byteswap>("uint16_t const *");
+    decode<std::int16_t *, pfs::unicode::utf16be_byteswap>("int16_t *");
+    decode<std::int16_t const *, pfs::unicode::utf16be_byteswap>("int16_t const *");
+
+    decode<std::basic_string<std::int16_t>::iterator, pfs::unicode::utf16be_byteswap>("std::basic_string<int16_t>::iterator");
+    decode<std::basic_string<std::int16_t>::const_iterator, pfs::unicode::utf16be_byteswap>("std::basic_string<int16_t>::const_iterator");
+    decode<std::basic_string<std::uint16_t>::iterator, pfs::unicode::utf16be_byteswap>("std::basic_string<uint16_t>::iterator");
+    decode<std::basic_string<std::uint16_t>::const_iterator, pfs::unicode::utf16be_byteswap>("std::basic_string<uint16_t>::const_iterator");
+
+    // FIXME see decode_files() definition
+    // decode_files<pfs::unicode::utf16le_byteswap>();
 }

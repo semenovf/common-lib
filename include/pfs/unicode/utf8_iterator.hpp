@@ -87,7 +87,7 @@ protected:
                 if (pos == last)
                     throw error {make_error_code(errc::broken_sequence)};
 
-                b = code_unit_cast<uint8_t>(*pos);
+                b = code_unit_cast<std::uint8_t>(*pos);
                 ++pos;
 
                 if ((b & 0xC0) == 0x80) {
@@ -96,11 +96,9 @@ protected:
                     throw error {make_error_code(errc::broken_sequence)};
                 }
             }
-
-            result = static_cast<intmax_t>(result);
         }
 
-        return result;
+        return char_t{result};
     }
 
     /**

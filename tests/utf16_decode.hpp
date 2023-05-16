@@ -1,25 +1,24 @@
 ////////////////////////////////////////////////////////////////////////////////
-// Copyright (c) 2020 Vladislav Trifochkin
+// Copyright (c) 2020-2023 Vladislav Trifochkin
 //
 // This file is part of `common-lib`.
 //
 // Changelog:
-//      2020.11.08 Initial version
-//
+//      2020.11.08 Initial version.
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include "doctest.h"
-#include <pfs/unicode/unicode_iterator.hpp>
-#include <pfs/unicode/u16_iterator.hpp>
+#include "pfs/fmt.hpp"
+#include <pfs/unicode/utf16_iterator.hpp>
+#include <cstring>
 #include <fstream>
 #include <iterator>
 #include <string>
-#include <sstream>
 #include "unicode/test_data.hpp"
 
-template <typename HextetInputIt>
-bool decode (const char * itertype, bool is_little_endian)
+template <typename HextetIt, typename Utf18ByteSwap>
+bool decode (char const * itertype)
 {
     int ntests = sizeof(data) / sizeof(data[0]);
     bool result {true};
@@ -28,52 +27,35 @@ bool decode (const char * itertype, bool is_little_endian)
         REQUIRE_MESSAGE(data[i].len % 2 == 0, "Test text length must be even");
 
         // Convert bytes sequence into word sequence according to native byte order
-        std::vector<uint16_t> d;
+        std::vector<std::uint16_t> d;
 
         for (decltype(data[i].len) j = 0, count = data[i].len; j < count; j += 2) {
-
-            // NOTE This conversion algoritm depends on source byte order
-            if (is_little_endian) {
-                uint16_t value = (data[i].text[j + 1] << 8) | data[i].text[j];
-                d.push_back(value);
-            } else {
-                uint16_t value = (data[i].text[j] << 8) | data[i].text[j + 1];
-                d.push_back(value);
-            }
+            std::uint16_t value = *reinterpret_cast<std::uint16_t const *>(& data[i].text[j]);
+            d.push_back(value);
         }
 
-        HextetInputIt first(iter_cast<HextetInputIt>(d.data()));
-        HextetInputIt last(iter_cast<HextetInputIt>(d.data() + d.size()));
+        HextetIt first(iter_cast<HextetIt>(d.data()));
+        HextetIt last(iter_cast<HextetIt>(d.data() + d.size()));
 
         size_t count = 0;
         pfs::unicode::char_t uc = 0;
-        pfs::unicode::u16_input_iterator<HextetInputIt> inp_first(first, last, is_little_endian);
-        pfs::unicode::u16_input_iterator<HextetInputIt> inp_last(last, is_little_endian);
+        auto inp_first = pfs::unicode::utf16_iterator<HextetIt, Utf18ByteSwap>::begin(first, last);
+        auto inp_last  = pfs::unicode::utf16_iterator<HextetIt, Utf18ByteSwap>::end(last);
 
         while (inp_first != inp_last) {
             uc = *inp_first++;
             ++count;
         }
 
-        CHECK_MESSAGE(!inp_first.is_broken(), "Sequence is broken");
-
-        std::ostringstream msg;
-        msg << "Decode UTF-16 using `" << itertype << "' as pointer. String `"
-                    << data[i].name << "`, endianess: " << (is_little_endian ? "little" : "big.");
-
-        CHECK_MESSAGE(count == data[i].nchars, msg.str());
+        CHECK_MESSAGE(count == data[i].nchars
+            , fmt::format("Decode UTF-16 using `{}' as pointer. String `{}`"
+                , itertype, data[i].name));
 
         if (count != data[i].nchars) {
-            std::ostringstream desc;
-
-            desc << "Decode UTF-16 using `" << itertype << "' as pointer. String `"
-                    << data[i].name
-                    << "`, endianess: " << (is_little_endian ? "little" : "big.")
-                    << " Number of unicode chars "
-                    << count
-                    << ", expected "
-                    << data[i].nchars;
-            MESSAGE(desc.str());
+            auto desc = fmt::format("Decode UTF-16 using `{}' as pointer."
+                " String `{}'. Number of unicode chars {}, expected {}"
+                , itertype, data[i].name, count, data[i].nchars);
+            MESSAGE(desc);
             result = false;
         }
     }
@@ -81,118 +63,131 @@ bool decode (const char * itertype, bool is_little_endian)
     return result;
 }
 
-namespace std {
+// FIXME Need right specializations of below structs to work with
+// std::basic_ifstream<std::uint16_t> and std::istreambuf_iterator<std::uint16_t>
+// in decode_files() function
 
-    // FIXME
-// template<>
-// struct char_traits<uint16_t>
+// namespace std {
+//
+// template <>
+// struct char_traits<std::uint16_t>
 // {
-//     typedef uint16_t char_type;
-//     typedef uint32_t int_type;
-//     typedef std::streamoff off_type;
+//     typedef std::uint16_t char_type;
+//
+//     //typedef uint_least_16_t int_type;
+//     typedef std::uint32_t int_type;
+//
+//     typedef streamoff off_type;
 //     typedef std::streampos pos_type;
-//     typedef std::mbstate_t state_type;
+//     typedef mbstate_t state_type;
 //
-//     static void assign (char_type & dst, char_type const src)
+//     static void assign (char_type & c1, char_type const & c2)
 //     {
-//         dst = src;
+//         c1 = c2;
 //     }
 //
-//     static constexpr char_type to_char_type (int_type const & c) noexcept
-//     {
-//         return static_cast<char_type>(c);
-//     }
+//     // static bool eq(const char_type& c1, const char_type& c2);
+//     // static bool lt(const char_type& c1, const char_type& c2);
+//     // static int compare(const char_type* s1, const char_type* s2, size_t n);
+//     // static size_t length(const char_type* s);
+//     // static const char_type* find(const char_type* s, size_t n,
+//     // const char_type& a);
+//     // static char_type* move(char_type* s1, const char_type* s2, size_t n);
 //
-//     static constexpr int_type to_int_type (char_type const & c) noexcept
-//     {
-//         return static_cast<int_type>(c);
-//     }
-//
-//     static constexpr bool eq_int_type (int_type const & c1
-//             , int_type const & c2) noexcept
-//     {
-//         return c1 == c2;
-//     }
-//
-//     static char_type * copy (char_type * s1, char_type const * s2, size_t n)
+//     static char_type * copy (char_type * s1, const char_type * s2, size_t n)
 //     {
 //         if (n == 0)
 //             return s1;
 //         return static_cast<char_type *>(std::memcpy(s1, s2, n * sizeof(char_type)));
 //     }
 //
-//     static constexpr int_type eof () noexcept
-//     {
-//         return static_cast<int_type>(0xffffffffu);
-//     }
+//     // static char_type* assign(char_type* s, size_t n, char_type a);
 //
-//     static constexpr int_type not_eof (int_type const & c) noexcept
+//     static int_type not_eof (int_type const & c)
 //     {
 //         return (c == eof()) ? 0 : c;
 //     }
+//
+//     static char_type to_char_type (int_type const & c)
+//     {
+//         return static_cast<char_type>(c);
+//     }
+//
+//     static int_type to_int_type (char_type const & c)
+//     {
+//         return static_cast<int_type>(c);
+//     }
+//
+//     static bool eq_int_type (int_type const & c1, int_type const & c2)
+//     {
+//         return c1 == c2;
+//     }
+//
+//     static int_type eof ()
+//     {
+//         return static_cast<int_type>(0xffffffffu);
+//     }
 // };
 
-// template<>
-// struct ctype<uint16_t>
+// template <>
+// struct codecvt<std::uint16_t, std::uint16_t, std::mbstate_t>
 // {
-//     static locale::id id;
-// };
-
-// locale::id ctype<uint16_t>::id;// = 1234567;
-
-// ctype<wchar_t> ct;
-
-// template<>
-// struct codecvt<uint16_t, uint16_t, std::mbstate_t>
-// {
-//     typedef uint16_t char_type;
-//     typedef uint32_t int_type;
+//     typedef std::uint16_t char_type;
+//     typedef std::uint32_t int_type;
 //     typedef std::streamoff off_type;
 //     typedef std::streampos pos_type;
 //     typedef std::mbstate_t state_type;
 // };
 
-} // namespace std
+// } // namespace std
 
-bool decode_files (bool is_little_endian)
+template <typename Utf18ByteSwap>
+bool decode_files ()
 {
     int ntests = sizeof (data) / sizeof (data[0]);
     bool result {true};
 
     for (int i = 0; i < ntests; ++i) {
-        //std::ifstream ifs(data[i].filename, std::ios::binary);
-        std::basic_ifstream<uint16_t> ifs(data[i].filename, std::ios::binary);
+        {
+            std::basic_ifstream<std::uint16_t> ifs(data[i].filename, std::ios::binary);
 
-        auto c = ifs.rdbuf()->sgetc();
+            REQUIRE_MESSAGE(ifs.is_open()
+                , fmt::format("Open file `{}` failure\n", data[i].filename));
 
-        std::ostringstream msg;
-        msg << "Open file `" << data[i].filename << "` failure\n";
-        REQUIRE_MESSAGE(ifs.is_open(), msg.str());
+            std::istreambuf_iterator<std::uint16_t> first(ifs);
+            std::istreambuf_iterator<std::uint16_t> last;
 
-        std::istreambuf_iterator<uint16_t> first(ifs);
-        std::istreambuf_iterator<uint16_t> last;
+            auto inp_first = pfs::unicode::utf16_iterator<std::istreambuf_iterator<std::uint16_t>, Utf18ByteSwap>::begin(first, last);
+            auto inp_last  = pfs::unicode::utf16_iterator<std::istreambuf_iterator<std::uint16_t>, Utf18ByteSwap>::end(last);
 
-        size_t count = 0;
-        pfs::unicode::char_t uc = 0;
-        pfs::unicode::u16_input_iterator<std::istreambuf_iterator<uint16_t>> inp_first(first, last, is_little_endian);
-        pfs::unicode::u16_input_iterator<std::istreambuf_iterator<uint16_t>> inp_last(last, is_little_endian);
-
-        while (inp_first != inp_last) {
-            uc = *inp_first++;
-            ++count;
+            CHECK_EQ(std::distance(inp_first, inp_last), data[i].nchars);
         }
 
-        if (count != data[i].nchars) {
-            std::ostringstream msg;
+        {
+            std::basic_ifstream<std::uint16_t> ifs(data[i].filename, std::ios::binary);
 
-            msg << "Decode UTF-16 using `istreambuf_iterator` as pointer. String `"
-                    << data[i].name
-                    << "'. Number of unicode chars "
-                    << count
-                    << ", expected "
-                    << data[i].nchars;
-            MESSAGE(msg.str());
-            result = false;
+            REQUIRE_MESSAGE(ifs.is_open()
+                , fmt::format("Open file `{}` failure\n", data[i].filename));
+
+            std::istreambuf_iterator<std::uint16_t> first(ifs);
+            std::istreambuf_iterator<std::uint16_t> last;
+
+            size_t count = 0;
+            auto inp_first = pfs::unicode::utf16_iterator<std::istreambuf_iterator<std::uint16_t>, Utf18ByteSwap>::begin(first, last);
+            auto inp_last  = pfs::unicode::utf16_iterator<std::istreambuf_iterator<std::uint16_t>, Utf18ByteSwap>::end(last);
+
+            while (inp_first != inp_last) {
+                ++inp_first;
+                ++count;
+            }
+
+            if (count != data[i].nchars) {
+                auto msg = fmt::format("Decode UTF-16 using `istreambuf_iterator`"
+                    " as pointer. String `{}'. Number of unicode chars {}, expected {}"
+                    , data[i].name, count, data[i].nchars);
+                MESSAGE(msg);
+                result = false;
+            }
         }
     }
 

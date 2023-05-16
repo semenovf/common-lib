@@ -43,8 +43,8 @@ struct char_t
     char_t (intmax_t v)
     {
         value = (v >= 0 && v <= max_code_point
-                ? static_cast<value_type> (v)
-                : replacement_char);
+            ? static_cast<value_type> (v)
+            : replacement_char);
     }
 
     char_t & operator = (intmax_t v)

@@ -1,7 +1,6 @@
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include "doctest.h"
-#include <pfs/unicode/unicode_iterator.hpp>
-#include <pfs/unicode/u16_iterator.hpp>
+#include <pfs/unicode/utf16_iterator.hpp>
 #include <string>
 #include <sstream>
 #include "unicode/utf16/test_data.hpp"

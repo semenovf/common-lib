@@ -9,7 +9,6 @@
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include "doctest.h"
 #include "pfs/fmt.hpp"
-#include "pfs/unicode/unicode_iterator.hpp"
 #include "pfs/unicode/utf8_iterator.hpp"
 #include <string>
 

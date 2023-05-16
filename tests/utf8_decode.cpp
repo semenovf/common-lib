@@ -1,7 +1,6 @@
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include "doctest.h"
 #include "pfs/fmt.hpp"
-#include "pfs/unicode/unicode_iterator.hpp"
 #include "pfs/unicode/utf8_iterator.hpp"
 #include <fstream>
 #include <iterator>
@@ -46,7 +45,6 @@ bool decode (const char * itertype)
     return result;
 }
 
-// FIXME Move to new tests to test usage with single-pass iterators
 bool decode_files ()
 {
     int ntests = sizeof (data) / sizeof (data[0]);
@@ -78,7 +76,6 @@ bool decode_files ()
             std::istreambuf_iterator<char> last;
 
             size_t count = 0;
-            pfs::unicode::char_t uc = 0;
             auto inp_first = pfs::unicode::utf8_iterator<std::istreambuf_iterator<char>>::begin(first, last);
             auto inp_last  = pfs::unicode::utf8_iterator<std::istreambuf_iterator<char>>::end(last);
 

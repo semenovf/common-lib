@@ -59,9 +59,9 @@ set(TEST_NAMES
     utf8_iterator
     utf8_decode
     utf8_encode
-    #utf16le_decode
+    utf16le_decode
 ##     utf16le_encode
-    #utf16be_decode
+    utf16be_decode
 ##     utf16be_encode
     uuid)
 
