@@ -7,10 +7,10 @@
 //      2021.06.24 Initial version.
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
-#include "bits/compiler.h"
 
-#if PFS_COMPILER_MSVC
+#if _MSC_VER
 #   define WIN32_LEAN_AND_MEAN
+#   include <string>
 #   include <windows.h>
 #   include <windef.h>
 
