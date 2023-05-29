@@ -61,9 +61,9 @@ struct utf16be_byteswap
     }
 };
 
-template <typename HextetFwdIt, typename Utf18ByteSwap>
+template <typename HextetFwdIt, typename Utf16ByteSwap>
 class utf16_iterator
-    : public details::utf_iterator<utf16_iterator<HextetFwdIt, Utf18ByteSwap>, HextetFwdIt>
+    : public details::utf_iterator<utf16_iterator<HextetFwdIt, Utf16ByteSwap>, HextetFwdIt>
 {
     using base_class = details::utf_iterator<utf16_iterator, HextetFwdIt>;
 
@@ -82,7 +82,7 @@ protected:
                 throw error {make_error_code(errc::broken_sequence)};
 
             std::uint16_t w1 = code_unit_cast<std::uint16_t>(*pos);
-            w1 = Utf18ByteSwap::byteswap(w1);
+            w1 = Utf16ByteSwap::byteswap(w1);
 
             ++pos;
 
@@ -96,7 +96,7 @@ protected:
                     throw error {make_error_code(errc::broken_sequence)};
 
                 w2 = code_unit_cast<std::uint16_t>(*pos);
-                w2 = Utf18ByteSwap::byteswap(w2);
+                w2 = Utf16ByteSwap::byteswap(w2);
 
                 // Valid unit sequence
                 if (w2 >= 0xDC00 && w2 <= 0xDFFF)
@@ -126,7 +126,7 @@ protected:
     {
         while (n--) {
             std::uint16_t w1 = code_unit_cast<std::uint16_t>(*pos);
-            w1 = Utf18ByteSwap::byteswap(w1);
+            w1 = Utf16ByteSwap::byteswap(w1);
             ++pos;
 
             if (w1 < 0xD800 || w1 > 0xDFFF) {
@@ -154,7 +154,7 @@ protected:
 
         while (pos != last) {
             std::uint16_t w1 = code_unit_cast<std::uint16_t>(*pos);
-            w1 = Utf18ByteSwap::byteswap(w1);
+            w1 = Utf16ByteSwap::byteswap(w1);
             ++pos;
 
             if (w1 < 0xD800 || w1 > 0xDFFF) {
