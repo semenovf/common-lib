@@ -71,6 +71,12 @@ public:
     }
 
 public:
+    // Required by g++ < 10 for std::search (checked for g++ 9.4, 7.5)
+    // In g++ 11.3 no longer required.
+    // Do not use this constructor directly, it is a workaround for g++ standard
+    // library implementation in old versions.
+    utf_iterator () {}
+
     // Input iterator requirements
     reference ref ()
     {
