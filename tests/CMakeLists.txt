@@ -43,6 +43,7 @@ set(TEST_NAMES
     iterator_random_access
     levenshtein_distance
     locale_utils
+    numeric_cast
     optional
     pointer_proxy_iterator
     rational
