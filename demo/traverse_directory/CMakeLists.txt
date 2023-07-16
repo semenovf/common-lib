@@ -4,8 +4,10 @@
 # This file is part of `common-lib`.
 #
 # Changelog:
-#      2022.08.07 Initial version.
-#      2023.07.08 Added `traverse_directory`.
+#      2023.07.16 Initial version.
 ################################################################################
-add_subdirectory(sha256sum)
-add_subdirectory(traverse_directory)
+project(traverse_directory)
+
+add_executable(${PROJECT_NAME} main.cpp)
+target_link_libraries(${PROJECT_NAME} PRIVATE pfs::common)
+
