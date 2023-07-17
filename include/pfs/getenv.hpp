@@ -71,7 +71,7 @@ optional<std::string> getenv (std::string const & name)
         ? optional<std::string>{std::string(result)}
         : optional<std::string>{};
 #else
-#   error "Unsupported platform yet"
+#   error "Unsupported compiler yet"
 #endif // PFS_COMPILER_GCC
 }
 
