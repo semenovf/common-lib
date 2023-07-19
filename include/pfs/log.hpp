@@ -75,19 +75,19 @@ inline std::string stringify_trace_time ()
 #       if PFS__LOG_LEVEL >= 1
 #           define LOG_TRACE_1(f, ...) __android_log_print_helper(             \
                   ANDROID_LOG_VERBOSE                                          \
-                , "-- TRACE(1)", fmt::format(f , ##__VA_ARGS__).c_str())
+                , "TRACE-1", fmt::format(f , ##__VA_ARGS__).c_str())
 #       endif
 
 #       if PFS__LOG_LEVEL >= 2
 #           define LOG_TRACE_2(f, ...) __android_log_print_helper(             \
                   ANDROID_LOG_VERBOSE                                          \
-                , "-- TRACE(2)", fmt::format(f , ##__VA_ARGS__).c_str())
+                , "TRACE-2", fmt::format(f , ##__VA_ARGS__).c_str())
 #       endif
 
 #       if PFS__LOG_LEVEL >= 3
 #           define LOG_TRACE_3(f, ...) __android_log_print_helper(             \
                   ANDROID_LOG_VERBOSE                                          \
-                , "-- TRACE(3)", fmt::format(f , ##__VA_ARGS__).c_str())
+                , "TRACE-3", fmt::format(f , ##__VA_ARGS__).c_str())
 #       endif
 #   endif // PFS__LOG_LEVEL
 #else  // __ANDROID__
