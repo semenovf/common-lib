@@ -21,16 +21,19 @@ namespace filesystem {
 class standard_paths final
 {
 public:
+    /**
+     * The home folder, or an empty path if it cannot be determined.
+     */
     static path home_folder ()
     {
 #if PFS__OS_LINUX
         auto home_env = getenv("HOME");
 
         if (!home_env)
-            return utf8_decode("/");
+            return path{};
 
         if (home_env->empty())
-            return utf8_decode("/");
+            return path{};
 
         return utf8_decode(*home_env);
 #elif PFS__OS_WIN
@@ -62,15 +65,14 @@ public:
                 return home;
         }
 
-        return utf8_decode("C:\\");
-
+        return path{};
 #else
-#   error "Unsupported operation system"
+        return path{};
 #endif
     }
 
     /**
-     * Folder where temporary files can be stored.
+     * The temporary folder, or an empty path if it cannot be determined.
      */
     static path temp_folder ()
     {
@@ -86,114 +88,146 @@ public:
                 return temp;
         }
 
-        return utf8_decode("C:\\");
+        return path{};
 #else
-#   error "Unsupported operation system"
-#endif
-    }
-
-    static path download_folder ()
-    {
-#if PFS__OS_LINUX
-        return home_folder() / utf8_decode("Downloads");
-#elif PFS__OS_WIN
-        return home_folder() / utf8_decode("Downloads");
-#else
-#   error "Unsupported operation system"
-#endif
-    }
-
-    static path desktop_folder ()
-    {
-#if PFS__OS_LINUX
-        return home_folder() / utf8_decode("Desktop");
-#elif PFS__OS_WIN
-        return home_folder() / utf8_decode("Desktop");
-#else
-#   error "Unsupported operation system"
-#endif
-    }
-
-    static path documents_folder ()
-    {
-#if PFS__OS_LINUX
-        return home_folder() / utf8_decode("Documents");
-#elif PFS__OS_WIN
-        return home_folder() / utf8_decode("Documents");
-#else
-#   error "Unsupported operation system"
-#endif
-    }
-
-    static path music_folder ()
-    {
-#if PFS__OS_LINUX
-        return home_folder() / utf8_decode("Music");
-#elif PFS__OS_WIN
-        return home_folder() / utf8_decode("Music");
-#else
-#   error "Unsupported operation system"
-#endif
-    }
-
-    static path movies_folder ()
-    {
-#if PFS__OS_LINUX
-        return home_folder() / utf8_decode("Videos");
-#elif PFS__OS_WIN
-        return home_folder() / utf8_decode("Videos");
-#else
-#   error "Unsupported operation system"
-#endif
-    }
-
-    static path pictures_folder ()
-    {
-#if PFS__OS_LINUX
-        return home_folder() / utf8_decode("Pictures");
-#elif PFS__OS_WIN
-        return home_folder() / utf8_decode("Pictures");
-#else
-#   error "Unsupported operation system"
+        return path{};
 #endif
     }
 
     /**
-     * Application data folder
+     * The download folder, or an empty path if it cannot be determined.
+     */
+    static path download_folder ()
+    {
+        auto home = home_folder();
+#if PFS__OS_LINUX
+        return home.empty() ? path{} : home / utf8_decode("Downloads");
+#elif PFS__OS_WIN
+        return home.empty() ? path{} : home / utf8_decode("Downloads");
+#else
+        return path{};
+#endif
+    }
+
+    /**
+     * The desktop folder, or an empty path if it cannot be determined.
+     */
+    static path desktop_folder ()
+    {
+        auto home = home_folder();
+#if PFS__OS_LINUX
+        return home.empty() ? path{} : home / utf8_decode("Desktop");
+#elif PFS__OS_WIN
+        return home.empty() ? path{} : home / utf8_decode("Desktop");
+#else
+        return path{};
+#endif
+    }
+
+    /**
+     * The documents folder, or an empty path if it cannot be determined.
+     */
+    static path documents_folder ()
+    {
+        auto home = home_folder();
+#if PFS__OS_LINUX
+        return home.empty() ? path{} : home / utf8_decode("Documents");
+#elif PFS__OS_WIN
+        return home.empty() ? path{} : home / utf8_decode("Documents");
+#else
+        return path{};
+#endif
+    }
+
+    /**
+     * The music folder, or an empty path if it cannot be determined.
+     */
+    static path music_folder ()
+    {
+        auto home = home_folder();
+#if PFS__OS_LINUX
+        return home.empty() ? path{} : home / utf8_decode("Music");
+#elif PFS__OS_WIN
+        return home.empty() ? path{} : home / utf8_decode("Music");
+#else
+        return path{};
+#endif
+    }
+
+    /**
+     * The movies folder, or an empty path if it cannot be determined.
+     */
+    static path movies_folder ()
+    {
+        auto home = home_folder();
+#if PFS__OS_LINUX
+        return home.empty() ? path{} : home / utf8_decode("Videos");
+#elif PFS__OS_WIN
+        return home.empty() ? path{} : home / utf8_decode("Videos");
+#else
+        return path{};
+#endif
+    }
+
+    /**
+     * The pictures folder, or an empty path if it cannot be determined.
+     */
+    static path pictures_folder ()
+    {
+        auto home = home_folder();
+#if PFS__OS_LINUX
+        return home.empty() ? path{} : home / utf8_decode("Pictures");
+#elif PFS__OS_WIN
+        return home.empty() ? path{} : home / utf8_decode("Pictures");
+#else
+        return path{};
+#endif
+    }
+
+    /**
+     * Root data folder, or an empty path if it cannot be determined.
      */
     static path data_folder ()
     {
+        auto home = home_folder();
 #if PFS__OS_LINUX
-        return home_folder() / utf8_decode(".local/share");
+        return home.empty() ? path{} : home / utf8_decode(".local/share");
 #elif PFS__OS_WIN
-        return home_folder() / utf8_decode("AppData\\Local");
+        return home.empty() ? path{} : home / utf8_decode("AppData\\Local");
 #else
-#   error "Unsupported operation system"
+        return path{};
 #endif
     }
 
+    /**
+     * Root cache folder, or an empty path if it cannot be determined.
+     */
     static path cache_folder ()
     {
+        auto home = home_folder();
 #if PFS__OS_LINUX
-        return home_folder() / utf8_decode(".cache");
+        return home.empty() ? path{} : home / utf8_decode(".cache");
 #elif PFS__OS_WIN
-        return home_folder() / utf8_decode("AppData\\Local");
+        return home.empty() ? path{} : home / utf8_decode("AppData\\Local");
 #else
-#   error "Unsupported operation system"
+        return path{};
 #endif
     }
 
+    /**
+     * Root config folder, or an empty path if it cannot be determined.
+     */
     static path config_folder ()
     {
+        auto home = home_folder();
 #if PFS__OS_LINUX
-        return home_folder() / utf8_decode(".config");
+        return home.empty() ? path{} : home / utf8_decode(".config");
 #elif PFS__OS_WIN
-        return home_folder() / utf8_decode("AppData\\Local");
+        return home.empty() ? path{} : home / utf8_decode("AppData\\Local");
 #else
-#   error "Unsupported operation system"
+        return path{};
 #endif
     }
 };
 
 }} // namespace pfs::filesystem
-
