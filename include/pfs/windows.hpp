@@ -113,4 +113,4 @@ inline std::string utf8_error (DWORD error_id)
 
 }} // namespace pfs::windows
 
-#endif // PFS_COMPILER_MSVC
+#endif // _MSC_VER

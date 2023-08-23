@@ -215,7 +215,7 @@ std::uint8_t byteswap<std::uint8_t> (std::uint8_t x) noexcept
     return x;
 }
 
-#if PFS_COMPILER_GNUC
+#if PFS__COMPILER_GCC
 
 #   define PFS_BYTESWAP_HAS_INTRINSICS 1
 
@@ -240,7 +240,7 @@ std::uint64_t byteswap<std::uint64_t> (std::uint64_t x) noexcept
     return __builtin_bswap64(x);
 }
 
-#elif PFS_COMPILER_MSC
+#elif PFS__COMPILER_MSVC
 #   define PFS_BYTESWAP_HAS_INTRINSICS 1
 
 // https://docs.microsoft.com/en-us/cpp/c-runtime-library/reference

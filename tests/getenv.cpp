@@ -18,7 +18,7 @@ TEST_CASE("getenv") {
 
 std::string not_set {"<not-set>"};
 
-#if PFS_COMPILER_MSVC
+#if PFS__COMPILER_MSVC
     fmt::print("USERPROFILE: [{}]\n"
         , pfs::getenv("USERPROFILE").has_value()
             ? *pfs::getenv("USERPROFILE") : not_set);
@@ -35,7 +35,7 @@ std::string not_set {"<not-set>"};
         , pfs::getenv("HOME").has_value()
             ? *pfs::getenv("HOME") : not_set);
 
-#elif PFS_COMPILER_GCC
+#elif PFS__COMPILER_GCC
 
     fmt::print("HOME: [{}]\n"
         , pfs::getenv("HOME").has_value()

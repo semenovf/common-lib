@@ -9,7 +9,7 @@
 #pragma once
 #include "fmt.hpp"
 
-#if PFS__ENABLE_NLS
+#if PFS__NLS_ENABLED
 #   include <libintl.h>
 #endif
 
@@ -48,7 +48,7 @@ struct domain_category
     {}
 };
 
-#if PFS__ENABLE_NLS
+#if PFS__NLS_ENABLED
 
 inline char * _ (char const * msgid)
 {
@@ -130,7 +130,7 @@ constexpr char const * noop_ (char const * msgid)
     return msgid;
 }
 
-#else // PFS__ENABLE_NLS
+#else // PFS__NLS_ENABLED
 
 inline char const * _ (char const * msgid)
 {
@@ -195,11 +195,11 @@ constexpr char const * noop_ (char const * msgid)
     return msgid;
 }
 
-#endif // !PFS__ENABLE_NLS
+#endif // !PFS__NLS_ENABLED
 
 } // namespace tr
 
-#if PFS__ENABLE_NLS
+#if PFS__NLS_ENABLED
 #else
 
 #   ifndef __USE_GNU_GETTEXT

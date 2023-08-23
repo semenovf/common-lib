@@ -11,7 +11,7 @@
 #include "bits/compiler.h"
 #include "fmt.hpp"
 
-#if defined(PFS_COMPILER_MSVC)
+#if defined(PFS__COMPILER_MSVC)
 #   include "windows.hpp"
 #endif
 
@@ -19,9 +19,9 @@
 // Visual Studio 2017 version 15.7 (_MSC_VER >= 1914, _MSC_FULL_VER >= 191426428).
 
 #if defined(__cplusplus) && __cplusplus >= 201703L
-#   if defined(PFS_COMPILER_MSVC) && PFS_COMPILER_MSVC_VERSION >= 1914
+#   if defined(PFS__COMPILER_MSVC) && PFS__COMPILER_MSVC_VERSION >= 1914
 #       define PFS_HAVE_STD_FILESYSTEM 1
-#   elif defined(PFS_COMPILER_GNUC) && PFS_COMPILER_GCC_VERSION >= 80000
+#   elif defined(PFS__COMPILER_GCC) && PFS__COMPILER_GCC_VERSION >= 80000
 #       define PFS_HAVE_STD_FILESYSTEM 1
 #   endif
 #endif
@@ -41,7 +41,7 @@ namespace filesystem {
 #endif
 
 #ifndef PFS__LITERAL_PATH
-#   if defined(PFS_COMPILER_MSVC)
+#   if defined(PFS__COMPILER_MSVC)
 #       if !(defined(_UNICODE) || defined(UNICODE))
 #           error "Expected _UNICODE(UNICODE) is enabled"
 #       endif
@@ -54,7 +54,7 @@ namespace filesystem {
 namespace pfs {
 namespace filesystem {
 
-#if defined(PFS_COMPILER_MSVC)
+#if defined(PFS__COMPILER_MSVC)
 #   if !(defined(_UNICODE) || defined(UNICODE))
 #       error "Expected _UNICODE(UNICODE) is enabled"
 #   endif

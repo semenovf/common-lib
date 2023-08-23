@@ -60,7 +60,10 @@ if (PFS__LOG_LEVEL)
 endif()
 
 if (PFS__ENABLE_NLS)
+    # [DEPRECATED]
     portable_target(DEFINITIONS ${PROJECT_NAME} INTERFACE "PFS__ENABLE_NLS=1")
+
+    portable_target(DEFINITIONS ${PROJECT_NAME} INTERFACE "PFS__NLS_ENABLED=1")
 endif()
 
 if (ANDROID)

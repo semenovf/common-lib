@@ -11,7 +11,7 @@
 #include "getenv.hpp"
 #include <cstdlib>
 
-#if PFS_COMPILER_GCC
+#if PFS__COMPILER_GCC
 #   include <sys/types.h>
 #   include <pwd.h>
 #endif
@@ -21,7 +21,7 @@ namespace filesystem {
 
 inline path home_directory_path ()
 {
-#if PFS_COMPILER_MSVC
+#if PFS__COMPILER_MSVC
         auto userprofile = wgetenv(L"USERPROFILE");
 
         if (userprofile.has_value()) {
@@ -61,7 +61,7 @@ inline path home_directory_path ()
 
         return path;
 
-#elif PFS_COMPILER_GCC
+#elif PFS__COMPILER_GCC
 
     auto home = getenv("HOME");
 
@@ -79,7 +79,7 @@ inline path home_directory_path ()
         return path;
     }
 
-#endif
+#endif // PFS__COMPILER_MSVC
     return filesystem::path{};
 }
 

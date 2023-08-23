@@ -47,7 +47,7 @@ inline std::string stringify_trace_time ()
     inline void __android_log_print_helper(int prio
         , std::string const & tag, std::string const & text)
     {
-#   if PFS_COMPILER_CLANG
+#   if PFS__COMPILER_CLANG
 #       pragma clang diagnostic push
 #       pragma clang diagnostic ignored "-Wformat-security"
         __android_log_print(prio, tag.c_str(), text.c_str());
@@ -58,7 +58,7 @@ inline std::string stringify_trace_time ()
     inline void __android_log_print_helper(int prio
         , char const * tag, std::string const & text)
     {
-#   if PFS_COMPILER_CLANG
+#   if PFS__COMPILER_CLANG
 #       pragma clang diagnostic push
 #       pragma clang diagnostic ignored "-Wformat-security"
         __android_log_print(prio, tag, text.c_str());

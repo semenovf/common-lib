@@ -52,7 +52,7 @@
  * $ xgettext --keyword=_ --keyword=f_ --keyword=n_:1,2 --keyword=noop_ --output=/tmp/tr.pot tr.cpp
  */
 
-#if PFS__ENABLE_NLS
+#if PFS__NLS_ENABLED
 
 static char const * STATIC_CHARS = tr::noop_("STATIC CHARS");
 static std::string STATIC_STRING = tr::noop_("STATIC STRING");
@@ -173,4 +173,4 @@ TEST_CASE("translate") {
     }
 }
 
-#endif // PFS__ENABLE_NLS
+#endif // PFS__NLS_ENABLED

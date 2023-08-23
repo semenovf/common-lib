@@ -23,7 +23,7 @@ TEST_CASE("home_directory_path") {
     CHECK(fs::exists(home_dir));
 
     fmt::print("Home directory: [{}]\n"
-#if PFS_COMPILER_MSVC
+#if PFS__COMPILER_MSVC
         , pfs::windows::utf8_encode(home_dir.c_str()));
 #else
         , home_dir.c_str());

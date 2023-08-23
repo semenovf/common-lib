@@ -11,12 +11,12 @@
 #include "pfs/bits/compiler.h"
 #include "pfs/endian.hpp"
 
-#if PFS_COMPILER_GNUC
+#if PFS__COMPILER_GCC
 #   include <arpa/inet.h> // for htons/htonl and vice versa
 #   define __HAS_HTONx__ 1
 #endif
 
-#if PFS_COMPILER_MSVC
+#if PFS__COMPILER_MSVC
 #   include <winsock.h> // for htons/htonl and vice versa
 #   define __HAS_HTONx__ 1
 #endif
