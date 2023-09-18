@@ -102,9 +102,12 @@ match_item search_first (HaystackIt first, HaystackIt last, NeedleIt s_first
     auto s_cp_len = s_dist.first;
     auto s_cu_len = s_dist.second;
 
-    auto predicate = ignore_case
-        ? [] (pfs::unicode::char_t a, pfs::unicode::char_t b)->bool { return pfs::unicode::to_lower(a) == pfs::unicode::to_lower(b); }
-        : [] (pfs::unicode::char_t a, pfs::unicode::char_t b)->bool { return a == b; };
+    std::function<bool (pfs::unicode::char_t, pfs::unicode::char_t)> predicate;
+    
+    if (ignore_case)
+        predicate = [] (pfs::unicode::char_t a, pfs::unicode::char_t b)->bool { return pfs::unicode::to_lower(a) == pfs::unicode::to_lower(b); };
+    else
+        predicate = [] (pfs::unicode::char_t a, pfs::unicode::char_t b)->bool { return a == b; };
 
     // Specifying full name to fix ambiguity with std::search
     auto pos = pfs::unicode::search(first, last, s_first, s_last, predicate);
@@ -137,9 +140,12 @@ void search_all (HaystackIt first, HaystackIt last, NeedleIt s_first, NeedleIt s
     auto s_cp_len = s_dist.first;
     auto s_cu_len = s_dist.second;
 
-    auto predicate = ignore_case
-        ? [] (pfs::unicode::char_t a, pfs::unicode::char_t b)->bool { return pfs::unicode::to_lower(a) == pfs::unicode::to_lower(b); }
-        : [] (pfs::unicode::char_t a, pfs::unicode::char_t b)->bool { return a == b; };
+    std::function<bool (pfs::unicode::char_t, pfs::unicode::char_t)> predicate;
+    
+    if (ignore_case)
+        predicate = [] (pfs::unicode::char_t a, pfs::unicode::char_t b)->bool { return pfs::unicode::to_lower(a) == pfs::unicode::to_lower(b); };
+    else
+        predicate = [] (pfs::unicode::char_t a, pfs::unicode::char_t b)->bool { return a == b; };
 
     match_item m {0, 0, 0, 0};
 
@@ -184,9 +190,12 @@ match_item search_first (HaystackIt first, HaystackIt last, NeedleIt s_first, Ne
     auto s_cp_len = s_dist.first;
     auto s_cu_len = s_dist.second;
 
-    auto predicate = ignore_case
-        ? [] (pfs::unicode::char_t a, pfs::unicode::char_t b)->bool { return pfs::unicode::to_lower(a) == pfs::unicode::to_lower(b); }
-        : [] (pfs::unicode::char_t a, pfs::unicode::char_t b)->bool { return a == b; };
+    std::function<bool(pfs::unicode::char_t, pfs::unicode::char_t)> predicate;
+
+    if (ignore_case)
+        predicate = [] (pfs::unicode::char_t a, pfs::unicode::char_t b)->bool { return pfs::unicode::to_lower(a) == pfs::unicode::to_lower(b); };
+    else
+        predicate = [] (pfs::unicode::char_t a, pfs::unicode::char_t b)->bool { return a == b; };
 
     auto pos = search(first, last, s_first, s_last, begin_ignore_char
         , end_ignore_char, predicate);
@@ -216,9 +225,12 @@ void search_all (HaystackIt first, HaystackIt last, NeedleIt s_first, NeedleIt s
     auto s_cp_len = s_dist.first;
     auto s_cu_len = s_dist.second;
 
-    auto predicate = ignore_case
-        ? [] (pfs::unicode::char_t a, pfs::unicode::char_t b)->bool { return pfs::unicode::to_lower(a) == pfs::unicode::to_lower(b); }
-        : [] (pfs::unicode::char_t a, pfs::unicode::char_t b)->bool { return a == b; };
+    std::function<bool(pfs::unicode::char_t, pfs::unicode::char_t)> predicate;
+    
+    if (ignore_case)
+        predicate = [] (pfs::unicode::char_t a, pfs::unicode::char_t b)->bool { return pfs::unicode::to_lower(a) == pfs::unicode::to_lower(b); };
+    else
+        predicate = [] (pfs::unicode::char_t a, pfs::unicode::char_t b)->bool { return a == b; };
 
     match_item m {0, 0, 0, 0};
 
