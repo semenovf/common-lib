@@ -9,6 +9,7 @@
 #pragma once
 #include "error.hpp"
 #include "fmt.hpp"
+#include "numeric_cast.hpp"
 #include <chrono>
 #include <string>
 #include <utility>
@@ -143,11 +144,11 @@ public:
             if (millis_since_epoch.count() >= 0) {
                 auto diff = millis_since_epoch
                     - std::chrono::duration_cast<std::chrono::milliseconds>(seconds_since_epoch);
-                dt.millis = diff.count();
+                dt.millis = numeric_cast<int>(diff.count());
             } else {
                 auto diff = millis_since_epoch
                     - std::chrono::duration_cast<std::chrono::milliseconds>(seconds_since_epoch);
-                dt.millis = 1000 + diff.count();
+                dt.millis = numeric_cast<int>(1000 + diff.count());
             }
         }
 
@@ -252,11 +253,24 @@ protected:
         tm.tm_mon   = mon - 1;
         tm.tm_year  = year - 1900;
 
-        // Make
+#if _MSC_VER
+        std::time_t seconds_since_epoch = _mkgmtime(& tm);
+#else
+        // FIXME use timegm instead of std::mktime
         std::time_t seconds_since_epoch = std::mktime(& tm);
+#endif
 
-        // Adjust by UTC offset since std::mktime created UTC based time.
+        if (seconds_since_epoch == std::time_t{-1}) {
+            ec = make_error_code(std::errc::invalid_argument);
+            return Derived{};
+        }
+
+#if _MSC_VER
+        // Nothing to do
+#else
+        // Adjust by UTC offset since seconds_since_epoch is UTC based time.
         seconds_since_epoch += utc_offset();
+#endif
 
         // Time offset in seconds
         int utc_offset = abs_hour_offset * 3600 + min_offset * 60;
