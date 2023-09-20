@@ -165,24 +165,15 @@ TEST_CASE("stringify")
     CHECK(to_string(date{2020, 2, 29}, std::string("{:%Y-%m-%d}")) == std::string("2020-02-29"));
     CHECK(to_string(date{2020, 3,  1}, std::string("{:%Y-%m-%d}")) == std::string("2020-03-01"));
     CHECK(to_string(date{2020, 6, 20}, std::string("{:%Y-%m-%d}")) == std::string("2020-06-20"));
-
     CHECK(to_string(date{2013, 11, 28}, std::string("{:%Y-%m-%d}")) == std::string("2013-11-28"));
 
-    // TODO May be need uniformity in output for MSVC and g++
-#if defined(_WIN32) || defined(_WIN64)
+    // If the result is less than four digits it is left-padded with 0 to four digits.
     CHECK(to_string(date{   1,  2,  3}, std::string("{:%Y-%m-%d}")) == std::string("0001-02-03"));
-#else
-    CHECK(to_string(date{   1,  2,  3}, std::string("{:%Y-%m-%d}")) == std::string("1-02-03"));
-#endif
+    // If the result is a single digit it is prefixed by 0.
+    CHECK(to_string(date{   1,  2,  3}, std::string("{:%y-%m-%d}")) == std::string("01-02-03"));
 
     CHECK(to_string(date{2013, 11, 28}) == std::string("2013-11-28"));
-
-    // TODO May be need uniformity in output for MSVC and g++
-#if defined(_WIN32) || defined(_WIN64)
     CHECK(to_string(date{   1,  2,  3}) == std::string("0001-02-03"));
-#else
-    CHECK(to_string(date{   1,  2,  3}) == std::string("1-02-03"));
-#endif
 }
 
 TEST_CASE("add months")
