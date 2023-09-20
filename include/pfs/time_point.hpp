@@ -256,21 +256,13 @@ protected:
 #if _MSC_VER
         std::time_t seconds_since_epoch = _mkgmtime(& tm);
 #else
-        // FIXME use timegm instead of std::mktime
-        std::time_t seconds_since_epoch = std::mktime(& tm);
+        std::time_t seconds_since_epoch = ::timegm(& tm);
 #endif
 
         if (seconds_since_epoch == std::time_t{-1}) {
             ec = make_error_code(std::errc::invalid_argument);
             return Derived{};
         }
-
-#if _MSC_VER
-        // Nothing to do
-#else
-        // Adjust by UTC offset since seconds_since_epoch is UTC based time.
-        seconds_since_epoch += utc_offset();
-#endif
 
         // Time offset in seconds
         int utc_offset = abs_hour_offset * 3600 + min_offset * 60;
