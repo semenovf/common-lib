@@ -18,6 +18,7 @@ namespace pfs {
 /**
  * Simple Command Line Parser API
  */
+template <typename ArgvFwdIter>
 class argvapi
 {
 private:
@@ -94,46 +95,24 @@ public:
     class iterator
     {
     private:
-        int _argc {0};
-        char const * const * _argv {nullptr};
+        ArgvFwdIter _pos;
+        ArgvFwdIter _end;
 
     private:
         friend class argvapi;
 
-        iterator (int argc, char const * const * argv)
-            : _argc(argc)
-            , _argv(argv)
+        iterator (ArgvFwdIter begin, ArgvFwdIter end)
+            : _pos(begin)
+            , _end(end)
         {}
 
     public:
-        iterator () = default;
-        iterator (iterator const & other) = default;
-        iterator & operator = (iterator const & other) = default;
-        ~iterator () = default;
-
-        iterator (iterator && other)
-            : _argc(other._argc)
-            , _argv(other._argv)
-        {
-            other._argc = 0;
-            other._argv = nullptr;
-        }
-
-        iterator & operator = (iterator && other)
-        {
-            _argc = other._argc;
-            _argv = other._argv;
-            other._argc = 0;
-            other._argv = nullptr;
-            return *this;
-        }
-
         /**
          * Returns @c true if has more unread options/arguments, @c false otherwise.
          */
         bool has_more () const noexcept
         {
-            return _argc > 0;
+            return _pos != _end;
         }
 
         /**
@@ -141,13 +120,10 @@ public:
          */
         item next ()
         {
-            if (_argc == 0)
+            if (_pos == _end)
                 return item{type_enum::none, string_view{}, string_view{}};
 
-            if (_argv == nullptr)
-                throw make_exception(errc::unexpected_error);
-
-            string_view arg{*_argv};
+            string_view arg{*_pos};
             string_view optname;
             string_view optarg;
             auto type = type_enum::none;
@@ -180,49 +156,30 @@ public:
                 optarg = arg;
             }
 
-            _argc--;
-            _argv++;
+            ++_pos;
 
             return item{type, optname, optarg};
         }
     };
 
 private:
-    int _argc {0};
-    char const * const * _argv {nullptr};
+    ArgvFwdIter _pos;
+    ArgvFwdIter _end;
     filesystem::path _program;
     filesystem::path _program_name;
 
 public:
-    argvapi () = delete;
-    argvapi (argvapi const & other) = delete;
-    argvapi (argvapi && other) = delete;
-    argvapi & operator = (argvapi const & other) = delete;
-    argvapi & operator = (argvapi && other) = delete;
-
-    argvapi (int argc, char const * const * argv, bool program_name_skipped = false)
-        : _argc(argc)
-        , _argv(argv)
+    argvapi (ArgvFwdIter begin, ArgvFwdIter end, bool program_name_skipped = false)
+        : _pos(begin)
+        , _end(end)
     {
-        if (_argc < 1) {
-            throw error {
-                  std::make_error_code(std::errc::invalid_argument)
-                , tr::_("expected at least one argument (program path) from command line")
-            };
-        }
-
-        if (_argv == nullptr) {
-            throw error {
-                std::make_error_code(std::errc::invalid_argument)
-                , tr::_("null command line argument list")
-            };
-        }
+        if (_pos == _end)
+            return;
 
         if (!program_name_skipped) {
-            _program = filesystem::canonical(filesystem::utf8_decode(argv[0]));
+            _program = filesystem::canonical(filesystem::utf8_decode(*_pos));
             _program_name = _program.filename();
-            --_argc;
-            ++_argv;
+            ++_pos;
         }
     }
 
@@ -246,8 +203,21 @@ public:
 
     iterator begin () const noexcept
     {
-        return iterator{_argc, _argv};
+        return iterator{_pos, _end};
     }
 };
+
+template <typename ArgvFwdIter>
+inline argvapi<ArgvFwdIter> make_argvapi (ArgvFwdIter begin, ArgvFwdIter end
+    , bool program_name_skipped = false)
+{
+    return argvapi<ArgvFwdIter>{begin, end, program_name_skipped};
+}
+
+inline argvapi<char const * const *> make_argvapi (int argc, char const * const * argv
+    , bool program_name_skipped = false)
+{
+    return argvapi<char const * const *>{argv, argv + argc, program_name_skipped};
+}
 
 } // namespace pfs

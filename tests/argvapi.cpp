@@ -12,15 +12,11 @@
 #include <map>
 #include <vector>
 
-TEST_CASE("default") {
+template <typename ArgvApi>
+void test_default (ArgvApi const & cl)
+{
     using pfs::to_string;
 
-    bool program_name_skipped = true;
-    char const * argv[] = {
-        "-y", "--yes", "--hello=world", "-another=world", "--", "arg0" , "-"
-    };
-
-    pfs::argvapi cl { sizeof(argv) / sizeof(argv[0]), argv, program_name_skipped};
     auto it = cl.begin();
 
     int double_dash_count = 0;
@@ -55,4 +51,27 @@ TEST_CASE("default") {
     CHECK_EQ(opts.at(pfs::string_view{"another"}), pfs::string_view{"world"});
 
     CHECK_EQ(args.at(0), pfs::string_view{"arg0"});
+}
+
+TEST_CASE("default") {
+    bool program_name_skipped = true;
+
+    {
+        char const * argv[] = {
+            "-y", "--yes", "--hello=world", "-another=world", "--", "arg0" , "-"
+        };
+
+        auto cl = pfs::make_argvapi(sizeof(argv) / sizeof(argv[0]), argv, program_name_skipped);
+        test_default(cl);
+    }
+
+    {
+        std::vector<std::string> argv = {
+            "-y", "--yes", "--hello=world", "-another=world", "--", "arg0" , "-"
+        };
+
+        auto cl = pfs::make_argvapi(argv.begin(), argv.end(), program_name_skipped);
+        test_default(cl);
+    }
+
 }
