@@ -24,6 +24,8 @@ enum class errc
 {
       success = 0
     , broken_sequence
+    , bad_data_format
+    , unsupported
     , unexpected_error // Replaces any unexpected error
 };
 
@@ -42,7 +44,13 @@ public:
                 return std::string{"no error"};
 
             case errc::broken_sequence:
-                return std::string{"broken_sequence"};
+                return std::string{"broken sequence"};
+
+            case errc::bad_data_format:
+                return std::string{"bad/illegal data format"};
+
+            case errc::unsupported:
+                return std::string{"unsupported"};
 
             case errc::unexpected_error:
                 return std::string{"unexpected error"};
@@ -140,6 +148,19 @@ inline std::string system_error_text (int errn = 0)
     strerror_r(errn == 0 ? errno : errn, buffer, sizeof(buffer));
     return strerror_adapter(strerror_r(errn == 0 ? errno : errn, buffer, sizeof(buffer)), buffer);
 #endif
+}
+
+template <typename Error, typename ...Args>
+inline void throw_or (Error * perr, Args &&... args)
+{
+    Error err (std::forward<Args>(args)...);
+
+    if (perr) {
+        *perr = std::move(err);
+        return;
+    }
+
+    throw err;
 }
 
 } // namespace pfs

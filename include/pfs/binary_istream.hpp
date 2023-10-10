@@ -11,7 +11,9 @@
 #include "endian.hpp"
 #include "string_view.hpp"
 #include <cstdint>
+#include <functional>
 #include <type_traits>
+#include <utility>
 #include <vector>
 
 namespace pfs {
@@ -141,6 +143,24 @@ public:
 
         if (_p + sz <= _end) {
             v = string_view(_p, sz);
+            _p += sz;
+        } else {
+            throw error { std::make_error_code(std::errc::result_out_of_range) };
+        }
+
+        return *this;
+    }
+
+    /**
+     * @throws error {std::errc::result_out_of_range} if not enough data to
+     *         deserialize value.
+     */
+    binary_istream & operator >> (std::pair<SizeType, std::reference_wrapper<string_view>> && v)
+    {
+        SizeType sz = v.first;
+
+        if (_p + sz <= _end) {
+            v.second.get() = string_view(_p, sz);
             _p += sz;
         } else {
             throw error { std::make_error_code(std::errc::result_out_of_range) };
