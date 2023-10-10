@@ -76,6 +76,11 @@ public:
             return (is_option() && _optname == optname);
         }
 
+        bool is_arg () const noexcept
+        {
+            return _type == type_enum::arg;
+        }
+
         bool has_arg () const noexcept
         {
             return !_arg.empty();
@@ -153,6 +158,7 @@ public:
                     }
                 }
             } else {
+                type = type_enum::arg;
                 optarg = arg;
             }
 
