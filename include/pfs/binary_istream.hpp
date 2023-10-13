@@ -19,14 +19,17 @@
 namespace pfs {
 
 /**
- * @param SizeType Size type for sequences having size (@c string_view,
- *        @c string, @c std::vector<char>)
+ * @param SizeType
  */
-template <typename SizeType = std::uint32_t, endian Endian = endian::native>
+template <endian Endian = endian::native>
 class binary_istream
 {
 public:
     using size_type = std::size_t;
+
+    /// Size type for sequences having
+    /// size (@c string_view, @c string, @c std::vector<char>)
+    using sequence_size_type = std::uint32_t;
 
 private:
     char const * _p;
@@ -138,7 +141,7 @@ public:
      */
     binary_istream & operator >> (string_view & v)
     {
-        SizeType sz = 0;
+        sequence_size_type sz = 0;
         this->operator >> (sz);
 
         if (_p + sz <= _end) {
@@ -152,12 +155,14 @@ public:
     }
 
     /**
+     * Reads specified by @a v.first number of bytes into @a v.second.
+     *
      * @throws error {std::errc::result_out_of_range} if not enough data to
      *         deserialize value.
      */
-    binary_istream & operator >> (std::pair<SizeType, std::reference_wrapper<string_view>> && v)
+    binary_istream & operator >> (std::pair<sequence_size_type, std::reference_wrapper<string_view>> && v)
     {
-        SizeType sz = v.first;
+        sequence_size_type sz = v.first;
 
         if (_p + sz <= _end) {
             v.second.get() = string_view(_p, sz);
@@ -181,14 +186,38 @@ public:
         return *this;
     }
 
+    binary_istream & operator >> (std::pair<sequence_size_type, std::reference_wrapper<std::string>> && v)
+    {
+        string_view sw;
+        this->operator >> (std::make_pair(v.first, std::ref(v.second.get())));
+        v = std::string(sw.data(), sw.size());
+        return *this;
+    }
+
     binary_istream & operator >> (std::vector<char> & v)
     {
-        SizeType sz = 0;
+        sequence_size_type sz = 0;
         this->operator >> (sz);
 
         if (_p + sz <= _end) {
             v.resize(sz);
             std::memcpy(v.data(), _p, sz);
+            _p += sz;
+        } else {
+            throw error { std::make_error_code(std::errc::result_out_of_range) };
+        }
+
+        return *this;
+    }
+
+    binary_istream & operator >> (std::pair<sequence_size_type, std::reference_wrapper<std::vector<char>>> && v)
+    {
+        sequence_size_type sz = v.first;
+
+        if (_p + sz <= _end) {
+            auto & vect = v.second.get();
+            vect.resize(sz);
+            std::memcpy(vect.data(), _p, sz);
             _p += sz;
         } else {
             throw error { std::make_error_code(std::errc::result_out_of_range) };

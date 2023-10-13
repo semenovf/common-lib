@@ -19,16 +19,16 @@
 
 namespace pfs {
 
-/**
- * @param SizeType Size type for sequences having size (@c string_view,
- *        @c string, @c std::vector<char>)
- */
-template <typename SizeType = std::uint32_t, endian Endian = endian::native>
+template <endian Endian = endian::native>
 class binary_ostream
 {
 public:
     using size_type = std::vector<char>::size_type;
     using offset_type = size_type;
+
+    /// Size type for sequences having
+    /// size (@c string_view, @c string, @c std::vector<char>)
+    using sequence_size_type = std::uint32_t;
 
 private:
     std::vector<char> * _pbuf {nullptr};
@@ -152,10 +152,10 @@ public:
     binary_ostream & operator << (string_view sw)
     {
         if (sw.size() > 0) {
-            if ((sw.size() > (std::numeric_limits<SizeType>::max)()))
+            if ((sw.size() > (std::numeric_limits<sequence_size_type>::max)()))
                 throw error { std::make_error_code(std::errc::value_too_large) };
 
-            this->operator << (static_cast<SizeType>((sw.size())));
+            this->operator << (static_cast<sequence_size_type>((sw.size())));
 
             _pbuf->resize(_pbuf->size() + sw.size());
             std::memcpy(_pbuf->data() + _off, sw.data(), sw.size());
