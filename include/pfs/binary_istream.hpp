@@ -189,8 +189,8 @@ public:
     binary_istream & operator >> (std::pair<sequence_size_type, std::reference_wrapper<std::string>> && v)
     {
         string_view sw;
-        this->operator >> (std::make_pair(v.first, std::ref(v.second.get())));
-        v = std::string(sw.data(), sw.size());
+        this->operator >> (std::make_pair(v.first, std::ref(sw)));
+        v.second.get() = std::string(sw.data(), sw.size());
         return *this;
     }
 
