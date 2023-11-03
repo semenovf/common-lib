@@ -371,4 +371,52 @@ inline BidirIt prev (BidirIt it, typename iterator_traits<BidirIt>::difference_t
     return it;
 }
 
+/**
+ * Advances position @a pos while value in first sequence equals to the value in second sequence.
+ */
+template <typename ForwardIt1, typename ForwardIt2>
+inline void advance_sequence (ForwardIt1 & pos, ForwardIt1 last, ForwardIt2 first2, ForwardIt2 last2)
+{
+    ForwardIt1 p = pos;
+
+    while (p != last && first2 != last2 && *p++ == *first2++)
+        ;
+
+    if (first2 == last2)
+        pos = p;
+}
+
+/**
+ * Advances position @a pos until predicate @a eos2 does not return @c false (signaling the end of
+ * second sequence) and while the value in first sequence equals to the value in second sequence.
+ */
+template <typename ForwardIt1, typename ForwardIt2, typename EndSeq2>
+inline void advance_sequence_until (ForwardIt1 & pos, ForwardIt1 last, ForwardIt2 first2, EndSeq2 eos2)
+{
+    ForwardIt1 p = pos;
+
+    while (p != last && !eos2(first2) && *p++ == *first2++)
+        ;
+
+    if (eos2(first2))
+        pos = p;
+}
+
+/**
+ * Advances position @a pos until predicates @a eos1 and @a eos2 do not return @c false (signaling
+ * the end of first and second sequences respectively) and while the value in first sequence equals
+ * to the value in second sequence.
+ */
+template <typename ForwardIt1, typename ForwardIt2, typename EndSeq1, typename EndSeq2>
+inline void advance_sequence_until (ForwardIt1 & pos, EndSeq1 eos1, ForwardIt2 first2, EndSeq2 eos2)
+{
+    ForwardIt1 p = pos;
+
+    while (!eos1(p) && !eos2(first2) && *p++ == *first2++)
+        ;
+
+    if (eos2(first2))
+        pos = p;
+}
+
 } // pfs
