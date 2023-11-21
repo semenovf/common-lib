@@ -37,6 +37,7 @@ set(TEST_NAMES
     getenv
     home_directory_path
     i18n
+    integer
     iterator_bidirectional
     iterator_forward
     iterator_input

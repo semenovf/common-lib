@@ -8,6 +8,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
 #include "error.hpp"
+#include "numeric_cast.hpp"
 #include <limits>
 #include <system_error>
 #include <type_traits>
@@ -304,6 +305,30 @@ to_integer (CharIt first, CharIt last, IntT min_value, IntT max_value, int radix
         throw error{ec, "bad integer string representation"};
 
     return n;
+}
+
+template <typename IntT1, typename IntT2
+    , typename std::enable_if<std::is_integral<IntT1>::value && std::is_integral<IntT2>::value, int>::type = 0>
+inline IntT1 sum_safe (IntT1 value, IntT2 n)
+{
+    if (n == 0)
+        return value;
+
+    auto n1 = numeric_cast<IntT1>(n);
+
+    if (n > 0) {
+        auto upper_limit = (std::numeric_limits<IntT1>::max)() - n1;
+
+        if (value > upper_limit)
+            throw std::overflow_error("addition");
+    } else { // n < 0
+        auto lower_limit = (std::numeric_limits<IntT1>::min)() - n1;
+
+        if (value < lower_limit)
+            throw std::underflow_error("addition");
+    }
+
+    return value + n1;
 }
 
 } // pfs

@@ -8,20 +8,21 @@
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
 #include "compare.hpp"
+#include "error.hpp"
 #include "fmt.hpp"
+#include "i18n.hpp"
+#include "integer.hpp"
 #include <array>
-#include <locale>
-#include <tuple>
-#include <cassert>
 #include <cstdint>
 #include <cstring>
 #include <ctime>
+#include <limits>
+#include <locale>
+#include <string>
+#include <tuple>
 
 namespace pfs {
 namespace calendar {
-
-constexpr intmax_t long_long_ago = std::numeric_limits<intmax_t>::min();
-constexpr std::array<int, 13> const __days_in_month { 0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
 
 struct date_info
 {
@@ -39,7 +40,13 @@ struct date_info
 template <typename IntT1, typename IntT2>
 inline IntT1 floor_div (IntT1 a, IntT2 b)
 {
-    assert(b);
+    if (b == 0) {
+        throw pfs::error {
+              std::make_error_code(std::errc::invalid_argument)
+            , tr::_("division by zero")
+        };
+    }
+
     return (a - (a < 0 ? IntT2{b} - 1 : 0)) / IntT2{b};
 }
 
@@ -55,358 +62,30 @@ inline IntT1 floor_div (IntT1 a, IntT2 b)
  * else
  *      not_leap_year
  */
-inline bool is_leap_year (intmax_t year)
+inline bool is_leap_year (int year)
 {
     if (year < 1) // There is no year 0 in Gregorian calendar
         ++year;
     return year % 400 == 0 || (year % 4 == 0 && year % 100 != 0);
 }
 
-/*
-* Checks if the specified date is valid
-*/
-inline constexpr bool valid (int year, int month, int day)
-{
-    return year == 0
-        ? false
-        : (day > 0 && month > 0 && month <= 12)
-            && (day <= __days_in_month[month]
-                || (day == 29 && month == 2 && is_leap_year(year)));
-}
-
 /**
- * Calculates Julian Day (JD) from Gregorian calendar date
+ * @return The number of days in the month (28 to 31) for specified @a month.
  */
-inline intmax_t make_julian_day (int year, int month, int day)
+inline constexpr int days_in_month (int month)
 {
-    if (month < 1 || month > 12)
-        return long_long_ago;
-
-    if (day < 1 || day > 31)
-        return long_long_ago;
-
-    if (year < 0) // there is no 0 year
-        ++year;
-
-    int      a = floor_div(14 - month, 12);
-    intmax_t y = intmax_t(year) + 4800 - a;
-    int      m = month + 12 * a - 3;
-
-    // Gregorian calendar: >= 15.10.1582
-    if (year > 1582 || (year == 1582 && (month > 10 || (month == 10 && day >= 15)))) {
-        return static_cast<intmax_t>(day) + floor_div(153 * m + 2, 5)
-            + 365 * y
-            + floor_div(y, 4)
-            - floor_div(y, 100)
-            + floor_div(y, 400)
-            - 32045;
-    } else if (year < 1582 || (year == 1582 && (month < 10 || (month == 10 && day <= 4)))) {
-        // Julian calendar: <= 4.10.1582
-
-        return static_cast<intmax_t>(day) + floor_div(153 * m + 2, 5)
-            + 365 * y
-            + floor_div(y, 4)
-            - 32083;
-    }
-
-    return long_long_ago;
-}
-
-/**
- * @brief Calculates Gregorian calendar date from Julian Day (JD)
- * @param julian_day JD value.
- * @return Date decomposed into @c struct @c tm fields.
- * @note see http://www.tondering.dk/claus/cal/julperiod.php.
- */
-date_info decompose (intmax_t julian_day)
-{
-    intmax_t b = 0;
-    intmax_t c = 0;
-
-    // Gregorian calendar
-    if (julian_day >= 2299161) {
-        intmax_t a = julian_day + 32044;
-        b = floor_div(4 * a + 3, 146097);
-        c = a - floor_div(146097 * b, 4);
-    } else {
-        b = 0;
-        c = julian_day + 32082;
-    }
-
-    intmax_t d = floor_div(4 * c + 3, 1461);
-    intmax_t e = c - floor_div(1461 * d, 4);
-    intmax_t m = floor_div(5 * e + 2, 153);
-
-    date_info result;
-
-    auto day_of_month = e - floor_div(153 * m + 2, 5) + 1;
-    auto month = m + 3 - 12 * floor_div(m, 10);
-    auto year = 100 * b + d - 4800 + floor_div(m, 10);
-
-    result.day_of_month = static_cast<decltype(result.day_of_month)>(day_of_month);
-    result.month = static_cast<decltype(result.month)>(month);
-    result.year = static_cast<decltype(result.year)>(year);
-
-    if (result.year <= 0)
-        --result.year;
-
-    // Day of week (0 = Monday to 6 = Sunday)
-    result.day_of_week = (julian_day >= 0)
-        ? (julian_day % 7) + 1
-        : ((julian_day + 1) % 7) + 7;
-
-    auto day_of_year = julian_day - make_julian_day(result.year, 1, 1) + 1;
-
-    result.day_of_year = static_cast<decltype(result.day_of_year)>(day_of_year);
-
-    return result;
-}
-
-class date final: public compare_operations
-{
-public:
-    using value_type = intmax_t;
-
-private:
-    value_type _julian_day {long_long_ago};
-
-private:
-    explicit constexpr date (value_type jd)
-        : _julian_day(jd)
-    {}
-
-public:
-    date () = default;
-    date (date const &) = default;
-    date (date &&) = default;
-    date & operator = (date const &) = default;
-    date & operator = (date &&) = default;
-
-    date (int year, int month, int day)
-    {
-        if (valid(year, month, day))
-            _julian_day = make_julian_day(year, month, day);
-        else
-            _julian_day = long_long_ago;
-    }
-
-    /**
-     * @return Julian day.
-     */
-    value_type julian_day () const noexcept
-    {
-        return _julian_day;
-    }
-
-    date add_days (int ndays) const
-    {
-        return date{_julian_day + ndays};
-    }
-
-    date add_months (int nmonths) const
-    {
-        // Note: algorithm adopted from QDate::addMonths
-
-        if (_julian_day == long_long_ago)
-            return date{};
-
-        if (!nmonths)
-            return *this;
-
-        auto di = decompose(_julian_day);
-
-        int start_year = di.year;
-
-        while (nmonths != 0) {
-            if (nmonths < 0 && nmonths + 12 <= 0) {
-                --di.year;
-                nmonths += 12;
-            } else if (nmonths < 0) {
-                di.month += nmonths;
-                nmonths = 0;
-
-                if (di.month <= 0) {
-                    --di.year;
-                    di.month += 12;
-                }
-            } else if (nmonths - 12 >= 0) {
-                ++di.year;
-                nmonths -= 12;
-            } else if (di.month == 12) {
-                ++di.year;
-                di.month = 0;
-            } else {
-                di.month += nmonths;
-                nmonths = 0;
-
-                if (di.month > 12) {
-                    ++di.year;
-                    di.month -= 12;
-                }
-            }
-        }
-
-        // special cases: transition the year through 0
-        if (start_year > 0 && di.year <= 0)      // decreasing months
-            --di.year;
-        else if (start_year < 0 && di.year >= 0) // increasing months
-            ++di.year;
-
-        return date(di.year, di.month, di.day_of_month);
-    }
-
-    date add_years (int nyears) const
-    {
-        // Note: algorithm adopted from QDate::addYears
-
-        if (_julian_day == long_long_ago)
-            return date{};
-
-        if (!nyears)
-            return *this;
-
-        auto di = decompose(_julian_day);
-
-        int start_year = di.year;
-        di.year += nyears;
-
-        // special cases: transition the year through 0
-        if (start_year > 0 && di.year <= 0)      // decreasing months
-            --di.year;
-        else if (start_year < 0 && di.year >= 0) // increasing months
-            ++di.year;
-
-        return date(di.year, di.month, di.day_of_month);
-    }
-
-    /**
-     * @return Number of days from @a d.
-     */
-    value_type days_to (date const & d) const
-    {
-        return d._julian_day - _julian_day;
-    }
-
-    /**
-     * @return The year.
-     * @note Use decompose() function instead if need another components at once
-     */
-    int year () const
-    {
-        if (_julian_day == long_long_ago)
-            return 0;
-
-        auto di = decompose(_julian_day);
-        return di.year;
-    }
-
-    /**
-     * @return The month.
-     * @note Use decompose() function instead if need another components at once
-     */
-    int month () const
-    {
-        if (_julian_day == long_long_ago)
-            return 0;
-
-        auto di = decompose(_julian_day);
-        return di.month;
-    }
-
-    /**
-     * @return The day of month.
-     * @note Use decompose() function instead if need another components at once
-     */
-    int day_of_month () const
-    {
-        if (_julian_day == long_long_ago)
-            return 0;
-
-        auto di = decompose(_julian_day);
-        return di.day_of_month;
-    }
-
-    /**
-     * @return The day of the year (0 to 364 or 365 on leap years).
-     * @note Use decompose() function instead if need another components at once
-     */
-    int day_of_year () const
-    {
-        auto d = decompose(_julian_day);
-        return d.day_of_year;
-    }
-
-    /**
-     * @return The day of the week (1 to 7).
-     * @note Use decompose() function instead if need another components at once
-     */
-    int day_of_week () const
-    {
-        auto d = decompose(_julian_day);
-        return d.day_of_week;
-    }
-
-    //
-    // Compare
-    //
-    int compare (date const & rhs) const noexcept
-    {
-        return _julian_day == rhs._julian_day
-            ? 0
-            : _julian_day < rhs._julian_day
-                ? -1
-                : +1;
-    }
-
-    bool operator == (date const & rhs) const noexcept
-    {
-        return compare(rhs) == 0;
-    }
-
-    bool operator < (date const & rhs) const noexcept
-    {
-        return compare(rhs) < 0;
-    }
-
-public:
-    static constexpr const date null () noexcept
-    {
-        return date{};
-    };
-
-    // date {1970, 1, 1}
-    static constexpr const date epoch () noexcept
-    {
-        return date{2440588L};
-    }
-
-    // date {std::numeric_value<int>::min(), 1, 1}
-    static constexpr const date min () noexcept
-    {
-        return date{-784366681008L};
-    }
-
-    // date {std::numeric_value<int>::max(), 12, 31}
-    static constexpr const date max () noexcept
-    {
-        return date{+783312487794L};
-    }
-};
-
-inline date_info decompose (date const & d)
-{
-    return decompose(d.julian_day());
+    return std::array<int, 13> { 0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 }[month];
 }
 
 /**
  * @return The calculated number of days in the month (28 to 31) for specified
- *      year and month.
+ *      @a year and @a month.
  */
 inline int days_in_month (int year, int month)
 {
     return  (month == 2 && is_leap_year(year))
         ? 29
-        : __days_in_month[month];
+        : days_in_month(month);
 }
 
 /**
@@ -418,15 +97,372 @@ inline int days_in_year (int year)
 }
 
 /**
+ * Julian day representatio class
+ */
+class julian_day final: public compare_operations
+{
+public:
+    using value_type = std::int64_t;
+
+public:
+    static constexpr value_type raw_min_day   = -784366681008L; // julian_day(INT_MIN, 1, 1)
+    static constexpr value_type raw_max_day   =  784354017364L; // julian_day(INT_MAX, 12, 31)
+    static constexpr value_type raw_epoch_day =       2440588L; // julian_day(1970, 1, 1)
+
+private:
+    value_type _value {raw_epoch_day};
+
+private:
+    explicit constexpr julian_day (value_type value)
+        : _value(value)
+    {}
+
+public:
+    /**
+     * Constructs Julian day with day 1 January 4713 BC (native() returns zero)
+     */
+    julian_day () : julian_day(value_type{0}) {}
+
+    julian_day (julian_day const &) = default;
+    julian_day (julian_day &&) = default;
+    julian_day & operator = (julian_day const &) = default;
+    julian_day & operator = (julian_day &&) = default;
+
+    /**
+     * Constructs Julian Day (JD) from Gregorian calendar date.
+     *
+     * @throw pfs::error{std::errc::invalid_argument} if specified date is invalid.
+     */
+    julian_day (int year, int month, int day)
+    {
+        *this = make(year, month, day);
+    }
+
+    /**
+    * @brief Calculates Gregorian calendar date from Julian Day (JD)
+    * @param julian_day JD value.
+    * @return Date decomposed into @c struct @c tm fields.
+    * @note see http://www.tondering.dk/claus/cal/julperiod.php.
+    */
+    date_info decompose () const
+    {
+        value_type b = 0;
+        value_type c = 0;
+
+        // Gregorian calendar
+        if (_value >= 2299161) {
+            value_type a = _value + 32044;
+            b = floor_div(4 * a + 3, 146097);
+            c = a - floor_div(146097 * b, 4);
+        } else {
+            b = 0;
+            c = _value + 32082;
+        }
+
+        value_type d = floor_div(4 * c + 3, 1461);
+        value_type e = c - floor_div(1461 * d, 4);
+        value_type m = floor_div(5 * e + 2, 153);
+
+        date_info result;
+
+        auto day_of_month = e - floor_div(153 * m + 2, 5) + 1;
+        auto month = m + 3 - 12 * floor_div(m, 10);
+        auto year = 100 * b + d - 4800 + floor_div(m, 10);
+
+        result.day_of_month = static_cast<decltype(result.day_of_month)>(day_of_month);
+        result.month = static_cast<decltype(result.month)>(month);
+        result.year = static_cast<decltype(result.year)>(year);
+
+        if (result.year <= 0)
+            --result.year;
+
+        // Day of week (0 = Monday to 6 = Sunday)
+        result.day_of_week = (_value >= 0)
+            ? (_value % 7) + 1
+            : ((_value + 1) % 7) + 7;
+
+        auto day_of_year = _value - make(result.year, 1, 1).native() + 1;
+
+        result.day_of_year = static_cast<decltype(result.day_of_year)>(day_of_year);
+
+        return result;
+    }
+
+    /**
+     * @return Raw value for Julian day.
+     */
+    value_type native () const noexcept
+    {
+        return _value;
+    }
+
+    julian_day add_days (int ndays) const
+    {
+        auto value = sum_safe(_value, ndays);
+
+        if (value > raw_epoch_day)
+            throw std::overflow_error("add days");
+
+        if (value < raw_min_day)
+            throw std::underflow_error("add days");
+
+        return julian_day{value};
+    }
+
+    julian_day add_months (int nmonths) const
+    {
+        // Note: algorithm adopted from QDate::addMonths
+
+        if (nmonths == 0)
+            return *this;
+
+        auto di = decompose();
+
+        int start_year = di.year;
+
+        while (nmonths != 0) {
+            if (nmonths < 0 && nmonths + 12 <= 0) {
+                di.year = sum_safe(di.year, -1);
+                nmonths = sum_safe(nmonths, 12);
+            } else if (nmonths < 0) {
+                di.month = sum_safe(di.month, nmonths);
+                nmonths = 0;
+
+                if (di.month <= 0) {
+                    di.year = sum_safe(di.year,  -1);
+                    di.month = sum_safe(di.month, 12);
+                }
+            } else if (nmonths - 12 >= 0) {
+                di.year = sum_safe(di.year,  1);
+                di.month = sum_safe(di.month, -12);
+            } else if (di.month == 12) {
+                di.year = sum_safe(di.year,  1);
+                di.month = 0;
+            } else {
+                di.month = sum_safe(di.month, nmonths);
+                nmonths = 0;
+
+                if (di.month > 12) {
+                    di.year = sum_safe(di.year,  1);
+                    di.month = sum_safe(di.month, -12);
+                }
+            }
+        }
+
+        // special cases: transition the year through 0
+        if (start_year > 0 && di.year <= 0)      // decreasing months
+            di.year = sum_safe(di.year, -1);
+        else if (start_year < 0 && di.year >= 0) // increasing months
+            di.year = sum_safe(di.year,  1);
+
+        return make_safe(di.year, di.month, di.day_of_month);
+    }
+
+    julian_day add_years (int nyears) const
+    {
+        // Note: algorithm adopted from QDate::addYears
+
+        if (nyears == 0)
+            return *this;
+
+        auto di = decompose();
+
+        int start_year = di.year;
+        di.year = sum_safe(di.year, nyears);
+
+        // special cases: transition the year through 0
+        if (start_year > 0 && di.year <= 0)      // decreasing years
+            di.year = sum_safe(di.year, -1);
+        else if (start_year < 0 && di.year >= 0) // increasing years
+            di.year = sum_safe(di.year, 1);
+
+        return make_safe(di.year, di.month, di.day_of_month);
+    }
+
+    /**
+     * @return Number of days from @a d.
+     */
+    value_type days_to (julian_day const & d) const
+    {
+        return d._value - _value;
+    }
+
+    /**
+     * @return The year.
+     * @note Use decompose() function instead if need another components at once
+     */
+    int year () const
+    {
+        return decompose().year;
+    }
+
+    /**
+     * @return The month.
+     * @note Use decompose() function instead if need another components at once
+     */
+    int month () const
+    {
+        return decompose().month;
+    }
+
+    /**
+     * @return The day of month.
+     * @note Use decompose() function instead if need another components at once
+     */
+    int day_of_month () const
+    {
+        return decompose().day_of_month;
+    }
+
+    /**
+     * @return The day of the year (0 to 364 or 365 on leap years).
+     * @note Use decompose() function instead if need another components at once
+     */
+    int day_of_year () const
+    {
+        return decompose().day_of_year;
+    }
+
+    /**
+     * @return The day of the week (1 to 7).
+     * @note Use decompose() function instead if need another components at once
+     */
+    int day_of_week () const
+    {
+        return decompose().day_of_week;
+    }
+
+    //
+    // Compare
+    //
+    int compare (julian_day const & other) const noexcept
+    {
+        return _value == other._value ? 0 : _value < other._value ? -1 : +1;
+    }
+
+    bool operator == (julian_day const & other) const noexcept
+    {
+        return compare(other) == 0;
+    }
+
+    bool operator < (julian_day const & other) const noexcept
+    {
+        return compare(other) < 0;
+    }
+
+public:
+    static julian_day make (value_type value, error * perr = nullptr)
+    {
+        if (value < raw_min_day || value > raw_max_day) {
+            throw_or(perr, std::make_error_code(std::errc::invalid_argument), tr::_("bad Julian day"));
+            return julian_day{};
+        }
+
+        return julian_day{value};
+    }
+
+    /**
+     * Calculates Julian Day (JD) from Gregorian calendar date. If @a day is greater than maximum
+     * days in specified @a month then value of @a day set to maximum value.
+     *
+     * @throw pfs::error{std::errc::invalid_argument} if specified date is invalid.
+     */
+
+    /**
+     * Calculates Julian Day (JD) from Gregorian calendar date.
+     *
+     * @throw pfs::error{std::errc::invalid_argument} if specified date is invalid.
+     */
+    static julian_day make (int year, int month, int day, error * perr = nullptr)
+    {
+        if (!check_day(year, month, day)) {
+            throw_or(perr, std::make_error_code(std::errc::invalid_argument), tr::_("bad date"));
+            return julian_day{};
+        }
+
+        if (month < 1 || month > 12) {
+            throw_or(perr, std::make_error_code(std::errc::invalid_argument), tr::_("bad month"));
+            return julian_day{};
+        }
+
+        if (day < 1 || day > 31) {
+            throw_or(perr, std::make_error_code(std::errc::invalid_argument), tr::_("bad day"));
+            return julian_day{};
+        }
+
+        if (year < 0) // there is no 0 year
+            ++year;
+
+        int  a = floor_div(14 - month, 12);
+        auto y = value_type{year} + 4800 - a;
+        int  m = month + 12 * a - 3;
+
+        // Gregorian calendar: >= 15.10.1582
+        if (year > 1582 || (year == 1582 && (month > 10 || (month == 10 && day >= 15)))) {
+            return julian_day {static_cast<value_type>(day) + floor_div(153 * m + 2, 5)
+                + 365 * y
+                + floor_div(y, 4)
+                - floor_div(y, 100)
+                + floor_div(y, 400)
+                - 32045};
+        } else if (year < 1582 || (year == 1582 && (month < 10 || (month == 10 && day <= 4)))) {
+            // Julian calendar: <= 4.10.1582
+
+            return julian_day {static_cast<value_type>(day) + floor_div(153 * m + 2, 5)
+                + 365 * y
+                + floor_div(y, 4)
+                - 32083};
+        }
+
+        throw_or(perr, std::make_error_code(std::errc::invalid_argument), tr::_("bad date"));
+        return julian_day{};
+    }
+
+    // julian_day {1970, 1, 1}
+    static constexpr const julian_day epoch_day () noexcept
+    {
+        return julian_day{raw_epoch_day};
+    }
+
+    static constexpr const julian_day min_day () noexcept
+    {
+        return julian_day{raw_min_day};
+    }
+
+    static constexpr const julian_day max_day () noexcept
+    {
+        return julian_day{raw_max_day};
+    }
+
+private:
+    /*
+    * Checks if the specified date is valid
+    */
+    static constexpr bool check_day (int year, int month, int day)
+    {
+        return year == 0
+            ? false
+            : (day > 0 && month > 0 && month <= 12)
+                && (day <= days_in_month(month)
+                    || (day == 29 && month == 2 && is_leap_year(year)));
+    }
+
+    static julian_day make_safe (int year, int month, int day, error * perr = nullptr)
+    {
+        return make(year, month, (std::min)(day, days_in_month(year, month)), perr);
+    }
+};
+
+/**
  * @param format The format of conversion (see std::strftime specific format,
  *      https://en.cppreference.com/w/cpp/chrono/c/strftime)
  */
-inline std::string to_string (date const & d, std::string const & format)
+inline std::string to_string (julian_day const & d, std::string const & format)
 {
     if (format.empty())
         return std::string{};
 
-    auto di = decompose(d.julian_day());
+    auto di = d.decompose();
     struct tm timeinfo;
     std::memset(& timeinfo, 0, sizeof(timeinfo));
 
@@ -462,9 +498,9 @@ inline std::string to_string (date const & d, std::string const & format)
  *
  * @return The date as string.
  */
-inline std::string to_string (date const & d)
+inline std::string to_string (julian_day const & d)
 {
-    return to_string(d, std::string{"{:%F}"}); // equivalent to %H:%M:%S
+    return to_string(d, std::string("{:%F}")); // equivalent to %H:%M:%S
 }
 
 }} // namespace pfs::calendar
