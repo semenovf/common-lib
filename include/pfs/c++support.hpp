@@ -12,8 +12,13 @@
 #   if __has_cpp_attribute(nodiscard)
 #       define PFS__NODISCARD [[nodiscard]]
 #   endif
+
 #   if __has_cpp_attribute(deprecated)
 #       define PFS__DEPRECATED [[deprecated]]
+#   endif
+
+#   if __has_cpp_attribute(maybe_unused)
+#       define PFS__MAYBE_UNUSED [[maybe_unused]]
 #   endif
 #endif
 
@@ -23,4 +28,8 @@
 
 #ifndef PFS__DEPRECATED
 #   define PFS__DEPRECATED
+#endif
+
+#ifndef PFS__MAYBE_UNUSED
+#   define PFS__MAYBE_UNUSED
 #endif
