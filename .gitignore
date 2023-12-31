@@ -1,56 +1,23 @@
-!.gitignore
+################################################################################
+## Copyright (c) 2020-2023 Vladislav Trifochkin
+##
+## This file is part of `debby`.
+##
+## Changelog:
+##      2020.03.29 Initial version.
+##      2023.11.25 Removed useless (rare) rules.
+################################################################################
 
-.settings/
-.vs/
-.vscode/
-.build*/
-build*/
-.kdev4/
-.idea/
-.project
-.cproject
-doxygen/
-nbproject/
-src/tmp/
+/3rdparty/*
+!/3rdparty/download.sh
+!/3rdparty/README.md
+!/3rdparty/*.cmake
+!/3rdparty/CMakeLists.txt
 
-.coveralls.yml
-#Makefile
-#Makefile.*
-#makefile
-#makefile.*
+/2ndparty/*
+!/2ndparty/download.sh
+!/2ndparty/update.sh
+
+### KDevelop ###
 *.kdev4
-*.make
-*.mk
-*.exe
-*.err
-*.lk*
-*.sym
-*.swp
-~*
-*~
-*.bak
-#*.map
-*.sdf
-*.slo
-*.lo
-*.pdb
-*.idb
-*.o
-*.obj
-*.so
-*.dll
-*.so.*
-*.dylib
-*.lib
-*.lai
-*.la
-*.a
-*.exe
-*.out
-*.app
-*.log
-moc_*.cpp
-qrc_*.cpp
-.sconsign.dblite
-Doxyget.err
-CMakeSettings.json
+.kdev4/

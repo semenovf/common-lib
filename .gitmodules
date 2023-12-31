@@ -1,3 +1,0 @@
-[submodule "3rdparty/portable-target"]
-	path = 3rdparty/portable-target
-	url = git@github.com:semenovf/portable-target.git

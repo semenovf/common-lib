@@ -19,6 +19,7 @@
 #                 * PROJECT_OPT_PREFIX default value is in the PREFIX file.
 #                 The script is now unified again (has no any explicit project
 #                 dependecies inside).
+#      2023.11.16 Extended source directory (SOURCE_DIR) recognition.
 ################################################################################
 
 CMAKE_OPTIONS="${CMAKE_OPTIONS}"
@@ -175,7 +176,7 @@ if [ -z "$BUILD_DIR" ] ; then
 fi
 
 # We are inside source directory
-if [ -d .git ] ; then
+if [ -d .git -o -f LICENSE -o -f PREFIX -o -f CMakeLists.txt ] ; then
     if [ -z "$SOURCE_DIR" ] ; then
         SOURCE_DIR=`pwd`
     fi
@@ -184,7 +185,7 @@ fi
 
 if [ -z "$SOURCE_DIR" ] ; then
     # We are inside subdirectory (usually from scripts directory)
-    if [ -d ../.git ] ; then
+    if [ -d ../.git -o -f ../LICENSE -o -f ../PREFIX -o -f ../CMakeLists.txt ] ; then
         SOURCE_DIR=`pwd`/..
         BUILD_DIR="../../$BUILD_DIR"
     else
