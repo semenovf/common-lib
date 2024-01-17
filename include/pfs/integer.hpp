@@ -307,6 +307,42 @@ to_integer (CharIt first, CharIt last, IntT min_value, IntT max_value, int radix
     return n;
 }
 
+template <typename IntT>
+inline IntT to_integer (std::string const & s, int radix, std::error_code & ec)
+{
+    return to_integer<IntT>(s.cbegin(), s.cend(), radix, ec);
+}
+
+template <typename IntT>
+inline IntT to_integer (std::string const & s, std::error_code & ec)
+{
+    return to_integer<IntT>(s, 10, ec);
+}
+
+template <typename IntT>
+inline IntT to_integer (std::string const & s, int radix = 10)
+{
+    return to_integer<IntT>(s.cbegin(), s.cend(), radix);
+}
+
+template <typename IntT>
+inline IntT to_integer (std::string const & s, IntT min_value, IntT max_value, int radix, std::error_code & ec)
+{
+    return to_integer<IntT>(s.cbegin(), s.cend(), min_value, max_value, radix, ec);
+}
+
+template <typename IntT>
+inline IntT to_integer (std::string const & s, IntT min_value, IntT max_value, std::error_code & ec)
+{
+    return to_integer<IntT>(s.cbegin(), s.cend(), min_value, max_value, 10, ec);
+}
+
+template <typename IntT>
+inline IntT to_integer (std::string const & s, IntT min_value, IntT max_value, int radix = 10)
+{
+    return to_integer<IntT>(s.cbegin(), s.cend(), min_value, max_value, radix);
+}
+
 template <typename IntT1, typename IntT2
     , typename std::enable_if<std::is_integral<IntT1>::value && std::is_integral<IntT2>::value, int>::type = 0>
 inline IntT1 sum_safe (IntT1 value, IntT2 n)
