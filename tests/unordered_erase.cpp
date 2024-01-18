@@ -10,7 +10,6 @@
 #include "doctest.h"
 #include "pfs/unordered_erase.hpp"
 
-
 TEST_CASE("default") {
     std::vector<int> v {1, 2, 3, 4, 5};
 
