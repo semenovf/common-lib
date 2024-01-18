@@ -59,6 +59,7 @@ set(TEST_NAMES
     timer_pool
     type_traits
     variant
+    unordered_erase
     utf8_iterator
     utf8_decode
     utf8_encode
