@@ -24,6 +24,7 @@ enum class errc
 {
       success = 0
     , broken_sequence
+    , unexpected_data
     , unexpected_error // Replaces any unexpected error
 };
 
@@ -43,6 +44,9 @@ public:
 
             case errc::broken_sequence:
                 return std::string{"broken sequence"};
+
+            case errc::unexpected_data:
+                return std::string{"unexpected data"};
 
             case errc::unexpected_error:
                 return std::string{"unexpected error"};
