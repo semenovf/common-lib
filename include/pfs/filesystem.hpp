@@ -43,7 +43,7 @@ namespace filesystem {
 #ifndef PFS__LITERAL_PATH
 #   if defined(PFS__COMPILER_MSVC)
 #       if !(defined(_UNICODE) || defined(UNICODE))
-#           error "Expected _UNICODE(UNICODE) is enabled"
+#           error "Expected _UNICODE/UNICODE is enabled"
 #       endif
 #       define PFS__LITERAL_PATH(x) L##x
 #   else
@@ -56,7 +56,7 @@ namespace filesystem {
 
 #if defined(PFS__COMPILER_MSVC)
 #   if !(defined(_UNICODE) || defined(UNICODE))
-#       error "Expected _UNICODE(UNICODE) is enabled"
+#       error "Expected _UNICODE/UNICODE is enabled"
 #   endif
 inline std::string utf8_encode (path const & p)
 {

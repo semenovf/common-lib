@@ -36,7 +36,7 @@ template <typename T, typename S
     T numeric_cast (S const value)
 #endif
 {
-    if (value > std::numeric_limits<T>::max())
+    if (value > (std::numeric_limits<T>::max)())
         throw std::overflow_error("numeric_cast");
 
     if (value < std::numeric_limits<T>::min())
@@ -56,7 +56,7 @@ template <typename T, typename S
     T numeric_cast (S const value)
 #endif
 {
-    if (value > std::numeric_limits<T>::max())
+    if (value > (std::numeric_limits<T>::max)())
         throw std::overflow_error("numeric_cast");
 
     return static_cast<T>(value);
@@ -79,7 +79,7 @@ template <typename T, typename S
     if (value < 0)
         throw std::underflow_error("numeric_cast");
 
-    if (static_cast<std::intmax_t>(value) > std::numeric_limits<T>::max())
+    if (static_cast<std::intmax_t>(value) > (std::numeric_limits<T>::max)())
         throw std::overflow_error("numeric_cast");
 
     return static_cast<T>(value);
@@ -96,7 +96,7 @@ template <typename T, typename S
     T numeric_cast (S const value)
 #endif
 {
-    if (value > std::numeric_limits<T>::max())
+    if (value > (std::numeric_limits<T>::max)())
         throw std::overflow_error("numeric_cast");
 
     return static_cast<T>(value);

@@ -40,9 +40,9 @@ public:
         auto userprofile_env = getenv("USERPROFILE");
 
         if (userprofile_env && !userprofile_env->empty()) {
-            auto home = utf8_decode(userprofile_env);
+            auto home = utf8_decode(*userprofile_env);
 
-            if (fs::exists(home))
+            if (exists(home))
                 return home;
         }
 
@@ -52,16 +52,16 @@ public:
         if (homedrive_env && !homedrive_env->empty() && homepath_env && !homepath_env->empty()) {
             auto home = utf8_decode(*homedrive_env + *homepath_env);
 
-            if (fs::exists(home))
+            if (exists(home))
                 return home;
         }
 
         auto home_env = getenv("HOME");
 
         if (home_env && !home_env->empty()) {
-            auto home = utf8_decode(home_env);
+            auto home = utf8_decode(*home_env);
 
-            if (fs::exists(home))
+            if (exists(home))
                 return home;
         }
 
@@ -82,9 +82,9 @@ public:
         auto temp_env = getenv("TEMP");
 
         if (temp_env && !temp_env->empty()) {
-            auto temp = utf8_decode(temp_env);
+            auto temp = utf8_decode(*temp_env);
 
-            if (fs::exists(temp))
+            if (exists(temp))
                 return temp;
         }
 

@@ -47,10 +47,6 @@ if (UNIX)
     portable_target(LINK ${PROJECT_NAME} INTERFACE dl)
 endif()
 
-if (MSVC)
-    portable_target(DEFINITIONS ${PROJECT_NAME} INTERFACE -D_UNICODE -DUNICODE)
-endif()
-
 if (PFS__FORCE_ULID_STRUCT)
     portable_target(DEFINITIONS ${PROJECT_NAME} INTERFACE "PFS__FORCE_ULID_STRUCT=1")
 endif()
