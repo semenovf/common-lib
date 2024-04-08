@@ -23,6 +23,7 @@ using error_code = std::error_code;
 enum class errc
 {
       success = 0
+    , system_error
     , broken_sequence
     , unexpected_data
     , unexpected_error // Replaces any unexpected error
@@ -42,6 +43,9 @@ public:
             case errc::success:
                 return std::string{"no error"};
 
+            case errc::system_error:
+                return std::string{"system error"};
+              
             case errc::broken_sequence:
                 return std::string{"broken sequence"};
 
