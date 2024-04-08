@@ -23,7 +23,8 @@ using error_code = std::error_code;
 enum class errc
 {
       success = 0
-    , system_error
+    , system_error       // More information can be obtained using errno (Linux) or
+                         // WSAGetLastError (Windows)
     , broken_sequence
     , unexpected_data
     , unexpected_error // Replaces any unexpected error
