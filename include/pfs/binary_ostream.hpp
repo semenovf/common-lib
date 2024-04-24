@@ -19,21 +19,20 @@
 
 namespace pfs {
 
-template <endian Endian = endian::native>
+struct exclude_size {};
+
+template <endian Endianess = endian::native>
 class binary_ostream
 {
 public:
-    using size_type = std::vector<char>::size_type;
+    using size_type = std::uint32_t;
     using offset_type = size_type;
-
-    /// Size type for sequences having
-    /// size (@c string_view, @c string, @c std::vector<char>)
-    using sequence_size_type = std::uint32_t;
 
 private:
     std::vector<char> * _pbuf {nullptr};
     offset_type _off {0};
     bool _has_ownership {false};
+    bool _exclude_size {false};
 
 public:
     binary_ostream (size_type reserve_bytes = 0)
@@ -62,122 +61,10 @@ public:
         _pbuf = nullptr;
     }
 
-    template <typename T>
-    inline typename std::enable_if<std::is_integral<T>::value, binary_ostream &>::type
-    operator << (T v)
+    void reset ()
     {
-        T a = Endian == endian::network ? to_network_order(v) : v;
-        union u { T v; char b[sizeof(T)]; } d;
-        d.v = a;
-
-        _pbuf->resize(_pbuf->size() + sizeof(T));
-        std::memcpy(_pbuf->data() + _off, d.b, sizeof(T));
-        _off += sizeof(T);
-        return *this;
-    }
-
-    template <typename T>
-    inline typename std::enable_if<std::is_enum<T>::value, binary_ostream &>::type
-    operator << (T v)
-    {
-        return this->operator << (static_cast<typename std::underlying_type<T>::type>(v));
-    }
-
-    binary_ostream & operator << (float v)
-    {
-        union { float f; std::uint32_t d; } x;
-        x.f = v;
-        this->operator << (x.d);
-
-        // static constexpr auto multiplier = (std::numeric_limits<std::int32_t>::max)();
-        // int exp = 0;
-        // auto mant = static_cast<std::int32_t>(std::frexp(v, & exp) * multiplier);
-        // this->operator << (exp);
-        // this->operator << (mant);
-
-        return *this;
-    }
-
-    binary_ostream & operator << (double v)
-    {
-        union { double f; std::uint64_t d; } x;
-        x.f = v;
-        this->operator << (x.d);
-
-        //static constexpr auto multiplier = (std::numeric_limits<std::int64_t>::max)();
-        //int exp = 0;
-        //auto mant = static_cast<std::int64_t>(std::frexp(v, & exp) * multiplier);
-        //this->operator << (exp);
-        //this->operator << (mant);
-
-        return *this;
-    }
-
-    /**
-     * Writes raw sequence into the stream without size.
-     *
-     * @throw error {std::errc::result_out_of_range} if @a raw points to reverse
-     *        sequence.
-     */
-    binary_ostream & operator << (std::pair<char const *, char const *> const & raw)
-    {
-        if (raw.first > raw.second)
-            throw error { std::make_error_code(std::errc::result_out_of_range) };
-
-        auto nbytes = static_cast<size_type>(raw.second - raw.first);
-
-        if (nbytes > 0) {
-            _pbuf->resize(_pbuf->size() + nbytes);
-            std::memcpy(_pbuf->data() + _off, raw.first, nbytes);
-            _off += nbytes;
-        }
-
-        return *this;
-    }
-
-    binary_ostream & operator << (std::pair<char const *, size_type> const & raw)
-    {
-        if (raw.second > 0) {
-            _pbuf->resize(_pbuf->size() + raw.second);
-            std::memcpy(_pbuf->data() + _off, raw.first, raw.second);
-            _off += raw.second;
-        }
-
-        return *this;
-    }
-
-    /**
-     * @throw error {std::errc::value_too_large} if @a sw is too long.
-     */
-    binary_ostream & operator << (string_view sw)
-    {
-        if (sw.size() > 0) {
-            if ((sw.size() > (std::numeric_limits<sequence_size_type>::max)()))
-                throw error { std::make_error_code(std::errc::value_too_large) };
-
-            this->operator << (static_cast<sequence_size_type>((sw.size())));
-
-            _pbuf->resize(_pbuf->size() + sw.size());
-            std::memcpy(_pbuf->data() + _off, sw.data(), sw.size());
-            _off += sw.size();
-        }
-
-        return *this;
-    }
-
-    binary_ostream & operator << (char const * s)
-    {
-        return this->operator << (string_view(s, std::strlen(s)));
-    }
-
-    binary_ostream & operator << (std::string const & s)
-    {
-        return this->operator << (string_view{s});
-    }
-
-    binary_ostream & operator << (std::vector<char> const & s)
-    {
-        return this->operator << (string_view{s.data(), s.size()});
+        _pbuf->clear();
+        _off = 0;
     }
 
     char const * data () const noexcept
@@ -188,6 +75,164 @@ public:
     std::size_t size () const noexcept
     {
         return _pbuf->size();
+    }
+
+    std::vector<char> take ()
+    {
+        // Only owned vector can be moved
+        if (!_has_ownership)
+            throw error { std::make_error_code(std::errc::operation_not_permitted) };
+
+        auto result = std::move(*_pbuf);
+        return result;
+    }
+
+    template <typename T>
+    binary_ostream & operator << (T const & v)
+    {
+        pack(*this, v);
+        return *this;
+    }
+
+    binary_ostream & operator << (exclude_size)
+    {
+        _exclude_size = true;
+        return *this;
+    }
+
+private:
+    template <typename T>
+    friend typename std::enable_if<std::is_integral<T>::value, void>::type
+    pack (binary_ostream & out, T v)
+    {
+        T a = Endianess == endian::network ? to_network_order(v) : v;
+        union u { T v; char b[sizeof(T)]; } d;
+        d.v = a;
+
+        out._pbuf->resize(out._pbuf->size() + sizeof(T));
+        std::memcpy(out._pbuf->data() + out._off, d.b, sizeof(T));
+        out._off += sizeof(T);
+    }
+
+    template <typename T>
+    friend typename std::enable_if<std::is_enum<T>::value, void>::type
+    pack (binary_ostream & out, T v)
+    {
+        pack(out, static_cast<typename std::underlying_type<T>::type>(v));
+    }
+
+    friend void pack (binary_ostream & out, float v)
+    {
+        union { float f; std::uint32_t d; } x;
+        x.f = v;
+        pack(out, x.d);
+
+        // static constexpr auto multiplier = (std::numeric_limits<std::int32_t>::max)();
+        // int exp = 0;
+        // auto mant = static_cast<std::int32_t>(std::frexp(v, & exp) * multiplier);
+        // this->operator << (exp);
+        // this->operator << (mant);
+    }
+
+    friend void pack (binary_ostream & out, double v)
+    {
+        union { double f; std::uint64_t d; } x;
+        x.f = v;
+        pack(out, x.d);
+
+        //static constexpr auto multiplier = (std::numeric_limits<std::int64_t>::max)();
+        //int exp = 0;
+        //auto mant = static_cast<std::int64_t>(std::frexp(v, & exp) * multiplier);
+        //this->operator << (exp);
+        //this->operator << (mant);
+    }
+
+    /**
+     * Writes raw sequence into the stream without size.
+     *
+     * @throw error {std::errc::result_out_of_range} if @a raw points to reverse
+     *        sequence.
+     */
+    friend void pack (binary_ostream & out, std::pair<char const *, char const *> const & raw)
+    {
+        if (raw.first > raw.second)
+            throw error { std::make_error_code(std::errc::result_out_of_range) };
+
+        auto nbytes = static_cast<size_type>(raw.second - raw.first);
+
+        if (nbytes > 0) {
+            if (!out._exclude_size)
+                pack(out, nbytes);
+
+            out._pbuf->resize(out._pbuf->size() + nbytes);
+            std::memcpy(out._pbuf->data() + out._off, raw.first, nbytes);
+            out._off += nbytes;
+        } else {
+            if (!out._exclude_size)
+                pack(out, nbytes);
+        }
+
+        out._exclude_size = false;
+    }
+
+    friend void pack (binary_ostream & out, std::pair<char const *, size_type> const & raw)
+    {
+        pack(out, std::make_pair(raw.first, raw.first + raw.second));
+    }
+
+    /**
+     * @throw error {std::errc::value_too_large} if @a sw is too long.
+     */
+    friend void pack (binary_ostream & out, string_view sw)
+    {
+        if (sw.size() > 0) {
+            if ((sw.size() > (std::numeric_limits<size_type>::max)()))
+                throw error { std::make_error_code(std::errc::value_too_large) };
+
+            if (!out._exclude_size)
+                pack(out, static_cast<size_type>(sw.size()));
+
+            out._pbuf->resize(out._pbuf->size() + sw.size());
+            std::memcpy(out._pbuf->data() + out._off, sw.data(), sw.size());
+            out._off += sw.size();
+        } else {
+            if (!out._exclude_size)
+                pack(out, static_cast<size_type>(sw.size()));
+        }
+
+        out._exclude_size = false;
+    }
+
+    friend void pack (binary_ostream & out, char const * s)
+    {
+        pack(out, string_view(s, std::strlen(s)));
+    }
+
+    friend void pack (binary_ostream & out, std::string const & s)
+    {
+        pack(out, string_view{s});
+    }
+
+    friend void pack (binary_ostream & out, std::vector<char> const & s)
+    {
+        pack(out, string_view{s.data(), s.size()});
+    }
+
+    friend void pack (binary_ostream & out, std::vector<std::uint8_t> const & s)
+    {
+        pack(out, string_view{reinterpret_cast<char const *>(s.data()), s.size()});
+    }
+
+    template <std::size_t N>
+    friend void pack (binary_ostream & out, std::array<char, N> const & a)
+    {
+        pack(out, string_view{a.data(), a.size()});
+    }
+
+    template <std::size_t N>
+    friend void pack (binary_ostream & out, std::array<std::uint8_t, N> const & a)
+    {
+        pack(out, string_view{reinterpret_cast<char const *>(a.data()), a.size()});
     }
 };
 

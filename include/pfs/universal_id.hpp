@@ -90,17 +90,44 @@ inline universal_id make_uuid (std::uint64_t hi, std::uint64_t lo)
 /**
  * Makes UUID from array @a a that contains bytes in order specified by @a e.
  */
-inline universal_id make_uuid (std::array<std::uint8_t, 16> const & a
-    , endian e = endian::network)
+template <typename Byte>
+inline universal_id make_uuid2 (std::array<Byte, 16> const & a, endian e = endian::network)
 {
     universal_id result {0};
 
     if (e == endian::little) {
         for (int i = 0, j = 0; i < 16; i++, j += 8)
-            result.u = result.u | static_cast<int128_type>(a[i]) << j;
+            result.u = result.u | static_cast<int128_type>(static_cast<std::uint8_t>(a[i])) << j;
     } else {
         for (int i = 15, j = 0; i >= 0; i--, j += 8)
-            result.u = result.u | static_cast<int128_type>(a[i]) << j;
+            result.u = result.u | static_cast<int128_type>(static_cast<std::uint8_t>(a[i])) << j;
+    }
+
+    return result;
+}
+
+/**
+ * Makes UUID from array @a a that contains bytes in order specified by @a e.
+ */
+inline universal_id make_uuid (std::array<std::uint8_t, 16> const & a, endian e = endian::network)
+{
+    return make_uuid2<std::uint8_t>(a, e);
+}
+
+/**
+ * Converts UUID into array that will contains bytes in order specified by @a e.
+ */
+template <typename Byte>
+inline std::array<Byte, 16> to_array2 (universal_id const & u, endian e = endian::network)
+{
+    std::array<Byte, 16> result;
+
+    if (e == endian::little) {
+        for (int i = 0, j = 0; i < 16; i++, j += 8)
+            result[i] = static_cast<Byte>(static_cast<std::uint8_t>(u.u >> j));
+    } else {
+        for (int i = 0, j = 120; i < 16; i++, j -= 8)
+            result[i] = static_cast<Byte>(static_cast<std::uint8_t>(u.u >> j));
     }
 
     return result;
@@ -109,20 +136,9 @@ inline universal_id make_uuid (std::array<std::uint8_t, 16> const & a
 /**
  * Converts UUID into array that will contains bytes in order specified by @a e.
  */
-inline std::array<std::uint8_t, 16> to_array (universal_id const & u
-    , endian e = endian::network)
+inline std::array<std::uint8_t, 16> to_array (universal_id const & u, endian e = endian::network)
 {
-    std::array<std::uint8_t, 16> result;
-
-    if (e == endian::little) {
-        for (int i = 0, j = 0; i < 16; i++, j += 8)
-            result[i] = static_cast<std::uint8_t>(u.u >> j);
-    } else {
-        for (int i = 0, j = 120; i < 16; i++, j -= 8)
-            result[i] = static_cast<std::uint8_t>(u.u >> j);
-    }
-
-    return result;
+    return to_array2<std::uint8_t>(u, e);
 }
 
 #else // ULIDUINT128
@@ -184,18 +200,46 @@ inline universal_id make_uuid (std::uint64_t hi, std::uint64_t lo)
 /**
  * Makes UUID from array @a a that contains bytes in order specified by @a e.
  */
-inline universal_id make_uuid (std::array<std::uint8_t, 16> const & a
-    , endian e = endian::network)
+template <typename Byte>
+inline universal_id make_uuid2 (std::array<Byte, 16> const & a, endian e = endian::network)
 {
     universal_id result;
 
     // See NOTE at beginning of source
     if (e == endian::little) {
         for (std::size_t i = 0, j = a.size() - 1; i < a.size(); i++, j--)
-            result.u.data[i] = a[j];
+            result.u.data[i] = static_cast<std::uint8_t>(a[j]);
     } else {
         for (std::size_t i = 0; i < a.size(); i++)
-            result.u.data[i] = a[i];
+            result.u.data[i] = static_cast<std::uint8_t>(a[i]);
+    }
+
+    return result;
+}
+
+/**
+ * Makes UUID from array @a a that contains bytes in order specified by @a e.
+ */
+inline universal_id make_uuid (std::array<std::uint8_t, 16> const & a, endian e = endian::network)
+{
+    return make_uuid2<std::uint8_t>(a, e);
+}
+
+/**
+ * Converts UUID into array that will contains bytes in order specified by @a e.
+ */
+template <typename Byte>
+inline std::array<Byte, 16> to_array2 (universal_id const & u, endian e = endian::network)
+{
+    std::array<Byte, 16> result;
+
+    // See NOTE at beginning of source
+    if (e == endian::little) {
+        for (std::size_t i = 0, j = result.size() - 1; i < result.size(); i++, j--)
+            result[i] = static_cast<Byte>(u.u.data[j]);
+    } else {
+        for (std::size_t i = 0; i < result.size(); i++)
+            result[i] = static_cast<Byte>(u.u.data[i]);
     }
 
     return result;
@@ -204,21 +248,9 @@ inline universal_id make_uuid (std::array<std::uint8_t, 16> const & a
 /**
  * Converts UUID into array that will contains bytes in order specified by @a e.
  */
-inline std::array<std::uint8_t, 16> to_array (universal_id const & u
-    , endian e = endian::network)
+inline std::array<std::uint8_t, 16> to_array (universal_id const & u, endian e = endian::network)
 {
-    std::array<std::uint8_t, 16> result;
-
-    // See NOTE at beginning of source
-    if (e == endian::little) {
-        for (std::size_t i = 0, j = result.size() - 1; i < result.size(); i++, j--)
-            result[i] = u.u.data[j];
-    } else {
-        for (std::size_t i = 0; i < result.size(); i++)
-            result[i] = u.u.data[i];
-    }
-
-    return result;
+    return to_array2<std::uint8_t>(u, e);
 }
 
 #endif // !ULIDUINT128

@@ -9,6 +9,7 @@
 #pragma once
 #include "error.hpp"
 #include "endian.hpp"
+#include "optional.hpp"
 #include "string_view.hpp"
 #include <cstdint>
 #include <functional>
@@ -18,22 +19,24 @@
 
 namespace pfs {
 
+struct expected_size
+{
+    std::uint32_t sz;
+};
+
 /**
  * @param SizeType
  */
-template <endian Endian = endian::native>
+template <endian Endianess = endian::native>
 class binary_istream
 {
 public:
-    using size_type = std::size_t;
-
-    /// Size type for sequences having
-    /// size (@c string_view, @c string, @c std::vector<char>)
-    using sequence_size_type = std::uint32_t;
+    using size_type = std::uint32_t;
 
 private:
     char const * _p;
     char const * _end;
+    optional<size_type> _expected_size;
 
 public:
     binary_istream (char const * begin, char const * end)
@@ -51,6 +54,16 @@ public:
         return _p;
     }
 
+   /**
+     * Peeks character from underlying istream instance.
+     *
+     * @return character peek from stream or @c nullopt on failure.
+     */
+    optional<char> peek () const noexcept
+    {
+        return _p != _end ? make_optional(*_p) : nullopt;
+    }
+
     /**
      * Skips @a nbytes in stream.
      *
@@ -66,43 +79,60 @@ public:
         }
     }
 
+    template <typename T>
+    binary_istream & operator >> (T & v)
+    {
+        unpack(*this, v);
+        return *this;
+    }
+
+    binary_istream & operator >> (std::pair<char *, size_type> raw)
+    {
+        unpack(*this, raw);
+        return *this;
+    }
+
+    binary_istream & operator >> (expected_size esz)
+    {
+        _expected_size = esz.sz;
+        return *this;
+    }
+
+private:
     /**
      * @throws error {std::errc::result_out_of_range} if not enough data to
      *         deserialize value.
      */
     template <typename T>
-    inline typename std::enable_if<std::is_integral<T>::value, binary_istream &>::type
-    operator >> (T & v)
+    friend typename std::enable_if<std::is_integral<T>::value, void>::type
+    unpack (binary_istream & in, T & v)
     {
-        if (_p + sizeof(T) <= _end) {
-            T const * p = reinterpret_cast<T const *>(_p);
-            v = Endian == endian::network ? to_native_order(*p) : *p;
-            _p += sizeof(T);
+        if (in._p + sizeof(T) <= in._end) {
+            T const * p = reinterpret_cast<T const *>(in._p);
+            v = Endianess == endian::network ? to_native_order(*p) : *p;
+            in._p += sizeof(T);
         } else {
             throw error { std::make_error_code(std::errc::result_out_of_range) };
         }
-
-        return *this;
     }
 
     template <typename T>
-    inline typename std::enable_if<std::is_enum<T>::value, binary_istream &>::type
-    operator >> (T & v)
+    friend typename std::enable_if<std::is_enum<T>::value, void>::type
+    unpack (binary_istream & in, T & v)
     {
         typename std::underlying_type<T>::type tmp;
-        this->operator >> (tmp);
+        unpack(in, tmp);
         v = static_cast<T>(tmp);
-        return *this;
     }
 
     /**
      * @throws error {std::errc::result_out_of_range} if not enough data to
      *         deserialize value.
      */
-    binary_istream & operator >> (float & v)
+    friend void unpack (binary_istream & in, float & v)
     {
         union { float f; std::uint32_t d; } x;
-        this->operator >> (x.d);
+        unpack(in, x.d);
         v = x.f;
 
         // static constexpr auto divider = (std::numeric_limits<std::int32_t>::max)();
@@ -111,18 +141,16 @@ public:
         // this->operator >> (exp);
         // this->operator >> (mant);
         // v = std::ldexp(static_cast<float>(mant) / divider, exp);
-
-        return *this;
     }
 
     /**
      * @throws error {std::errc::result_out_of_range} if not enough data to
      *         deserialize value.
      */
-    binary_istream & operator >> (double & v)
+    friend void unpack (binary_istream & in, double & v)
     {
         union { double f; std::uint64_t d; } x;
-        this->operator >> (x.d);
+        unpack(in, x.d);
         v = x.f;
 
         // static constexpr auto divider = (std::numeric_limits<std::int64_t>::max)();
@@ -131,99 +159,131 @@ public:
         // this->operator >> (exp);
         // this->operator >> (mant);
         // v = std::ldexp(static_cast<double>(mant) / divider, exp);
-
-        return *this;
     }
 
     /**
-     * @throws error {std::errc::result_out_of_range} if not enough data to
-     *         deserialize value.
-     */
-    binary_istream & operator >> (string_view & v)
-    {
-        sequence_size_type sz = 0;
-        this->operator >> (sz);
-
-        if (_p + sz <= _end) {
-            v = string_view(_p, sz);
-            _p += sz;
-        } else {
-            throw error { std::make_error_code(std::errc::result_out_of_range) };
-        }
-
-        return *this;
-    }
-
-    /**
-     * Reads specified by @a v.first number of bytes into @a v.second.
+     * Reads byte sequence into string view. Lifetime of the string view must be less or equals to
+     * the stream's lifetime
      *
      * @throws error {std::errc::result_out_of_range} if not enough data to
      *         deserialize value.
      */
-    binary_istream & operator >> (std::pair<sequence_size_type, std::reference_wrapper<string_view>> && v)
+    friend void unpack (binary_istream & in, string_view & v)
     {
-        sequence_size_type sz = v.first;
+        size_type sz = 0;
 
-        if (_p + sz <= _end) {
-            v.second.get() = string_view(_p, sz);
-            _p += sz;
-        } else {
-            throw error { std::make_error_code(std::errc::result_out_of_range) };
+        if (in._expected_size)
+            sz = *in._expected_size;
+        else
+            unpack(in, sz);
+
+        if (sz > 0) {
+            if (in._p + sz <= in._end) {
+                v = string_view(in._p, sz);
+                in._p += sz;
+            } else {
+                throw error { std::make_error_code(std::errc::result_out_of_range) };
+            }
         }
 
-        return *this;
+        in._expected_size = nullopt;
     }
 
     /**
      * @throws error {std::errc::result_out_of_range} if not enough data to
      *         deserialize value.
      */
-    binary_istream & operator >> (std::string & v)
+    friend void unpack (binary_istream & in, std::string & v)
     {
         string_view sw;
-        this->operator >> (sw);
+        unpack(in, sw);
         v = std::string(sw.data(), sw.size());
-        return *this;
     }
 
-    binary_istream & operator >> (std::pair<sequence_size_type, std::reference_wrapper<std::string>> && v)
+    template <typename Char>
+    static void unpack_helper (binary_istream & in, std::vector<Char> & v)
     {
-        string_view sw;
-        this->operator >> (std::make_pair(v.first, std::ref(sw)));
-        v.second.get() = std::string(sw.data(), sw.size());
-        return *this;
-    }
+        size_type sz = 0;
 
-    binary_istream & operator >> (std::vector<char> & v)
-    {
-        sequence_size_type sz = 0;
-        this->operator >> (sz);
+        if (in._expected_size)
+            sz = *in._expected_size;
+        else
+            unpack(in, sz);
 
-        if (_p + sz <= _end) {
-            v.resize(sz);
-            std::memcpy(v.data(), _p, sz);
-            _p += sz;
-        } else {
-            throw error { std::make_error_code(std::errc::result_out_of_range) };
+        if (sz > 0) {
+            if (in._p + sz <= in._end) {
+                v.resize(sz);
+                std::memcpy(reinterpret_cast<Char *>(v.data()), in._p, sz);
+                in._p += sz;
+            } else {
+                throw error { std::make_error_code(std::errc::result_out_of_range) };
+            }
         }
 
-        return *this;
+        in._expected_size = nullopt;
     }
 
-    binary_istream & operator >> (std::pair<sequence_size_type, std::reference_wrapper<std::vector<char>>> && v)
+    friend void unpack (binary_istream & in, std::vector<char> & v)
     {
-        sequence_size_type sz = v.first;
+        binary_istream<Endianess>::unpack_helper(in, v);
+    }
 
-        if (_p + sz <= _end) {
-            auto & vect = v.second.get();
-            vect.resize(sz);
-            std::memcpy(vect.data(), _p, sz);
-            _p += sz;
-        } else {
-            throw error { std::make_error_code(std::errc::result_out_of_range) };
+    friend void unpack (binary_istream & in, std::vector<std::uint8_t> & v)
+    {
+        binary_istream<Endianess>::unpack_helper(in, v);
+    }
+
+    /**
+     * @throws error {std::errc::not_enough_memory} if array is smaller than expected size.
+     * @throws error {std::errc::result_out_of_range} if not enough data to deserialize value.
+     */
+    template <std::size_t N>
+    friend void unpack (binary_istream & in, std::array<char, N> & v)
+    {
+        size_type sz = 0;
+
+        if (in._expected_size)
+            sz = *in._expected_size;
+        else
+            unpack(in, sz);
+
+        if (sz > N)
+            throw error { std::make_error_code(std::errc::not_enough_memory) };
+
+        if (sz > 0) {
+            if (in._p + sz <= in._end) {
+                std::copy(in._p, in._p + sz, v.data());
+                in._p += sz;
+            } else {
+                throw error { std::make_error_code(std::errc::result_out_of_range) };
+            }
         }
 
-        return *this;
+        in._expected_size = nullopt;
+    }
+
+    friend void unpack (binary_istream & in, std::pair<char *, size_type> raw)
+    {
+        size_type sz = 0;
+
+        if (in._expected_size)
+            sz = *in._expected_size;
+        else
+            unpack(in, sz);
+
+        if (sz > raw.second)
+            throw error { std::make_error_code(std::errc::not_enough_memory) };
+
+        if (sz > 0) {
+            if (in._p + sz <= in._end) {
+                std::copy(in._p, in._p + sz, raw.first);
+                in._p += sz;
+            } else {
+                throw error { std::make_error_code(std::errc::result_out_of_range) };
+            }
+
+            in._expected_size = nullopt;
+        }
     }
 };
 
