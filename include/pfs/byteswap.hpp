@@ -38,6 +38,13 @@ char byteswap<char> (char x) noexcept
 
 template <>
 inline PFS_BYTESWAP_CONSTEXPR
+bool byteswap<bool> (bool x) noexcept
+{
+    return x;
+}
+
+template <>
+inline PFS_BYTESWAP_CONSTEXPR
 std::uint8_t byteswap<std::uint8_t> (std::uint8_t x) noexcept
 {
     return x;

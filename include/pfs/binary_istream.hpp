@@ -54,6 +54,11 @@ public:
         return _p;
     }
 
+    bool empty () const noexcept
+    {
+        return _p == _end;
+    }
+
    /**
      * Peeks character from underlying istream instance.
      *
