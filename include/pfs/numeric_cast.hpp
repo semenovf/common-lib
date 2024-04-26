@@ -27,6 +27,8 @@ template <typename T, typename S
 
 template <typename T, typename S
     , typename std::enable_if<std::is_integral<S>::value
+        && !std::is_same<typename std::decay<T>::type, bool>::value
+        && !std::is_same<typename std::decay<S>::type, bool>::value
         && !std::is_same<T, S>::value
         && std::is_signed<T>::value
         && std::is_signed<S>::value, int>::type = 0>
@@ -47,6 +49,8 @@ template <typename T, typename S
 
 template <typename T, typename S
     , typename std::enable_if<std::is_integral<S>::value
+        && !std::is_same<typename std::decay<T>::type, bool>::value
+        && !std::is_same<typename std::decay<S>::type, bool>::value
         && !std::is_same<T, S>::value
         && std::is_unsigned<T>::value
         && std::is_unsigned<S>::value, int>::type = 0>
@@ -64,6 +68,8 @@ template <typename T, typename S
 
 template <typename T, typename S
     , typename std::enable_if<std::is_integral<S>::value
+        && !std::is_same<typename std::decay<T>::type, bool>::value
+        && !std::is_same<typename std::decay<S>::type, bool>::value
         && !std::is_same<T, S>::value
         && std::is_unsigned<T>::value
         && std::is_signed<S>::value, int>::type = 0>
@@ -87,6 +93,8 @@ template <typename T, typename S
 
 template <typename T, typename S
     , typename std::enable_if<std::is_integral<S>::value
+        && !std::is_same<typename std::decay<T>::type, bool>::value
+        && !std::is_same<typename std::decay<S>::type, bool>::value
         && !std::is_same<T, S>::value
         && std::is_signed<T>::value
         && std::is_unsigned<S>::value, int>::type = 0>

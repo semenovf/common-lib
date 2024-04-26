@@ -52,12 +52,13 @@ struct default_equality_comparator
 // Iterative with full matrix.
 
 template <typename ForwardIter
-    , typename EqualityComparator = default_equality_comparator<pointer_dereference_t<ForwardIter>>
-    , typename SizeType = std::size_t>
-SizeType levenshtein_distance_wf (ForwardIter xbegin, ForwardIter xend
+    , typename EqualityComparator = default_equality_comparator<pointer_dereference_t<ForwardIter>>>
+typename std::iterator_traits<ForwardIter>::difference_type 
+levenshtein_distance_wf (ForwardIter xbegin, ForwardIter xend
     , ForwardIter ybegin, ForwardIter yend)
 {
-    using matrix_type = std::vector<std::vector<SizeType>>;
+    using difference_type = typename std::iterator_traits<ForwardIter>::difference_type;
+    using matrix_type = std::vector<std::vector<difference_type>>;
 
     auto xlen = std::distance(xbegin, xend);
     auto ylen = std::distance(ybegin, yend);
@@ -73,24 +74,24 @@ SizeType levenshtein_distance_wf (ForwardIter xbegin, ForwardIter xend
 
     matrix_type d (xlen + 1);
 
-    for (SizeType i = 0; i <= xlen; i++)
+    for (difference_type i = 0; i <= xlen; i++)
         d[i].resize(ylen + 1);
 
-    for (SizeType i = 0; i <= xlen; i++)
+    for (difference_type i = 0; i <= xlen; i++)
         d[i][0] = i;
 
     // NOTE Can be replace with std::iota call
     // std::iota(d[0].begin(), d.[0].end(), 0);
-    for (SizeType j = 0; j <= ylen; j++)
+    for (difference_type j = 0; j <= ylen; j++)
         d[0][j] = j;
 
     auto xcursor = xbegin;
     EqualityComparator eq;
 
-    for (SizeType i = 1; i <= xlen; i++) {
+    for (difference_type i = 1; i <= xlen; i++) {
         auto ycursor = ybegin;
 
-        for (SizeType j = 1; j <= ylen; j++) {
+        for (difference_type j = 1; j <= ylen; j++) {
             //int subst_cost = (x[i - 1] == y[j - 1]) ? 0 : 1;
             int subst_cost = eq(*xcursor, *ycursor) ? 0 : 1;
 
@@ -107,11 +108,13 @@ SizeType levenshtein_distance_wf (ForwardIter xbegin, ForwardIter xend
 }
 
 template <typename ForwardIter
-    , typename EqualityComparator = default_equality_comparator<pointer_dereference_t<ForwardIter>>
-    , typename SizeType = std::size_t>
-SizeType levenshtein_distance_fast (ForwardIter xbegin, ForwardIter xend
+    , typename EqualityComparator = default_equality_comparator<pointer_dereference_t<ForwardIter>>>
+typename std::iterator_traits<ForwardIter>::difference_type 
+levenshtein_distance_fast (ForwardIter xbegin, ForwardIter xend
     , ForwardIter ybegin, ForwardIter yend)
 {
+    using difference_type = typename std::iterator_traits<ForwardIter>::difference_type;
+
     if (xbegin == ybegin && xend == yend)
         return 0;
 
@@ -132,17 +135,17 @@ SizeType levenshtein_distance_fast (ForwardIter xbegin, ForwardIter xend
     // Inspired by implementation [4]
     //--------------------------------------------------------------------------
 #if 0
-    std::vector<SizeType> cache(ylen + 1);
-    SizeType result = 0;
+    std::vector<difference_type> cache(ylen + 1);
+    difference_type result = 0;
 
-    for (SizeType i = 0; i <= ylen; ++i)
+    for (difference_type i = 0; i <= ylen; ++i)
         cache[i] = i;
 
-    for (SizeType i = 0; i < xlen; ++i) {
+    for (difference_type i = 0; i < xlen; ++i) {
         result = i + 1;
         ypos = ybegin;
 
-        for (SizeType j = 0; j < ylen; ++j) {
+        for (difference_type j = 0; j < ylen; ++j) {
             result = cache[j] + (eq(*xpos, *ypos) ? 0 : 1);
 
             auto n = result + 1;
@@ -171,18 +174,18 @@ SizeType levenshtein_distance_fast (ForwardIter xbegin, ForwardIter xend
     // Inspired by implementation [3]
     //--------------------------------------------------------------------------
 #if 1
-    std::vector<SizeType> cache(xlen);
-    SizeType result = 0;
+    std::vector<difference_type> cache(xlen);
+    difference_type result = 0;
 
-    for (SizeType i = 0; i < xlen; ++i)
+    for (difference_type i = 0; i < xlen; ++i)
         cache[i] = i + 1;
 
-    for (SizeType j = 0; j < ylen; ++j) {
+    for (difference_type j = 0; j < ylen; ++j) {
         auto m = j;
         result = m;
         xpos = xbegin;
 
-        for (SizeType i = 0; i < xlen; ++i) {
+        for (difference_type i = 0; i < xlen; ++i) {
             auto n = eq(*ypos, *xpos) ? m : m + 1;
             m = cache[i];
 
@@ -204,17 +207,17 @@ SizeType levenshtein_distance_fast (ForwardIter xbegin, ForwardIter xend
 // Inspired by implementation [2]
 //--------------------------------------------------------------------------
 #if 0
-    std::vector<SizeType> v0(ylen + 1);
-    std::vector<SizeType> v1(ylen + 1);
+    std::vector<difference_type> v0(ylen + 1);
+    std::vector<difference_type> v1(ylen + 1);
 
-    for (SizeType i = 0; i <= ylen; i++)
+    for (difference_type i = 0; i <= ylen; i++)
         v0[i] = i;
 
-    for (SizeType i = 0; i < xlen; i++) {
+    for (difference_type i = 0; i < xlen; i++) {
         v1[0] = i + 1;
         ypos = ybegin;
 
-        for (SizeType j = 0; j < ylen; j++) {
+        for (difference_type j = 0; j < ylen; j++) {
             auto deletionCost = v0[j + 1] + 1;
             auto insertionCost = v1[j] + 1;
             auto substitutionCost = eq(*xpos, *ypos) ? v0[j] : v0[j] + 1;
@@ -286,11 +289,13 @@ SizeType levenshtein_distance_fast (ForwardIter xbegin, ForwardIter xend
 //      3. equality сomparator is not used.
 //
 template <typename ForwardIter
-    , typename EqualityComparator = default_equality_comparator<pointer_dereference_t<ForwardIter>>
-    , typename SizeType = std::size_t>
-SizeType levenshtein_distance_myers1999 (ForwardIter xbegin, ForwardIter xend
+    , typename EqualityComparator = default_equality_comparator<pointer_dereference_t<ForwardIter>>>
+typename std::iterator_traits<ForwardIter>::difference_type
+levenshtein_distance_myers1999 (ForwardIter xbegin, ForwardIter xend
     , ForwardIter ybegin, ForwardIter yend)
 {
+    using difference_type = typename std::iterator_traits<ForwardIter>::difference_type;
+
     if (xbegin == ybegin && xend == yend)
         return 0;
 
@@ -380,11 +385,13 @@ SizeType levenshtein_distance_myers1999 (ForwardIter xbegin, ForwardIter xend
 //      1. only equal sized (or empty) sequences are applicable.
 //
 template <typename ForwardIter
-    , typename EqualityComparator = default_equality_comparator<pointer_dereference_t<ForwardIter>>
-    , typename SizeType = std::size_t>
-SizeType levenshtein_distance_hamming (ForwardIter xbegin, ForwardIter xend
+    , typename EqualityComparator = default_equality_comparator<pointer_dereference_t<ForwardIter>>>
+typename std::iterator_traits<ForwardIter>::difference_type
+levenshtein_distance_hamming (ForwardIter xbegin, ForwardIter xend
     , ForwardIter ybegin, ForwardIter yend)
 {
+    using difference_type = typename std::iterator_traits<ForwardIter>::difference_type;
+
     if (xbegin == ybegin && xend == yend)
         return 0;
 
@@ -407,7 +414,7 @@ SizeType levenshtein_distance_hamming (ForwardIter xbegin, ForwardIter xend
     EqualityComparator eq;
     auto xpos = xbegin;
     auto ypos = ybegin;
-    SizeType counter = 0;
+    difference_type counter = 0;
 
     for (; xpos != xend; ++xpos, ++ypos) {
         if (!eq(*xpos, *ypos))
@@ -418,21 +425,23 @@ SizeType levenshtein_distance_hamming (ForwardIter xbegin, ForwardIter xend
 }
 
 template <typename ForwardIter
-    , typename EqualityComparator = default_equality_comparator<pointer_dereference_t<ForwardIter>>
-    , typename SizeType = std::size_t>
-SizeType levenshtein_distance (ForwardIter xbegin, ForwardIter xend
+    , typename EqualityComparator = default_equality_comparator<pointer_dereference_t<ForwardIter>>>
+typename std::iterator_traits<ForwardIter>::difference_type
+levenshtein_distance (ForwardIter xbegin, ForwardIter xend
     , ForwardIter ybegin, ForwardIter yend
     , levenshtein_distance_algo algo = levenshtein_distance_algo::fast)
 {
+    using difference_type = typename std::iterator_traits<ForwardIter>::difference_type;
+
     switch (algo) {
         case levenshtein_distance_algo::wagner_fischer:
-            return levenshtein_distance_wf<ForwardIter, EqualityComparator, SizeType>(
+            return levenshtein_distance_wf<ForwardIter, EqualityComparator>(
                 xbegin, xend, ybegin, yend);
         case levenshtein_distance_algo::myers1999:
-            return levenshtein_distance_myers1999<ForwardIter, EqualityComparator, SizeType>(
+            return levenshtein_distance_myers1999<ForwardIter, EqualityComparator>(
                 xbegin, xend, ybegin, yend);
         case levenshtein_distance_algo::hamming:
-            return levenshtein_distance_hamming<ForwardIter, EqualityComparator, SizeType>(
+            return levenshtein_distance_hamming<ForwardIter, EqualityComparator>(
                 xbegin, xend, ybegin, yend);
 
         case levenshtein_distance_algo::fast:
@@ -440,14 +449,14 @@ SizeType levenshtein_distance (ForwardIter xbegin, ForwardIter xend
             break;
     }
 
-    return levenshtein_distance_fast<ForwardIter, EqualityComparator, SizeType>(
+    return levenshtein_distance_fast<ForwardIter, EqualityComparator>(
         xbegin, xend, ybegin, yend);
 }
 
 template <typename ForwardIter = char const *
-    , typename EqualityComparator = default_equality_comparator<pointer_dereference_t<char const *>>
-    , typename SizeType = std::size_t>
-inline SizeType levenshtein_distance (char const * a, char const * b
+    , typename EqualityComparator = default_equality_comparator<pointer_dereference_t<char const *>>>
+inline typename std::iterator_traits<ForwardIter>::difference_type
+levenshtein_distance (char const * a, char const * b
     , levenshtein_distance_algo algo = levenshtein_distance_algo::fast)
 {
     if (!a)
@@ -456,15 +465,15 @@ inline SizeType levenshtein_distance (char const * a, char const * b
     if (!b)
         throw error {std::make_error_code(std::errc::invalid_argument)};
 
-    return levenshtein_distance<ForwardIter, EqualityComparator, SizeType>(
+    return levenshtein_distance<ForwardIter, EqualityComparator>(
         ForwardIter{a}, ForwardIter{a + std::strlen(a)}, ForwardIter{b}
             , ForwardIter{b + std::strlen(b)}, algo);
 }
 
 template <typename ForwardIter = std::string::const_iterator
-    , typename EqualityComparator = default_equality_comparator<pointer_dereference_t<std::string::const_iterator>>
-    , typename SizeType = std::size_t>
-inline SizeType levenshtein_distance (std::string const & a, std::string const & b
+    , typename EqualityComparator = default_equality_comparator<pointer_dereference_t<std::string::const_iterator>>>
+inline typename std::iterator_traits<ForwardIter>::difference_type
+levenshtein_distance (std::string const & a, std::string const & b
     , levenshtein_distance_algo algo = levenshtein_distance_algo::fast)
 {
     return levenshtein_distance(ForwardIter{a.cbegin()}, ForwardIter{a.cend()}
@@ -472,9 +481,9 @@ inline SizeType levenshtein_distance (std::string const & a, std::string const &
 }
 
 template <typename ForwardIter = string_view::const_iterator
-    , typename EqualityComparator = default_equality_comparator<pointer_dereference_t<string_view::const_iterator>>
-    , typename SizeType = std::size_t>
-inline SizeType levenshtein_distance (string_view const & a, string_view const & b
+    , typename EqualityComparator = default_equality_comparator<pointer_dereference_t<string_view::const_iterator>>>
+inline typename std::iterator_traits<ForwardIter>::difference_type
+levenshtein_distance (string_view const & a, string_view const & b
         , levenshtein_distance_algo algo = levenshtein_distance_algo::fast)
 {
     return levenshtein_distance(ForwardIter{a.cbegin()}, ForwardIter{a.cend()}
@@ -483,19 +492,18 @@ inline SizeType levenshtein_distance (string_view const & a, string_view const &
 
 template <typename ForwardIter
     , typename EqualityComparator
-    , typename SizeType
     , levenshtein_distance_algo Algo = levenshtein_distance_algo::fast>
 struct levenshtein_distance_env;
 
 template <typename ForwardIter
-    , typename EqualityComparator
-    , typename SizeType>
-struct levenshtein_distance_env<ForwardIter, EqualityComparator, SizeType, levenshtein_distance_algo::fast>
+    , typename EqualityComparator>
+struct levenshtein_distance_env<ForwardIter, EqualityComparator, levenshtein_distance_algo::fast>
 {
-    inline SizeType operator () (ForwardIter xbegin, ForwardIter xend
+    inline typename std::iterator_traits<ForwardIter>::difference_type 
+    operator () (ForwardIter xbegin, ForwardIter xend
         , ForwardIter ybegin, ForwardIter yend) const
     {
-        return levenshtein_distance_fast<ForwardIter, EqualityComparator, SizeType>(
+        return levenshtein_distance_fast<ForwardIter, EqualityComparator>(
             xbegin, xend, ybegin, yend);
     }
 };

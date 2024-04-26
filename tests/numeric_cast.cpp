@@ -177,19 +177,21 @@ TEST_CASE("signed to unsigned integral types") {
     CHECK_THROWS_AS(pfs::numeric_cast<std::uint64_t>(std::numeric_limits<std::int64_t>::min()), std::underflow_error);
 }
 
-TEST_CASE("boolean to signed integral types") {
-    CHECK_EQ(pfs::numeric_cast<std::int8_t>(true), static_cast<std::int8_t>(true));
-    CHECK_EQ(pfs::numeric_cast<std::int8_t>(false), static_cast<std::int8_t>(false));
-    CHECK_EQ(pfs::numeric_cast<std::int32_t>(true), static_cast<std::int32_t>(true));
-    CHECK_EQ(pfs::numeric_cast<std::int32_t>(false), static_cast<std::int32_t>(false));
-}
+// Not applicable
+//TEST_CASE("boolean to signed integral types") {
+//    CHECK_EQ(pfs::numeric_cast<std::int8_t>(true), static_cast<std::int8_t>(true));
+//    CHECK_EQ(pfs::numeric_cast<std::int8_t>(false), static_cast<std::int8_t>(false));
+//    CHECK_EQ(pfs::numeric_cast<std::int32_t>(true), static_cast<std::int32_t>(true));
+//    CHECK_EQ(pfs::numeric_cast<std::int32_t>(false), static_cast<std::int32_t>(false));
+//}
 
-TEST_CASE("boolean to unsigned integral types") {
-    CHECK_EQ(pfs::numeric_cast<std::uint8_t>(true), static_cast<std::uint8_t>(true));
-    CHECK_EQ(pfs::numeric_cast<std::uint8_t>(false), static_cast<std::uint8_t>(false));
-    CHECK_EQ(pfs::numeric_cast<std::uint32_t>(true), static_cast<std::uint32_t>(true));
-    CHECK_EQ(pfs::numeric_cast<std::uint32_t>(false), static_cast<std::uint32_t>(false));
-}
+// Not applicable
+//TEST_CASE("boolean to unsigned integral types") {
+//    CHECK_EQ(pfs::numeric_cast<std::uint8_t>(true), static_cast<std::uint8_t>(true));
+//    CHECK_EQ(pfs::numeric_cast<std::uint8_t>(false), static_cast<std::uint8_t>(false));
+//    CHECK_EQ(pfs::numeric_cast<std::uint32_t>(true), static_cast<std::uint32_t>(true));
+//    CHECK_EQ(pfs::numeric_cast<std::uint32_t>(false), static_cast<std::uint32_t>(false));
+//}
 
 TEST_CASE("char to signed integral types") {
     CHECK_EQ(pfs::numeric_cast<std::int8_t>('*'), 42);

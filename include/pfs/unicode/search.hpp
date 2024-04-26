@@ -10,6 +10,7 @@
 #include "char.hpp"
 #include "traits.hpp"
 #include <algorithm>
+#include <cstdint>
 #include <functional>
 
 namespace pfs {
@@ -76,10 +77,10 @@ inline HaystackIt search (HaystackIt first, HaystackIt last
 
 struct match_item
 {
-    int cp_first; // first position in code points of the matched subrange
-    int cp_last;  // last position in code points of the matched subrange (exclusive)
-    int cu_first; // first position in code units of the matched subrange
-    int cu_last;  // last position in code units of the matched subrange (exclusive)
+    std::intmax_t cp_first; // first position in code points of the matched subrange
+    std::intmax_t cp_last;  // last position in code points of the matched subrange (exclusive)
+    std::intmax_t cu_first; // first position in code units of the matched subrange
+    std::intmax_t cu_last;  // last position in code units of the matched subrange (exclusive)
 };
 
 /**

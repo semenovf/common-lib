@@ -203,8 +203,9 @@ parse_integer (CharIt first, CharIt last, IntT & value, int radix = 10)
         if (digit < 0)
             break;
 
-        if (result_value < cutoff_value
-                || (result_value == cutoff_value && static_cast<std::uintmax_t>(digit) <= cutoff_limit)) {
+        if (result_value < cutoff_value 
+            || (result_value == cutoff_value 
+                && static_cast<IntT>(digit) <= cutoff_limit)) {
             result_value *= radix;
             result_value += digit;
         } else {
