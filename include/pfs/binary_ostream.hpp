@@ -9,6 +9,7 @@
 #pragma once
 #include "error.hpp"
 #include "endian.hpp"
+#include "numeric_cast.hpp"
 #include "string_view.hpp"
 #include <cmath>
 #include <cstdint>
@@ -194,10 +195,10 @@ private:
 
             out._pbuf->resize(out._pbuf->size() + sw.size());
             std::memcpy(out._pbuf->data() + out._off, sw.data(), sw.size());
-            out._off += sw.size();
+            out._off += numeric_cast<size_type>(sw.size());
         } else {
             if (!out._exclude_size)
-                pack(out, static_cast<size_type>(sw.size()));
+                pack(out, numeric_cast<size_type>(sw.size()));
         }
 
         out._exclude_size = false;

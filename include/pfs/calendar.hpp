@@ -72,7 +72,7 @@ inline bool is_leap_year (int year)
 /**
  * @return The number of days in the month (28 to 31) for specified @a month.
  */
-inline constexpr int days_in_month (int month)
+inline int days_in_month (int month)
 {
     return std::array<int, 13> { 0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 }[month];
 }

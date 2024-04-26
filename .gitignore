@@ -21,3 +21,7 @@
 ### KDevelop ###
 *.kdev4
 .kdev4/
+
+### Visual Studio ###
+.vs
+CMakeSettings.json
