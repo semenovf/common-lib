@@ -11,8 +11,12 @@ git@github.com:semenovf/scripts.git -b master scripts"
 HTTPS_SOURCES="https://github.com/semenovf/portable-target.git --depth=1 -b master portable-target
 https://github.com/semenovf/scripts.git --depth=1 -b master scripts"
 
-DEFAULT_SOURCES=${SSH_SOURCES}
-#DEFAULT_SOURCES=${HTTPS_SOURCES}
+if [ "$1" = "https" ] ; then
+    DEFAULT_SOURCES=${HTTPS_SOURCES}
+else 
+    DEFAULT_SOURCES=${SSH_SOURCES}
+fi
+
 DEFAULT_DOWNLOADER=${GIT_DOWNLOADER}
 
 IFS=$'\n'

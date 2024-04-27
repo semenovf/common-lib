@@ -34,7 +34,7 @@ void serialize ()
     os << a0 << b0 << c0 << d0 << e0 << f0 << g0 << h0 << i0 << j0 << k0 << l0
         << a0;
 
-    pfs::binary_istream<Endian> is {& *buffer.begin(), & *buffer.end()};
+    pfs::binary_istream<Endian> is {buffer.data(), buffer.size()};
 
     char a1, a2, a3;
     std::int8_t b1;
