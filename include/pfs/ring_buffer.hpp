@@ -438,15 +438,16 @@ public:
 
         while (_head != _tail) {
             reinterpret_cast<pointer>(& *_head)->~value_type();
+
             ++_head;
 
             if (_head == end())
                 _head = begin();
         }
         
-		// NOTE: Exception on Windows
-		// NOTE: Success on Linux
-		// Destroy last element
+        // NOTE: Exception on Windows
+        // NOTE: Success on Linux
+        // Destroy last element
         //reinterpret_cast<pointer>(& *_head)->~value_type();
 
         _head = begin();
