@@ -208,6 +208,10 @@ private:
     template <typename Char>
     static void unpack_helper (binary_istream & in, std::vector<Char> & v)
     {
+        // No data left
+        if (in._p == in._end)
+            return;
+
         size_type sz = 0;
 
         if (in._expected_size)
