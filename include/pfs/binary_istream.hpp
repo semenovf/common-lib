@@ -9,6 +9,7 @@
 #pragma once
 #include "error.hpp"
 #include "endian.hpp"
+#include "numeric_cast.hpp"
 #include "optional.hpp"
 #include "string_view.hpp"
 #include <cstdint>
@@ -19,14 +20,14 @@
 
 namespace pfs {
 
-struct expected_size
-{
-    std::uint32_t sz;
-};
+#ifndef PFS__EXPECTED_SIZE_DEFINED
+#   define PFS__EXPECTED_SIZE_DEFINED 1
+    struct expected_size
+    {
+        std::uint32_t sz;
+    };
+#endif
 
-/**
- * @param SizeType
- */
 template <endian Endianess = endian::native>
 class binary_istream
 {
@@ -34,20 +35,29 @@ public:
     using size_type = std::uint32_t;
 
 private:
-    char const * _p;
-    char const * _end;
+    char const * _p {nullptr};
+    char const * _end {nullptr};
     optional<size_type> _expected_size;
 
 public:
     binary_istream (char const * begin, char const * end)
         : _p(begin)
         , _end(end)
-    {}
+    {
+        if (_p == nullptr || _end == nullptr)
+            throw error {make_error_code(std::errc::invalid_argument)};
+
+        if (_p > _end)
+            throw error {make_error_code(std::errc::invalid_argument)};
+    }
 
     binary_istream (char const * begin, std::size_t size)
         : _p(begin)
-        , _end(begin + size)
-    {}
+        , _end(begin + numeric_cast<size_type>(size))
+    {
+        if (_p == nullptr)
+            throw error {make_error_code(std::errc::invalid_argument)};
+    }
 
     char const * begin () const noexcept
     {
@@ -59,10 +69,22 @@ public:
         return _p == _end;
     }
 
+    operator bool () const noexcept
+    {
+        return !empty();
+    }
+
+    size_type available () const noexcept
+    {
+        return numeric_cast<size_type>(_end - _p);
+    }
+
    /**
      * Peeks character from underlying istream instance.
      *
-     * @return character peek from stream or @c nullopt on failure.
+     * @return Character peek from stream or @c nullopt on failure.
+     *
+     * @deprecated Will be removed in future versions.
      */
     optional<char> peek () const noexcept
     {

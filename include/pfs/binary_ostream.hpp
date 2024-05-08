@@ -21,16 +21,18 @@
 namespace pfs {
 
 struct exclude_size {};
+struct reserve_space { std::size_t sz; };
 
 template <endian Endianess = endian::native>
 class binary_ostream
 {
 public:
+    using archive_type = std::vector<char>;
     using size_type = std::uint32_t;
     using offset_type = size_type;
 
 private:
-    std::vector<char> * _pbuf {nullptr};
+    archive_type * _pbuf {nullptr};
     offset_type _off {0};
     bool _has_ownership {false};
     bool _exclude_size {false};
@@ -39,14 +41,14 @@ public:
     binary_ostream (size_type reserve_bytes = 0)
         : _has_ownership(true)
     {
-        _pbuf = new std::vector<char>;
+        _pbuf = new archive_type;
 
         if (reserve_bytes > 0) {
             _pbuf->reserve(reserve_bytes);
         }
     }
 
-    binary_ostream (std::vector<char> & buf, offset_type offset = 0)
+    binary_ostream (archive_type & buf, offset_type offset = 0)
         : _pbuf(& buf)
         , _off(offset)
         , _has_ownership(false)
@@ -78,7 +80,7 @@ public:
         return _pbuf->size();
     }
 
-    std::vector<char> take ()
+    archive_type take ()
     {
         // Only owned vector can be moved
         if (!_has_ownership)
@@ -99,6 +101,12 @@ public:
     {
         _exclude_size = true;
         return *this;
+    }
+
+    binary_ostream & operator << (reserve_space const & rs)
+    {
+        if (rs.sz > 0)
+            _pbuf->reserve(_pbuf->size() + rs.sz);
     }
 
 private:
