@@ -10,6 +10,7 @@
 #include "time_point.hpp"
 #include "endian.hpp"
 #include "binary_istream.hpp"
+#include "binary_istream_nt.hpp"
 #include "binary_ostream.hpp"
 
 namespace pfs {
@@ -25,6 +26,14 @@ void pack (binary_ostream<Endianess> & out, utc_time const & t)
 
 template <endian Endianess>
 void unpack (binary_istream<Endianess> & in, utc_time & t)
+{
+    std::int64_t ticks;
+    in >> ticks;
+    t = utc_time{std::chrono::milliseconds{static_cast<std::chrono::milliseconds::rep>(ticks)}};
+}
+
+template <endian Endianess>
+void unpack (binary_istream_nt<Endianess> & in, utc_time & t)
 {
     std::int64_t ticks;
     in >> ticks;

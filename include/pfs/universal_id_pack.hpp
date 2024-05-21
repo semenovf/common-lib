@@ -10,6 +10,7 @@
 #include "universal_id.hpp"
 #include "endian.hpp"
 #include "binary_istream.hpp"
+#include "binary_istream_nt.hpp"
 #include "binary_ostream.hpp"
 
 namespace pfs {
@@ -23,6 +24,14 @@ void pack (binary_ostream<Endianess> & out, universal_id const & uuid)
 
 template <endian Endianess>
 void unpack (binary_istream<Endianess> & in, universal_id & uuid)
+{
+    std::array<char, 16> a;
+    in >> expected_size{16} >> a;
+    uuid = pfs::make_uuid2<char>(a, Endianess);
+}
+
+template <endian Endianess>
+void unpack (binary_istream_nt<Endianess> & in, universal_id & uuid)
 {
     std::array<char, 16> a;
     in >> expected_size{16} >> a;
