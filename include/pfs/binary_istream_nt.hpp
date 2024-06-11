@@ -234,7 +234,7 @@ private:
                         std::memcpy(reinterpret_cast<Char *>(v.data()), in._p, sz);
                         in._p += sz;
                     } else {
-                        in._state == status_enum::out_of_bound;
+                        in._state = status_enum::out_of_bound;
                     }
                 }
             }
@@ -276,7 +276,7 @@ private:
                         std::copy(in._p, in._p + sz, v.data());
                         in._p += sz;
                     } else {
-                        in._state == status_enum::out_of_bound;
+                        in._state = status_enum::out_of_bound;
                     }
                 }
             }
@@ -304,7 +304,7 @@ private:
                         std::copy(in._p, in._p + sz, raw.first);
                         in._p += sz;
                     } else {
-                        in._state == status_enum::out_of_bound;
+                        in._state = status_enum::out_of_bound;
                     }
                 }
             }
