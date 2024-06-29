@@ -70,18 +70,6 @@ public:
         return --_detectors.end();
     }
 
-    template <template <typename> class QueueContainer, size_t capacity_increment
-        , typename F
-        , typename = typename std::enable_if<std::is_same<void (*) (Args...), F>::value, F>::type>
-    iterator connect (function_queue<QueueContainer, capacity_increment> & q, F f)
-    {
-        _detectors.emplace_back([& q, f] (Args... args) {
-            q.push(std::move(f), args...);
-        });
-
-        return --_detectors.end();
-    }
-
     template <template <typename> class QueueContainer, size_t capacity_increment>
     iterator connect (function_queue<QueueContainer, capacity_increment> & q
         , std::function<void(Args...)> && f)
@@ -225,21 +213,12 @@ public:
         return base_class::template connect<Class>(c, f);
     }
 
-    template <template <typename> class QueueContainer, size_t capacity_increment
-        , typename F
-        , typename = typename std::enable_if<std::is_same<void (*) (Args...), F>::value, F>::type>
-    iterator connect (function_queue<QueueContainer, capacity_increment> & q, F f)
-    {
-        std::unique_lock<mutex_type> locker{_mtx};
-        return base_class::template connect<QueueContainer, capacity_increment>(q, f);
-    }
-
     template <template <typename> class QueueContainer, size_t capacity_increment>
     iterator connect (function_queue<QueueContainer, capacity_increment> & q
         , std::function<void(Args...)> f)
     {
         std::unique_lock<mutex_type> locker{_mtx};
-        return base_class::template connect<QueueContainer, capacity_increment>(q, f);
+        return base_class::template connect<QueueContainer, capacity_increment>(q, std::move(f));
     }
 
     template <template <typename> class QueueContainer, size_t capacity_increment, typename Class>

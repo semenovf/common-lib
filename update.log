@@ -1,0 +1,8 @@
+From github.com:semenovf/common-lib
+ * branch            master     -> FETCH_HEAD
+   527b412..1223a56  master     -> origin/master
+Updating 527b412..1223a56
+Fast-forward
+ include/pfs/emitter.hpp | 30 +++++++++++++++++++++++++-----
+ tests/emitter.cpp       | 31 +++++++++++++++++++++++++++++++
+ 2 files changed, 56 insertions(+), 5 deletions(-)
