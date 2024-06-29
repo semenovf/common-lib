@@ -242,6 +242,37 @@ TEST_CASE("Call emitter from detector") {
     }
 }
 
+namespace t3 {
+
+class A
+{
+    int _counter = 0;
+
+public:
+    pfs::emitter<int> increment;
+
+public:
+    A ()
+    {
+        increment.connect([this] (int inc) {
+            _counter += inc;
+        });
+    }
+
+    int counter () const noexcept
+    {
+        return _counter;
+    }
+};
+
+} //namespace t3
+
+TEST_CASE("Call emitter as class member") {
+    t3::A a;
+    a.increment(5);
+    CHECK_EQ(a.counter(), 5);
+}
+
 template <template <typename ...> class EmitterType>
 void check_copy_move_constructors_assignments ()
 {
