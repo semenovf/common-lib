@@ -1,6 +1,6 @@
 #!/bin/bash
 
-LOG_FILE='update.log'
+LOG_FILE="${PWD}/update.log"
 GIT_UPDATER="git pull"
 CWD=`pwd`
 
