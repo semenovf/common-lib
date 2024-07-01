@@ -121,6 +121,11 @@ public:
         return _detectors.size();
     }
 
+    inline operator bool () const
+    {
+        return !has_detectors();
+    }
+
     inline bool has_detectors () const
     {
         return size() > 0;
@@ -188,6 +193,12 @@ public:
         }
 
         return *this;
+    }
+
+    operator bool () const
+    {
+        std::unique_lock<mutex_type> locker{_mtx};
+        return !base_class::operator bool ();
     }
 
     template <typename F

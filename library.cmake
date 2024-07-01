@@ -10,6 +10,12 @@ option(PFS__FORCE_ULID_STRUCT "Enable ULID struct representation (UUID backend)"
 option(PFS__ENABLE_NLS "Enable Native Language Support" OFF)
 option(PFS__ENABLE_ICU "Enable `icu` library" ON)
 
+if (NOT DEFINED PFS__LOG_LEVEL)
+    if (DEFINED ENV{PFS__LOG_LEVEL})
+        set(PFS__LOG_LEVEL $ENV{PFS__LOG_LEVEL} CACHE INTERNAL "")
+    endif()
+endif()
+
 if (PFS__ENABLE_NLS)
     if (MSVC)
         set(_use_imported_gettext_lib ON)
