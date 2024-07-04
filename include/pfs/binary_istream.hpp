@@ -126,12 +126,25 @@ public:
     }
 
 private:
+    template <typename T>
+    friend typename std::enable_if<std::is_same<typename std::decay<T>::type, bool>::value, void>::type
+    unpack (binary_istream & in, T & v)
+    {
+        if (in._p + sizeof(std::int8_t) <= in._end) {
+            auto p = reinterpret_cast<std::int8_t const *>(in._p);
+            v = static_cast<bool>(*p);
+            in._p += sizeof(std::int8_t);
+        } else {
+            throw error { std::make_error_code(std::errc::result_out_of_range) };
+        }
+    }
+
     /**
      * @throws error {std::errc::result_out_of_range} if not enough data to
      *         deserialize value.
      */
     template <typename T>
-    friend typename std::enable_if<std::is_integral<T>::value, void>::type
+    friend typename std::enable_if<std::is_integral<T>::value && !std::is_same<typename std::decay<T>::type, bool>::value, void>::type
     unpack (binary_istream & in, T & v)
     {
         if (in._p + sizeof(T) <= in._end) {

@@ -111,7 +111,19 @@ public:
 
 private:
     template <typename T>
-    friend typename std::enable_if<std::is_integral<T>::value, void>::type
+    friend typename std::enable_if<std::is_same<typename std::decay<T>::type, bool>::value, void>::type
+    pack (binary_ostream & out, T v)
+    {
+        union u { std::int8_t v; char b[sizeof(std::int8_t)]; } d;
+        d.v = static_cast<std::int8_t>(v);
+
+        out._pbuf->resize(out._pbuf->size() + sizeof(std::int8_t));
+        std::memcpy(out._pbuf->data() + out._off, d.b, sizeof(std::int8_t));
+        out._off += sizeof(std::int8_t);
+    }
+
+    template <typename T>
+    friend typename std::enable_if<std::is_integral<T>::value && !std::is_same<typename std::decay<T>::type, bool>::value, void>::type
     pack (binary_ostream & out, T v)
     {
         T a = Endianess == endian::network ? to_network_order(v) : v;

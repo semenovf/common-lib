@@ -125,7 +125,22 @@ public:
 
 private:
     template <typename T>
-    friend typename std::enable_if<std::is_integral<T>::value, void>::type
+    friend typename std::enable_if<std::is_same<typename std::decay<T>::type, bool>::value, void>::type
+    unpack (binary_istream_nt & in, T & v)
+    {
+        if (in._state == status_enum::good) {
+            if (in._p + sizeof(std::int8_t) <= in._end) {
+                auto p = reinterpret_cast<std::int8_t const *>(in._p);
+                v = static_cast<bool>(*p);
+                in._p += sizeof(std::int8_t);
+            } else {
+                in._state = status_enum::out_of_bound;
+            }
+        }
+    }
+
+    template <typename T>
+    friend typename std::enable_if<std::is_integral<T>::value && !std::is_same<typename std::decay<T>::type, bool>::value, void>::type
     unpack (binary_istream_nt & in, T & v)
     {
         if (in._state == status_enum::good) {
