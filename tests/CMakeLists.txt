@@ -49,6 +49,7 @@ set(TEST_NAMES
     optional
     pointer_proxy_iterator
     rational
+    resources
     ring_buffer
     ring_buffer_mt
     sha256
@@ -195,6 +196,14 @@ if (TARGET utf16be_decode)
             "${CMAKE_CURRENT_SOURCE_DIR}/unicode/utf16be/data"
             "$<TARGET_FILE_DIR:utf16be_decode>/unicode/utf16be/data"
         VERBATIM)
+endif()
+
+if (TARGET resources)
+    add_library(rc1 STATIC resources/rc1.cpp)
+    add_library(rc2 SHARED resources/rc2.cpp)
+    target_link_libraries(rc1 PRIVATE pfs::common)
+    target_link_libraries(rc2 PRIVATE pfs::common)
+    target_link_libraries(resources PRIVATE rc1 rc2)
 endif()
 
 if (PFS__ENABLE_COVERAGE)
