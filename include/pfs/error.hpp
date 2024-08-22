@@ -23,11 +23,12 @@ using error_code = std::error_code;
 enum class errc
 {
       success = 0
-    , system_error       // More information can be obtained using errno (Linux) or
-                         // WSAGetLastError (Windows)
+    , system_error      // More information can be obtained using errno (Linux) or
+                        // WSAGetLastError (Windows)
     , broken_sequence
+    , jni_error         // JNI specific error
     , unexpected_data
-    , unexpected_error // Replaces any unexpected error
+    , unexpected_error  // Replaces any unexpected error
 };
 
 class error_category : public std::error_category
@@ -49,6 +50,9 @@ public:
               
             case errc::broken_sequence:
                 return std::string{"broken sequence"};
+
+            case errc::jni_error:
+                return std::string{"JNI error"};
 
             case errc::unexpected_data:
                 return std::string{"unexpected data"};
@@ -85,15 +89,30 @@ public:
         : std::system_error(ec)
     {}
 
+    error (errc e)
+        : std::system_error(make_error_code(e))
+    {}
+
     error (std::error_code ec
         , std::string const & description
         , std::string const & cause)
         : std::system_error(ec, description + " (" + cause  + ')')
     {}
 
+    error (errc e
+        , std::string const & description
+        , std::string const & cause)
+        : std::system_error(make_error_code(e), description + " (" + cause  + ')')
+    {}
+
     error (std::error_code ec
         , std::string const & description)
         : std::system_error(ec, description)
+    {}
+
+    error (errc e
+        , std::string const & description)
+        : std::system_error(make_error_code(e), description)
     {}
 
     error (error const & other ) /*noexcept*/ = default;

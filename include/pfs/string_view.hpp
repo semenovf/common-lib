@@ -55,14 +55,16 @@ namespace pfs {
     } // namespace std
 #endif
 
-// #ifndef PFS__HAVE_STD_STRING_VIEW
 namespace pfs {
-// #endif
 
 inline std::string to_string (string_view sw)
 {
     return std::string(sw.begin(), sw.end());
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// starts_with
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
 inline bool starts_with (string_view const & str, string_view::value_type ch)
 {
@@ -85,6 +87,10 @@ inline bool starts_with (string_view const & str, string_view const & prefix)
 {
     return str.size() >= prefix.size() && str.compare(0, prefix.size(), prefix) == 0;
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// ends_with
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
 inline bool ends_with (string_view const & str, string_view::value_type ch)
 {
@@ -110,6 +116,28 @@ inline bool ends_with (string_view const & str, string_view const & suffix)
         && str.compare(str.size() - suffix.size(), string_view::npos, suffix) == 0;
 }
 
-// #ifndef PFS__HAVE_STD_STRING_VIEW
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// contains
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+inline bool contains (string_view const & str, string_view::value_type ch)
+{
+    return str.find(ch) != string_view::npos;
+}
+
+inline bool contains (string_view const & str, char const * substr)
+{
+    return str.find(substr) != string_view::npos;
+}
+
+inline bool contains (string_view const & str, std::string const & substr)
+{
+    return str.find(substr.c_str()) != string_view::npos;
+}
+
+inline bool contains (string_view const & str, string_view const & substr)
+{
+    return str.find(substr) != string_view::npos;
+}
+
 } // namespace pfs
-// #endif
