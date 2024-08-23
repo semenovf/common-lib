@@ -227,6 +227,16 @@ public:
         _class = static_cast<jclass>(env_ref.native()->NewGlobalRef(_class));
     }
 
+    peer_class (env & env_ref, jclass c, char const * class_name)
+        : _class_name(class_name)
+    {
+        check_argument(env_ref, "Java environment");
+        check_argument(c, "Java class instance");
+        check_argument(class_name, "class name");
+
+        _class = static_cast<jclass>(env_ref.native()->NewGlobalRef(c));
+    }
+
     void destroy (env & env_ref)
     {
         check_argument(env_ref, "Java environment");
