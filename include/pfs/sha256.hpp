@@ -8,7 +8,6 @@
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
 #include "3rdparty/crypto/colin_persival_sha256.hpp"
-#include "bits/endian.h"
 #include "integer.hpp"
 #include "error.hpp"
 #include "filesystem.hpp"

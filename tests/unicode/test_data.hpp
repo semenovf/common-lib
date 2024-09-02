@@ -1,5 +1,9 @@
 #pragma once
 
+#if _MSC_VER
+#   include <vector>
+#endif
+
 #ifndef UTF_SUBDIR
 #   error "UTF subdirectory must be defined"
 #endif
@@ -76,12 +80,14 @@ inline const char * iter_cast<const char *> (unsigned char * it)
     return reinterpret_cast<const char *>(it);
 }
 
-// FIXME std::string::iterator() constructor need 2 args: pointer and owner, but nullptr is not valid value
+// NOTE std::string::iterator() constructor need 2 args: pointer and owner, but nullptr is not valid value
 template <>
 inline std::string::iterator iter_cast<std::string::iterator> (unsigned char * it)
 {
 #if _MSC_VER
-    return std::string::iterator(reinterpret_cast<char *>(it), nullptr); // <=== FIXME nullptr is not valid value here
+    static std::unique_ptr<std::vector<std::string>> cache {new std::vector<std::string>};
+    cache->emplace_back(reinterpret_cast<char *>(it));
+    return cache->back().begin();
 #else    
     return std::string::iterator(reinterpret_cast<char *>(it));
 #endif
@@ -91,7 +97,9 @@ template <>
 inline std::string::const_iterator iter_cast<std::string::const_iterator> (unsigned char * it)
 {
 #if _MSC_VER
-    return std::string::const_iterator(reinterpret_cast<char *>(it), nullptr); // <=== FIXME nullptr is not valid value here
+    static std::unique_ptr<std::vector<std::string>> cache {new std::vector<std::string>};
+    cache->emplace_back(reinterpret_cast<char *>(it));
+    return cache->back().cbegin();
 #else
     return std::string::const_iterator(reinterpret_cast<char *>(it));
 #endif    
@@ -126,7 +134,9 @@ template <>
 inline std::basic_string<std::int16_t>::iterator iter_cast<std::basic_string<std::int16_t>::iterator> (std::uint16_t * it)
 {
 #if _MSC_VER
-    return std::basic_string<std::int16_t>::iterator(reinterpret_cast<std::int16_t*>(it), nullptr);
+    static std::unique_ptr<std::vector<std::basic_string<std::int16_t>>> cache {new std::vector<std::basic_string<std::int16_t>>};
+    cache->emplace_back(reinterpret_cast<std::int16_t *>(it));
+    return cache->back().begin();
 #else
     return std::basic_string<std::int16_t>::iterator(reinterpret_cast<std::int16_t *>(it));
 #endif
@@ -136,7 +146,9 @@ template <>
 inline std::basic_string<std::int16_t>::const_iterator iter_cast<std::basic_string<std::int16_t>::const_iterator> (std::uint16_t * it)
 {
 #if _MSC_VER
-    return std::basic_string<std::int16_t>::const_iterator(reinterpret_cast<std::int16_t*>(it), nullptr);
+    static std::unique_ptr<std::vector<std::basic_string<std::int16_t>>> cache {new std::vector<std::basic_string<std::int16_t>>};
+    cache->emplace_back(reinterpret_cast<std::int16_t *>(it));
+    return cache->back().cbegin();
 #else
     return std::basic_string<std::int16_t>::const_iterator(reinterpret_cast<std::int16_t *>(it));
 #endif
@@ -146,7 +158,9 @@ template <>
 inline std::basic_string<std::uint16_t>::iterator iter_cast<std::basic_string<std::uint16_t>::iterator> (std::uint16_t * it)
 {
 #if _MSC_VER
-    return std::basic_string<std::uint16_t>::iterator(it, nullptr);
+    static std::unique_ptr<std::vector<std::basic_string<std::uint16_t>>> cache {new std::vector<std::basic_string<std::uint16_t>>};
+    cache->emplace_back(it);
+    return cache->back().begin();
 #else
     return std::basic_string<std::uint16_t>::iterator(it);
 #endif
@@ -156,7 +170,9 @@ template <>
 inline std::basic_string<std::uint16_t>::const_iterator iter_cast<std::basic_string<std::uint16_t>::const_iterator> (std::uint16_t * it)
 {
 #if _MSC_VER
-    return std::basic_string<std::uint16_t>::const_iterator(it, nullptr);
+    static std::unique_ptr<std::vector<std::basic_string<std::uint16_t>>> cache {new std::vector<std::basic_string<std::uint16_t>>};
+    cache->emplace_back(it);
+    return cache->back().cbegin();
 #else
     return std::basic_string<std::uint16_t>::const_iterator(it);
 #endif

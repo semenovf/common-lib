@@ -206,6 +206,16 @@ if (TARGET resources)
     target_link_libraries(resources PRIVATE rc1 rc2)
 endif()
 
+if (TARGET ICU::uc AND TARGET ICU::data)
+    add_custom_command(TARGET utf8_iterator POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy
+                "$<TARGET_PROPERTY:ICU::uc,IMPORTED_LOCATION>"
+                "$<TARGET_FILE_DIR:utf8_iterator>"
+            COMMAND ${CMAKE_COMMAND} -E copy
+                "$<TARGET_PROPERTY:ICU::data,IMPORTED_LOCATION>"
+                "$<TARGET_FILE_DIR:utf8_iterator>")
+endif()
+
 if (PFS__ENABLE_COVERAGE)
     include(${CMAKE_SOURCE_DIR}/cmake/Coverage.cmake)
     coverage_target("'/usr/*';'*/doctest.h'")

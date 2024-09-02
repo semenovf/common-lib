@@ -25,6 +25,7 @@
  *
  */
 #pragma once
+#include "pfs/bits/endian.h"
 #include "pfs/memory.hpp"
 #include <ios>
 #include <istream>

@@ -1,13 +1,13 @@
 #!/bin/bash
 
-LOG_FILE="${PWD}/update.log"
+CWD="${PWD}"
+LOG_FILE="${CWD}/update.log"
 GIT_UPDATER="git pull"
-CWD=`pwd`
 
 echo `date` > ${LOG_FILE}
 
 for repo in $(ls -d */); do
-    cd ${CWD}/${repo%%/} && git pull origin master >> ${LOG_FILE} 2>&1 && cd ${CWD}
+    cd ${CWD}/${repo%%/} && git pull origin master >> ${LOG_FILE} 2>&1
 
     if [ $? -eq 0 ] ; then
         echo "Updating ${repo%%/}: SUCCESS"

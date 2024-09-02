@@ -95,7 +95,7 @@ struct formatter<pfs::filesystem::path>
     }
 
     template <typename FormatContext>
-    auto format (pfs::filesystem::path const & path, FormatContext & ctx) -> decltype(ctx.out())
+    auto format (pfs::filesystem::path const & path, FormatContext & ctx) const -> decltype(ctx.out())
     {
         return format_to(ctx.out(), "{}", pfs::filesystem::utf8_encode(path));
     }

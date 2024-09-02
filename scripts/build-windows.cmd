@@ -11,6 +11,9 @@
 ::                 Added BUILD_VERBOSITY variable.
 ::      2022.11.06 Added `Visual Studio 17 2022` generator.
 ::      2024.04.06 Refactored according to `build-linux.sh`.
+::      2024.08.30 Fixed run tests after building them.
+::      2024.09.01 Changed BUILD_DIR generation.
+::      2024.09.02 Added BUILD_BASENAME for BUILD_DIR generation instead of BUILD_GENERATOR.
 ::-------------------------------------------------------------------------------
 
 @echo off
@@ -54,25 +57,28 @@ if "%BUILD_GENERATOR%" == "" (
         @echo ERROR: script must be run inside Visual Studio Command Prompt >&2
         exit /b 1
     ) else if "%VisualStudioVersion:~0,3%" == "17." (
-        set BUILD_GENERATOR=Visual Studio 17 2022
+        set "BUILD_GENERATOR=Visual Studio 17 2022"
+        set "BUILD_BASENAME=MSVC2022"
     ) else if "%VisualStudioVersion:~0,3%" == "16." (
         set "BUILD_GENERATOR=Visual Studio 16 2019"
+        set "BUILD_BASENAME=MSVC2019"
     ) else if "%VisualStudioVersion:~0,3%" == "15." (
         set "BUILD_GENERATOR=Visual Studio 15 2017"
-    ) else if "%VisualStudioVersion:~0,3%" == "14." (
-        set "BUILD_GENERATOR=Visual Studio 14 2015"
-    ) else if "%VisualStudioVersion:~0,3%" == "12." (
-        set "BUILD_GENERATOR=Visual Studio 12 2013"
-    ) else if "%VisualStudioVersion:~0,3%" == "11." (
-        set "BUILD_GENERATOR=Visual Studio 11 2012"
-    ) else if "%VisualStudioVersion:~0,3%" == "10." (
-        set "BUILD_GENERATOR=Visual Studio 10 2010"
-    ) else if "%VisualStudioVersion:~0,2%" == "9." (
-        set "BUILD_GENERATOR=Visual Studio 9 2008"
-    ) else if "%VisualStudioVersion:~0,2%" == "8." (
-        set "BUILD_GENERATOR=Visual Studio 8 2005"
+        set "BUILD_BASENAME=MSVC2017"
+@rem    ) else if "%VisualStudioVersion:~0,3%" == "14." (
+@rem        set "BUILD_GENERATOR=Visual Studio 14 2015"
+@rem    ) else if "%VisualStudioVersion:~0,3%" == "12." (
+@rem        set "BUILD_GENERATOR=Visual Studio 12 2013"
+@rem    ) else if "%VisualStudioVersion:~0,3%" == "11." (
+@rem        set "BUILD_GENERATOR=Visual Studio 11 2012"
+@rem    ) else if "%VisualStudioVersion:~0,3%" == "10." (
+@rem        set "BUILD_GENERATOR=Visual Studio 10 2010"
+@rem    ) else if "%VisualStudioVersion:~0,2%" == "9." (
+@rem        set "BUILD_GENERATOR=Visual Studio 9 2008"
+@rem    ) else if "%VisualStudioVersion:~0,2%" == "8." (
+@rem        set "BUILD_GENERATOR=Visual Studio 8 2005"
     ) else (
-        @echo "ERROR: unable to detect build generator, set it manually" >&2
+        @echo "ERROR: unsupported build generator, set it manually" >&2
         exit /b 1
     )
 )
@@ -129,6 +135,7 @@ if /i "%BUILD_TESTS%" == "off" (
     set "CMAKE_OPTIONS=!CMAKE_OPTIONS! -D%PROJECT_OPT_PREFIX%BUILD_TESTS=OFF"
 ) else (
     set "CMAKE_OPTIONS=!CMAKE_OPTIONS! -D%PROJECT_OPT_PREFIX%BUILD_TESTS=ON"
+    set "BUILD_TESTS=ON"
 )
 
 if /i "%CTEST_VERBOSE%" == "on" (
@@ -146,17 +153,13 @@ if /i "%ENABLE_COVERAGE%" == "on" (
 )
 
 if "%BUILD_DIR%" == "" (
-    set "BUILD_DIR=builds\%PROJECT_NAME%__%BUILD_GENERATOR%"
+    set "BUILD_DIR=builds\%PROJECT_OPT_PREFIX%%BUILD_BASENAME%"
 
     if not "%CXX_STANDARD%" == "" set "BUILD_DIR=!BUILD_DIR!.cxx%CXX_STANDARD%"
     if not "%ENABLE_COVERAGE%" == "" set "BUILD_DIR=!BUILD_DIR!.coverage"
 )
 
 if not "%BUILD_DIR_SUFFIX%" == "" set "BUILD_DIR=!BUILD_DIR!.%BUILD_DIR_SUFFIX%"
-
-rem if /i not "%CMAKE_VERBOSE_MAKEFILE%" == "off" (
-rem     set "CMAKE_OPTIONS=!CMAKE_OPTIONS! -DCMAKE_VERBOSE_MAKEFILE=ON"
-rem )
 
 ::
 :: We are inside source directory

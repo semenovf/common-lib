@@ -35,7 +35,7 @@ bool decode (char const * itertype)
         }
 
         HextetIt first(iter_cast<HextetIt>(d.data()));
-        HextetIt last(iter_cast<HextetIt>(d.data() + d.size()));
+        HextetIt last(first + d.size());
 
         size_t count = 0;
         pfs::unicode::char_t uc = 0;

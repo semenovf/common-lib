@@ -17,7 +17,7 @@ bool decode (const char * itertype)
 
     for (int i = 0; i < ntests; ++i) {
         OctetIt first(iter_cast<OctetIt>(data[i].text));
-        OctetIt last(iter_cast<OctetIt>(data[i].text) + data[i].len);
+        OctetIt last(first + data[i].len);
 
         size_t count = 0;
         pfs::unicode::char_t uc = 0;

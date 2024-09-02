@@ -37,15 +37,25 @@ portable_target(LINK ${PROJECT_NAME} INTERFACE Threads::Threads)
 if (PFS__ENABLE_ICU)
     # https://cmake.org/cmake/help/v3.20/module/FindICU.html
     # Available components: data i18n io le lx test tu uc
-    find_package(ICU COMPONENTS uc data)
+    find_package(ICU QUIET COMPONENTS uc data)
 
     if (ICU_UC_FOUND AND ICU_DATA_FOUND)
         _portable_target_status(${PROJECT_NAME} "ICU library version: ${ICU_VERSION}")
         portable_target(LINK ${PROJECT_NAME} INTERFACE ICU::uc ICU::data)
         portable_target(DEFINITIONS ${PROJECT_NAME} INTERFACE "PFS__ICU_ENABLED=1")
     else()
-        _portable_target_warn(${PROJECT_NAME}
-            "ICU support disabled: ICU library or one of it's component not found")
+        portable_target(INCLUDE_PROJECT ${CMAKE_CURRENT_LIST_DIR}/3rdparty/icu.cmake)
+
+        if (NOT TARGET ICU::uc)
+            _portable_target_fatal(${PROJECT_NAME} "No ICU::uc target found")
+        endif()
+
+        if (NOT TARGET ICU::data)
+            _portable_target_fatal(${PROJECT_NAME} "No ICU::data target found")
+        endif()
+
+        portable_target(LINK ${PROJECT_NAME} INTERFACE ICU::uc ICU::data)
+        portable_target(DEFINITIONS ${PROJECT_NAME} INTERFACE "PFS__ICU_ENABLED=1")
     endif()
 endif(PFS__ENABLE_ICU)
 
@@ -98,4 +108,8 @@ if (NOT TARGET fmt::fmt-header-only)
     add_library(fmt::fmt-header-only ALIAS fmt-header-only)
     target_include_directories(fmt-header-only INTERFACE "${CMAKE_CURRENT_LIST_DIR}/include/pfs/3rdparty")
     target_compile_definitions(fmt-header-only INTERFACE "FMT_HEADER_ONLY=1")
+endif()
+
+if (MSVC)
+    portable_target(COMPILE_OPTIONS ${PROJECT_NAME} INTERFACE "/utf-8")
 endif()

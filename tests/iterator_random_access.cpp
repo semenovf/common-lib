@@ -45,7 +45,8 @@ public:
 
     int compare (random_access_iterator const & rhs) const
     {
-        return _p - rhs._p;
+        auto res = _p - rhs._p;
+        return res == 0 ? 0 : res < 0 ? -1 : 1;
     }
 
     void decrement (difference_type n)

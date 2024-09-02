@@ -23,7 +23,7 @@ bool encode (char const * itertype)
 
     for (int i = 0; i < ntests; ++i) {
         OctetIt first(iter_cast<OctetIt>(data[i].text));
-        OctetIt last(iter_cast<OctetIt>(data[i].text) + data[i].len);
+        OctetIt last(first + data[i].len);
         auto inp_first = pfs::unicode::utf8_iterator<OctetIt>::begin(first, last);
         auto inp_last  = pfs::unicode::utf8_iterator<OctetIt>::end(last);
 

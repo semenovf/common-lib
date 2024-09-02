@@ -27,7 +27,7 @@ public:
 private:
     std::map<std::string, item> _data;
 
-private:
+public:
     resources () = default;
 
 public:
@@ -64,12 +64,13 @@ public:
         return & pos->second;
     }
 
-public: // static
-    static resources & instance ()
-    {
-        static resources r;
-        return r;
-    }
+// @deprecated
+//public: // static
+//    static resources & instance ()
+//    {
+//        static resources r;
+//        return r;
+//    }
 };
 
 } // namespace pfs

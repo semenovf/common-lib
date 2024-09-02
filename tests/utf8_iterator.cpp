@@ -170,7 +170,6 @@ TEST_CASE("search") {
         CHECK_MESSAGE(count == 5, "Wrong number of occurances");
     }
 
-
     {
         char const * haystack = "Лорем ипсум долор сит амет. Вис лорем."
             " Хис ан ЛоРеМ, куад алтера лореМ. Еи хас ЛОРЕМ.";

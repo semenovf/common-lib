@@ -143,10 +143,15 @@ void search_all (HaystackIt first, HaystackIt last, NeedleIt s_first, NeedleIt s
 
     std::function<bool (pfs::unicode::char_t, pfs::unicode::char_t)> predicate;
     
-    if (ignore_case)
-        predicate = [] (pfs::unicode::char_t a, pfs::unicode::char_t b)->bool { return pfs::unicode::to_lower(a) == pfs::unicode::to_lower(b); };
-    else
-        predicate = [] (pfs::unicode::char_t a, pfs::unicode::char_t b)->bool { return a == b; };
+    if (ignore_case) {
+        predicate = [] (pfs::unicode::char_t a, pfs::unicode::char_t b)->bool { 
+            return pfs::unicode::to_lower(a) == pfs::unicode::to_lower(b); 
+        };
+    } else {
+        predicate = [] (pfs::unicode::char_t a, pfs::unicode::char_t b)->bool { 
+            return a == b; 
+        };
+    }
 
     match_item m {0, 0, 0, 0};
 
