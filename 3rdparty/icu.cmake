@@ -52,7 +52,7 @@ if (MSVC)
         string(FIND ${_icu_root_dir} " " _space_pos)
 
         # NOTE: There is a problem to build ICU when path to library sources contains spaces.
-        if (_space_pos GREATER_OR_EQUAL 0)
+        if (_space_pos GREATER_EQUAL 0)
             _portable_target_fatal(${PROJECT_NAME} "ICU source directory name contains spaces.")
         endif()
 
