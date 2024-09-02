@@ -12,6 +12,7 @@
 !/3rdparty/download.sh
 !/3rdparty/README.md
 !/3rdparty/*.cmake
+!/3rdparty/*.in
 !/3rdparty/CMakeLists.txt
 
 /2ndparty/*
