@@ -46,16 +46,10 @@ if (PFS__ENABLE_ICU)
     else()
         portable_target(INCLUDE_PROJECT ${CMAKE_CURRENT_LIST_DIR}/3rdparty/icu.cmake)
 
-        if (NOT TARGET ICU::uc)
-            _portable_target_fatal(${PROJECT_NAME} "No ICU::uc target found")
+        if (TARGET ICU::uc AND TARGET ICU::data)
+            portable_target(LINK ${PROJECT_NAME} INTERFACE ICU::uc ICU::data)
+            portable_target(DEFINITIONS ${PROJECT_NAME} INTERFACE "PFS__ICU_ENABLED=1")
         endif()
-
-        if (NOT TARGET ICU::data)
-            _portable_target_fatal(${PROJECT_NAME} "No ICU::data target found")
-        endif()
-
-        portable_target(LINK ${PROJECT_NAME} INTERFACE ICU::uc ICU::data)
-        portable_target(DEFINITIONS ${PROJECT_NAME} INTERFACE "PFS__ICU_ENABLED=1")
     endif()
 endif(PFS__ENABLE_ICU)
 
