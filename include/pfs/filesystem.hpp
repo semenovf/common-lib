@@ -102,3 +102,18 @@ struct formatter<pfs::filesystem::path>
 };
 
 } // namespace fmt
+
+#ifndef PFS_HAVE_STD_FILESYSTEM
+namespace std {
+
+template<>
+struct hash<pfs::filesystem::path>
+{
+    std::size_t operator () (pfs::filesystem::path const & path) const noexcept
+    {
+        return pfs::filesystem::hash_value(path);
+    }
+};
+
+} // namespace std
+#endif // !PFS_HAVE_STD_FILESYSTEM
