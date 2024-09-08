@@ -304,7 +304,7 @@ struct formatter<pfs::universal_id>
     }
 
     template <typename FormatContext>
-    auto format (pfs::universal_id const & uuid, FormatContext & ctx) -> decltype(ctx.out())
+    auto format (pfs::universal_id const & uuid, FormatContext & ctx) const -> decltype(ctx.out())
     {
         return format_to(ctx.out(), "#{}", to_string(uuid));
     }
