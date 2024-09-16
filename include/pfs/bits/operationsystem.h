@@ -53,12 +53,12 @@
     || defined(__LP64__)                                                       \
     || defined(_LP64)
 #   define PFS_OS_64BITS // DEPRECATED
-#   define PFS__OS_64BITS
+#   define PFS__OS_64BITS 1
 #   define PFS_OS_BITS    64 // DEPRECATED
 #   define PFS__OS_BITS   64
 #else
 #   define PFS_OS_32BITS // DEPRECATED
-#   define PFS__OS_32BITS
+#   define PFS__OS_32BITS 1
 #   define PFS_OS_BITS    32 // DEPRECATED
 #   define PFS__OS_BITS   32
 #endif
