@@ -46,11 +46,11 @@ TEST_CASE("default") {
     CHECK_EQ(res.get("a")->data[1], 0x02);
     CHECK_EQ(res.get("a")->data[2], 0x03);
 
-	CHECK_EQ(res.get("b")->length, 4);
-	CHECK_EQ(res.get("b")->data[0], 0x04);
-	CHECK_EQ(res.get("b")->data[1], 0x05);
-	CHECK_EQ(res.get("b")->data[2], 0x06);
-	CHECK_EQ(res.get("b")->data[3], 0x07);
+    CHECK_EQ(res.get("b")->length, 4);
+    CHECK_EQ(res.get("b")->data[0], 0x04);
+    CHECK_EQ(res.get("b")->data[1], 0x05);
+    CHECK_EQ(res.get("b")->data[2], 0x06);
+    CHECK_EQ(res.get("b")->data[3], 0x07);
 
     CHECK_EQ(res.get("c")->length, 5);
     CHECK_EQ(res.get("c")->data[0], 0x08);
