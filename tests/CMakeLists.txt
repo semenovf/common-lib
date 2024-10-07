@@ -18,7 +18,7 @@ endif()
 # Copy test files to build folder
 file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/unicode/utf8/data DESTINATION unicode/utf8)
 
-set(TEST_NAMES
+list(APPEND TEST_NAMES
     any
     argvapi
     binary_stream
@@ -214,6 +214,22 @@ if (TARGET ICU::uc AND TARGET ICU::data)
             COMMAND ${CMAKE_COMMAND} -E copy
                 "$<TARGET_PROPERTY:ICU::data,IMPORTED_LOCATION>"
                 "$<TARGET_FILE_DIR:utf8_iterator>")
+endif()
+
+if (MSVC)
+    add_executable(msvc_cplusplus msvc_cplusplus.cpp)
+    add_executable(msvc_cplusplus_set msvc_cplusplus_set.cpp)
+    add_executable(msvc_cplusplus_std msvc_cplusplus_std.cpp)
+
+    if (TARGET msvc_cplusplus_set)
+        target_compile_options(msvc_cplusplus_set PRIVATE "/Zc:__cplusplus")
+    endif()
+
+    if (TARGET msvc_cplusplus_std)
+        # NOTE: MSVC does not support /std:c++11 option.
+        # So, set_property(TARGET msvc_cplusplus_std PROPERTY CXX_STANDARD 11) sets __cplusplus to 199711L.
+        target_compile_options(msvc_cplusplus_std PRIVATE "/Zc:__cplusplus" "/std:c++14")
+    endif()
 endif()
 
 if (PFS__ENABLE_COVERAGE)
