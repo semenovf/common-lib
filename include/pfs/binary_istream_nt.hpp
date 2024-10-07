@@ -43,7 +43,7 @@ private:
     char const * _p {nullptr};
     char const * _end {nullptr};
     optional<size_type> _expected_size;
-    status_enum _state {good};
+    status_enum _state {status_enum::good};
 
 public:
     binary_istream_nt (char const * begin, char const * end)

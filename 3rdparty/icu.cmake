@@ -17,8 +17,9 @@ if (MSVC)
         set(_prefix "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}")
         set(_icu_root_dir "${_prefix}/icu/icu4c")
     else ()
-        _portable_target_fatal(${PROJECT_NAME}
-            "ICU support required but ICU library or one of it's component not found. See README.md for instructions")
+        _portable_target_warn(${PROJECT_NAME}
+            "ICU support is preferred for search facilities but ICU library or one of it's component not found. See README.md for instructions.")
+        return()
     endif()
 
     if (CMAKE_GENERATOR_PLATFORM STREQUAL "x64")

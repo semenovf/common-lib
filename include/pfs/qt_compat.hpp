@@ -22,7 +22,7 @@ struct formatter<QString>
     }
 
     template <typename FormatContext>
-    auto format (QString const & s, FormatContext & ctx) -> decltype(ctx.out())
+    auto format (QString const & s, FormatContext & ctx) const -> decltype(ctx.out())
     {
         return format_to(ctx.out(), "{}", s.toStdString());
     }
