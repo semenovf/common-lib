@@ -503,4 +503,8 @@ inline std::string to_string (julian_day const & d)
     return to_string(d, std::string("{:%F}")); // equivalent to %H:%M:%S
 }
 
+constexpr julian_day::value_type julian_day::raw_min_day;
+constexpr julian_day::value_type julian_day::raw_max_day;
+constexpr julian_day::value_type julian_day::raw_epoch_day;
+
 }} // namespace pfs::calendar

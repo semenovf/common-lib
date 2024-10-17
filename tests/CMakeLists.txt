@@ -49,6 +49,7 @@ list(APPEND TEST_NAMES
     optional
     pointer_proxy_iterator
     rational
+    real
     resources
     ring_buffer
     ring_buffer_mt

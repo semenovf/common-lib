@@ -18,4 +18,3 @@ TEST_CASE("increment") {
     CHECK_EQ(pfs::sum_safe(41,  1), 42);
     CHECK_EQ(pfs::sum_safe(43, -1), 42);
 }
-

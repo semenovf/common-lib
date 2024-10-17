@@ -84,7 +84,7 @@ sign_radix_result parse_sign_radix (CharIt & pos, CharIt last, int radix)
         return invalid_result;
 
     // Skip white spaces
-    while (pos != last && isspace(*pos))
+    while (pos != last && std::isspace(*pos))
         ++pos;
 
     // No digits seen
