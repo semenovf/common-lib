@@ -1,10 +1,17 @@
 ################################################################################
-# Copyright (c) 2019-2021 Vladislav Trifochkin
+# Copyright (c) 2019-2024 Vladislav Trifochkin
 #
 # This file is part of `common-lib`
+#
+# Changelog:
+#       2019.12.16 Initial commit.
+#       2024.10.26 Removed `portable_target` dependency.
 ################################################################################
 cmake_minimum_required (VERSION 3.5)
-project(common CXX C)
+project(common
+    VERSION 1.0.0
+    DESCRIPTION "Common C++ library"
+    LANGUAGES CXX C)
 
 option(PFS__FORCE_ULID_STRUCT "Enable ULID struct representation (UUID backend)" OFF)
 option(PFS__ENABLE_NLS "Enable Native Language Support" OFF)
@@ -30,9 +37,16 @@ option(PFS__USE_IMPORTED_GETTEXT_LIB "Enable external gettext library" ${_use_im
 
 find_package(Threads REQUIRED)
 
-portable_target(ADD_INTERFACE ${PROJECT_NAME} ALIAS pfs::common)
-portable_target(INCLUDE_DIRS ${PROJECT_NAME} INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
-portable_target(LINK ${PROJECT_NAME} INTERFACE Threads::Threads)
+add_library(common INTERFACE)
+add_library(pfs::common ALIAS common)
+target_include_directories(common INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
+target_link_libraries(common INTERFACE Threads::Threads)
+
+if (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+    target_compile_definitions(common INTERFACE _UNICODE UNICODE)
+    target_compile_definitions(common INTERFACE NOMINMAX)
+    target_compile_options(common INTERFACE "/utf-8")
+endif()
 
 if (PFS__ENABLE_ICU)
     # https://cmake.org/cmake/help/v3.20/module/FindICU.html
@@ -40,53 +54,53 @@ if (PFS__ENABLE_ICU)
     find_package(ICU QUIET COMPONENTS uc data)
 
     if (ICU_UC_FOUND AND ICU_DATA_FOUND)
-        _portable_target_status(${PROJECT_NAME} "ICU library version: ${ICU_VERSION}")
-        portable_target(LINK ${PROJECT_NAME} INTERFACE ICU::uc ICU::data)
-        portable_target(DEFINITIONS ${PROJECT_NAME} INTERFACE "PFS__ICU_ENABLED=1")
+        message(STATUS "ICU library version: ${ICU_VERSION}")
+        target_link_libraries(common INTERFACE ICU::uc ICU::data)
+        target_compile_definitions(common INTERFACE "PFS__ICU_ENABLED=1")
     else()
-        portable_target(INCLUDE_PROJECT ${CMAKE_CURRENT_LIST_DIR}/3rdparty/icu.cmake)
+        include(${CMAKE_CURRENT_LIST_DIR}/3rdparty/icu.cmake)
 
         if (TARGET ICU::uc AND TARGET ICU::data)
-            portable_target(LINK ${PROJECT_NAME} INTERFACE ICU::uc ICU::data)
-            portable_target(DEFINITIONS ${PROJECT_NAME} INTERFACE "PFS__ICU_ENABLED=1")
+            target_link_libraries(common INTERFACE ICU::uc ICU::data)
+            target_compile_definitions(common INTERFACE "PFS__ICU_ENABLED=1")
         endif()
     endif()
 endif(PFS__ENABLE_ICU)
 
 if (UNIX)
-    portable_target(LINK ${PROJECT_NAME} INTERFACE dl)
+    target_link_libraries(common INTERFACE dl)
 endif()
 
 if (PFS__FORCE_ULID_STRUCT)
-    portable_target(DEFINITIONS ${PROJECT_NAME} INTERFACE "PFS__FORCE_ULID_STRUCT=1")
+    target_compile_definitions(common INTERFACE "PFS__FORCE_ULID_STRUCT=1")
 endif()
 
 if (PFS__LOG_LEVEL)
-    portable_target(DEFINITIONS ${PROJECT_NAME} INTERFACE "PFS__LOG_LEVEL=${PFS__LOG_LEVEL}")
+    target_compile_definitions(common INTERFACE "PFS__LOG_LEVEL=${PFS__LOG_LEVEL}")
 endif()
 
 if (PFS__ENABLE_NLS)
     # [DEPRECATED]
-    portable_target(DEFINITIONS ${PROJECT_NAME} INTERFACE "PFS__ENABLE_NLS=1")
+    target_compile_definitions(common INTERFACE "PFS__ENABLE_NLS=1")
 
-    portable_target(DEFINITIONS ${PROJECT_NAME} INTERFACE "PFS__NLS_ENABLED=1")
+    target_compile_definitions(common INTERFACE "PFS__NLS_ENABLED=1")
 endif()
 
 if (ANDROID)
-    portable_target(LINK ${PROJECT_NAME} INTERFACE log)
+    target_link_libraries(common INTERFACE log)
 endif()
 
 if (PFS__ENABLE_NLS)
     if (MSVC OR ANDROID)
         if (NOT TARGET libintl)
-            portable_target_error(${PROJECT_NAME} "Expected `libintl` TARGET to support NLS" )
+            message(FATAL_ERROR "Expected `libintl` TARGET to support NLS" )
         endif()
 
         if (NOT TARGET libiconv)
-            portable_target_error(${PROJECT_NAME} "Expected `libiconv` TARGET to support NLS")
+            message(FATAL_ERROR "Expected `libiconv` TARGET to support NLS")
         endif()
 
-        portable_target(LINK ${PROJECT_NAME} INTERFACE libintl libiconv)
+        target_link_libraries(common INTERFACE libintl libiconv)
     endif()
 endif()
 
@@ -102,8 +116,4 @@ if (NOT TARGET fmt::fmt-header-only)
     add_library(fmt::fmt-header-only ALIAS fmt-header-only)
     target_include_directories(fmt-header-only INTERFACE "${CMAKE_CURRENT_LIST_DIR}/include/pfs/3rdparty")
     target_compile_definitions(fmt-header-only INTERFACE "FMT_HEADER_ONLY=1")
-endif()
-
-if (MSVC)
-    portable_target(COMPILE_OPTIONS ${PROJECT_NAME} INTERFACE "/utf-8")
 endif()

@@ -11,19 +11,13 @@ option(PFS__BUILD_TESTS "Build tests" OFF)
 option(PFS__BUILD_DEMO "Build examples/demo" OFF)
 option(PFS__ENABLE_COVERAGE "Build tests with coverage support" OFF)
 
-if (NOT PORTABLE_TARGET__ENABLED)
-    list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/2ndparty/portable-target/cmake/v2)
-    include(PortableTarget)
-    portable_target(SET ENABLE_TRACE ON)
-endif()
-
-message(STATUS "C++ compiler: ${CMAKE_CXX_COMPILER}")
-message(STATUS "C++ compiler version: ${CMAKE_CXX_COMPILER_VERSION}")
-
 if (PFS__BUILD_STRICT)
     set(CXX_STANDARD_REQUIRED ON)
     set(CMAKE_CXX_EXTENSIONS OFF) # use -std=c++XX rather than -std=gnu++XX
 endif()
+
+message(STATUS "C++ compiler: ${CMAKE_CXX_COMPILER}")
+message(STATUS "C++ compiler version: ${CMAKE_CXX_COMPILER_VERSION}")
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/output)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})

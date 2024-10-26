@@ -148,7 +148,7 @@ if (TARGET i18n)
     # Target `libintl` available if `PFS__ENABLE_NLS` is ON
     # and `PFS__USE_IMPORTED_GETTEXT_LIB` is ON (on Windows platform)
     if (TARGET libintl)
-        portable_target(LINK i18n PRIVATE libintl)
+        target_link_libraries(i18n PRIVATE libintl)
 
         add_custom_command(TARGET i18n
             POST_BUILD
