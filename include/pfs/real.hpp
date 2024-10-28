@@ -124,7 +124,7 @@ bool advance_real (CharIt & pos, CharIt last, char decimal_point_char, RealT & r
     //using char_type = typename std::remove_reference<decltype(*pos)>::type;
     using char_type = typename std::decay<decltype(*pos)>::type;
 
-    static RealT frac1_powers[] = {1.0e0, 1.0e1, 1.0e2, 1.0e3, 1.0e4, 1.0e5
+    static double frac1_powers[] = {1.0e0, 1.0e1, 1.0e2, 1.0e3, 1.0e4, 1.0e5
             , 1.0e6, 1.0e7, 1.0e8, 1.0e9};
 
     result = RealT{0};
@@ -319,7 +319,7 @@ bool advance_real (CharIt & pos, CharIt last, char decimal_point_char, RealT & r
     }
 
     // Commit result (but may be not complete)
-    result = (frac1_powers[frac1_power] * frac1) + frac2;
+    result = static_cast<RealT>(frac1_powers[frac1_power] * frac1) + frac2;
     pos = p;
 
     // Parse exponent
