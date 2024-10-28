@@ -61,18 +61,6 @@
 
 namespace pfs {
 
-enum parse_float_state_enum {
-      parse_sign_state
-    //, skip_zeros_state
-    , parse_nan_state
-    , parse_inf_state
-    , parse_mantissa_state
-    , parse_exp_state
-    , finish_state
-    //, nan_state
-    //, infinity_state
-};
-
 //
 // Table giving binary powers of 10. Entry is 10^2^i.Used to convert decimal
 // exponents into floating-point numbers.
@@ -331,7 +319,7 @@ bool advance_real (CharIt & pos, CharIt last, char decimal_point_char, RealT & r
     }
 
     // Commit result (but may be not complete)
-    result = (frac1_powers[frac1_power] * frac1) + frac2;
+    result = (static_cast<RealT>(frac1_powers[frac1_power]) * frac1) + frac2;
     pos = p;
 
     // Parse exponent
