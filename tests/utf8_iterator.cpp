@@ -170,6 +170,7 @@ TEST_CASE("search") {
         CHECK_MESSAGE(count == 5, "Wrong number of occurances");
     }
 
+#if PFS__ICU_ENABLED
     {
         char const * haystack = "Лорем ипсум долор сит амет. Вис лорем."
             " Хис ан ЛоРеМ, куад алтера лореМ. Еи хас ЛОРЕМ.";
@@ -229,6 +230,7 @@ TEST_CASE("search") {
 
         CHECK_MESSAGE(count == 5, "Wrong number of occurances");
     }
+#endif
 
     {
         using char_t = pfs::unicode::char_t;
@@ -244,6 +246,7 @@ TEST_CASE("search") {
         CHECK(pos != last);
     }
 
+#if PFS__ICU_ENABLED
     {
         char const * haystack = "<span Лорем>Лорем</Лорем span> ипсум долор сит амет. "
             "<p лорем>Вис лорем.</p лорем>"
@@ -305,4 +308,7 @@ TEST_CASE("search") {
 
         CHECK_MESSAGE(count == 5, "Wrong number of occurances");
     }
+#else
+    MESSAGE("ICU disabled. Search test across non-latin character sequence deactivated");
+#endif
 }

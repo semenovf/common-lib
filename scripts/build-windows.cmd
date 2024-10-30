@@ -14,6 +14,8 @@
 ::      2024.08.30 Fixed run tests after building them.
 ::      2024.09.01 Changed BUILD_DIR generation.
 ::      2024.09.02 Added BUILD_BASENAME for BUILD_DIR generation instead of BUILD_GENERATOR.
+::      2024.09.03 Fixed BUILD_DIR_SUFFIX usage.
+::                 Minimum supported MSVC version is Visual Studio 16 2019.
 ::-------------------------------------------------------------------------------
 
 @echo off
@@ -62,9 +64,9 @@ if "%BUILD_GENERATOR%" == "" (
     ) else if "%VisualStudioVersion:~0,3%" == "16." (
         set "BUILD_GENERATOR=Visual Studio 16 2019"
         set "BUILD_BASENAME=MSVC2019"
-    ) else if "%VisualStudioVersion:~0,3%" == "15." (
-        set "BUILD_GENERATOR=Visual Studio 15 2017"
-        set "BUILD_BASENAME=MSVC2017"
+@rem    ) else if "%VisualStudioVersion:~0,3%" == "15." (
+@rem        set "BUILD_GENERATOR=Visual Studio 15 2017"
+@rem        set "BUILD_BASENAME=MSVC2017"
 @rem    ) else if "%VisualStudioVersion:~0,3%" == "14." (
 @rem        set "BUILD_GENERATOR=Visual Studio 14 2015"
 @rem    ) else if "%VisualStudioVersion:~0,3%" == "12." (
@@ -78,7 +80,7 @@ if "%BUILD_GENERATOR%" == "" (
 @rem    ) else if "%VisualStudioVersion:~0,2%" == "8." (
 @rem        set "BUILD_GENERATOR=Visual Studio 8 2005"
     ) else (
-        @echo "ERROR: unsupported build generator, set it manually" >&2
+        @echo "ERROR: unsupported build generator, set it manually without any guarantees" >&2
         exit /b 1
     )
 )
@@ -159,7 +161,7 @@ if "%BUILD_DIR%" == "" (
     if not "%ENABLE_COVERAGE%" == "" set "BUILD_DIR=!BUILD_DIR!.coverage"
 )
 
-if not "%BUILD_DIR_SUFFIX%" == "" set "BUILD_DIR=!BUILD_DIR!.%BUILD_DIR_SUFFIX%"
+if not "%BUILD_DIR_SUFFIX%" == "" set "BUILD_DIR=!BUILD_DIR!%BUILD_DIR_SUFFIX%"
 
 ::
 :: We are inside source directory

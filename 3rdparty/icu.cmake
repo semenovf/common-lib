@@ -6,7 +6,8 @@
 # Changelog:
 #      2024.09.01 Initial version.
 ################################################################################
-project(icu-ep)
+#project(icu-ep)
+set(PROJ_NAME icu-ep)
 
 if (MSVC)
     if (EXISTS "${CMAKE_CURRENT_LIST_DIR}/icu-prebuilt/include/unicode/utf8.h")
@@ -14,11 +15,12 @@ if (MSVC)
         set(_icu_root_dir "${CMAKE_CURRENT_LIST_DIR}/icu-prebuilt")
     elseif (EXISTS "${CMAKE_CURRENT_LIST_DIR}/icu/icu4c/source/allinone/allinone.sln")
         set(_build_variant_2 TRUE)
-        set(_prefix "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}")
+        set(_prefix "${CMAKE_CURRENT_BINARY_DIR}/${PROJ_NAME}")
         set(_icu_root_dir "${_prefix}/icu/icu4c")
     else ()
-        _portable_target_warn(${PROJECT_NAME}
-            "ICU support is preferred for search facilities but ICU library or one of it's component not found. See README.md for instructions.")
+        message(WARNING
+            "ICU support is preferred for search facilities but ICU library or "
+            "one of it's component not found. See README.md for instructions.")
         return()
     endif()
 
@@ -29,7 +31,7 @@ if (MSVC)
         set(_icu_lib_subdir "bin")
         set(_icu_implib_subdir "lib")
     else()
-        _portable_target_fatal(${PROJECT_NAME} "Unknown or unsupported target paltform: ${CMAKE_GENERATOR_PLATFORM}")
+        message(FATAL_ERROR "Unknown or unsupported target paltform: ${CMAKE_GENERATOR_PLATFORM}")
     endif()
 
     set(_icu_uc_lib_path "${_icu_root_dir}/${_icu_lib_subdir}/icuuc71.dll")
@@ -41,11 +43,11 @@ if (MSVC)
 
     if (_build_variant_1)
         if (NOT EXISTS ${_icu_inc_dir})
-            _portable_target_fatal(${PROJECT_NAME} "ICU include directory not found: ${_icu_inc_dir}")
+            message(FATAL_ERROR "ICU include directory not found: ${_icu_inc_dir}")
         endif()
 
         if (NOT EXISTS ${_icu_uc_lib_path})
-            _portable_target_fatal(${PROJECT_NAME} "ICU UC library not found: ${_icu_uc_lib_path}")
+            message(FATAL_ERROR "ICU UC library not found: ${_icu_uc_lib_path}")
         endif()
     endif()
 
@@ -54,14 +56,14 @@ if (MSVC)
 
         # NOTE: There is a problem to build ICU when path to library sources contains spaces.
         if (_space_pos GREATER_EQUAL 0)
-            _portable_target_fatal(${PROJECT_NAME} "ICU source directory name contains spaces.")
+            message(FATAL_ERROR "ICU source directory name contains spaces.")
         endif()
 
         include(ExternalProject)
 
         configure_file(${CMAKE_CURRENT_LIST_DIR}/icu.cmd.in ${_icu_root_dir}/build.cmd @ONLY)
 
-        ExternalProject_Add(${PROJECT_NAME} 
+        ExternalProject_Add(${PROJ_NAME} 
             PREFIX ${_prefix}
             DOWNLOAD_COMMAND ${CMAKE_COMMAND} -E echo "Copy ICU sources"
                 COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_CURRENT_LIST_DIR}/icu/icu4c/source" "${_icu_root_dir}/source"

@@ -74,12 +74,12 @@ struct powers_of_10<float>
     static float * values ()
     {
         static float a[] = {
-            10.
-          , 100.
-          , 1.0e4
-          , 1.0e8
-          , 1.0e16
-          , 1.0e32
+            10.f
+          , 100.f
+          , 1.0e4f
+          , 1.0e8f
+          , 1.0e16f
+          , 1.0e32f
         };
 
         return a;
