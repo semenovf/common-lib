@@ -215,7 +215,7 @@ std::uint8_t byteswap<std::uint8_t> (std::uint8_t x) noexcept
     return x;
 }
 
-#if PFS__COMPILER_GCC
+#if defined(PFS__COMPILER_GCC) || defined(PFS__COMPILER_CLANG)
 
 #   define PFS_BYTESWAP_HAS_INTRINSICS 1
 
