@@ -7,11 +7,12 @@
 //      2021.11.23 Initial version.
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
+#include "bits/operationsystem.h"
 #include "filesystem.hpp"
 #include "getenv.hpp"
 #include <cstdlib>
 
-#if PFS__COMPILER_GCC
+#if PFS__COMPILER_GCC || PFS__COMPILER_CLANG
 #   include <sys/types.h>
 #   include <pwd.h>
 #endif
@@ -21,7 +22,7 @@ namespace filesystem {
 
 inline path home_directory_path ()
 {
-#if PFS__COMPILER_MSVC
+#if PFS__OS_WIN
         auto userprofile = wgetenv(L"USERPROFILE");
 
         if (userprofile.has_value()) {
@@ -61,8 +62,7 @@ inline path home_directory_path ()
 
         return path;
 
-#elif PFS__COMPILER_GCC
-
+#elif PFS__OS_LINUX
     auto home = getenv("HOME");
 
     if (home.has_value()) {
@@ -78,8 +78,8 @@ inline path home_directory_path ()
         auto path = filesystem::path{pwd->pw_dir};
         return path;
     }
+#endif // PFS__OS_WIN
 
-#endif // PFS__COMPILER_MSVC
     return filesystem::path{};
 }
 

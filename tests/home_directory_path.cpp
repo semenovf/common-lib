@@ -19,14 +19,17 @@ TEST_CASE("home_directory_path") {
 
     auto home_dir = fs::home_directory_path();
 
-    CHECK(home_dir != fs::path{});
-    CHECK(fs::exists(home_dir));
-
-    fmt::print("Home directory: [{}]\n"
+    if (!home_dir.empty()) {
+        CHECK(fs::exists(home_dir));
+        fmt::print("Home directory: [{}]\n"    
 #if PFS__COMPILER_MSVC
-        , pfs::windows::utf8_encode(home_dir.c_str()));
+            , pfs::windows::utf8_encode(home_dir.c_str()));
 #else
-        , home_dir.c_str());
+            , home_dir.c_str());
 #endif
+    } else {
+        MESSAGE("Home directory is not defined for this operation system");
+    }
+
 }
 
