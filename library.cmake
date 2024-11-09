@@ -7,7 +7,7 @@
 #       2019.12.16 Initial commit.
 #       2024.10.26 Removed `portable_target` dependency.
 ################################################################################
-cmake_minimum_required (VERSION 3.5)
+cmake_minimum_required (VERSION 3.11)
 project(common
     VERSION 1.0.0
     DESCRIPTION "Common C++ library"
