@@ -79,12 +79,6 @@ template <typename T, typename S
     T numeric_cast (S const value)
 #endif
 {
-    // Avoid signed-unsigned comparison (-1 < 0U => false) problem
-    // Consider zero is minimum limit for all unsigned integers
-    //if (value < std::numeric_limits<T>::min())
-    if (value < 0)
-        throw std::underflow_error("numeric_cast");
-
     if (static_cast<std::uintmax_t>(value) > (std::numeric_limits<T>::max)())
         throw std::overflow_error("numeric_cast");
 
@@ -107,6 +101,22 @@ template <typename T, typename S
     if (value > static_cast<std::uintmax_t>((std::numeric_limits<T>::max)()))
         throw std::overflow_error("numeric_cast");
 
+    return static_cast<T>(value);
+}
+
+template <typename T, typename U>
+inline typename std::enable_if<std::is_same<typename std::decay<T>::type, bool>::value
+    && std::is_integral<U>::value, bool>::type
+numeric_cast (U const value)
+{
+    return static_cast<T>(value);
+}
+
+template <typename T, typename U>
+inline typename std::enable_if<std::is_integral<T>::value
+    && std::is_same<typename std::decay<U>::type, bool>::value, T>::type
+numeric_cast (U const value)
+{
     return static_cast<T>(value);
 }
 
