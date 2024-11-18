@@ -141,57 +141,54 @@ TEST_CASE("unsigned to signed integral types") {
 
 TEST_CASE("signed to unsigned integral types") {
     CHECK_EQ(pfs::numeric_cast<std::uint8_t>(std::numeric_limits<std::int8_t>::max()), std::numeric_limits<std::int8_t>::max());
-    CHECK_THROWS_AS(pfs::numeric_cast<std::uint8_t>(std::numeric_limits<std::int8_t>::min()), std::underflow_error);
+    CHECK_EQ(pfs::numeric_cast<std::uint8_t>(std::numeric_limits<std::int8_t>::min()), static_cast<std::uint8_t>(std::numeric_limits<std::int8_t>::min()));
     CHECK_THROWS_AS(pfs::numeric_cast<std::uint8_t>(std::numeric_limits<std::int16_t>::max()), std::overflow_error);
     CHECK_THROWS_AS(pfs::numeric_cast<std::uint8_t>(std::numeric_limits<std::int16_t>::min()), std::underflow_error);
     CHECK_THROWS_AS(pfs::numeric_cast<std::uint8_t>(std::numeric_limits<std::int32_t>::max()), std::overflow_error);
     CHECK_THROWS_AS(pfs::numeric_cast<std::uint8_t>(std::numeric_limits<std::int32_t>::min()), std::underflow_error);
     CHECK_THROWS_AS(pfs::numeric_cast<std::uint8_t>(std::numeric_limits<std::int64_t>::max()), std::overflow_error);
     CHECK_THROWS_AS(pfs::numeric_cast<std::uint8_t>(std::numeric_limits<std::int64_t>::min()), std::underflow_error);
-
     CHECK_EQ(pfs::numeric_cast<std::uint16_t>(std::numeric_limits<std::int8_t>::max()), std::numeric_limits<std::int8_t>::max());
-    CHECK_THROWS_AS(pfs::numeric_cast<std::uint16_t>(std::numeric_limits<std::int8_t>::min()), std::underflow_error);
+    CHECK_EQ(pfs::numeric_cast<std::uint16_t>(std::numeric_limits<std::int8_t>::min()), static_cast<std::uint16_t>(std::numeric_limits<std::int8_t>::min()));
     CHECK_EQ(pfs::numeric_cast<std::uint16_t>(std::numeric_limits<std::int16_t>::max()), std::numeric_limits<std::int16_t>::max());
-    CHECK_THROWS_AS(pfs::numeric_cast<std::uint16_t>(std::numeric_limits<std::int16_t>::min()), std::underflow_error);
+    CHECK_EQ(pfs::numeric_cast<std::uint16_t>(std::numeric_limits<std::int16_t>::min()), static_cast<std::uint16_t>(std::numeric_limits<std::int16_t>::min()));
     CHECK_THROWS_AS(pfs::numeric_cast<std::uint16_t>(std::numeric_limits<std::int32_t>::max()), std::overflow_error);
     CHECK_THROWS_AS(pfs::numeric_cast<std::uint16_t>(std::numeric_limits<std::int32_t>::min()), std::underflow_error);
     CHECK_THROWS_AS(pfs::numeric_cast<std::uint16_t>(std::numeric_limits<std::int64_t>::max()), std::overflow_error);
     CHECK_THROWS_AS(pfs::numeric_cast<std::uint16_t>(std::numeric_limits<std::int64_t>::min()), std::underflow_error);
 
     CHECK_EQ(pfs::numeric_cast<std::uint32_t>(std::numeric_limits<std::int8_t>::max()), std::numeric_limits<std::int8_t>::max());
-    CHECK_THROWS_AS(pfs::numeric_cast<std::uint32_t>(std::numeric_limits<std::int8_t>::min()), std::underflow_error);
+    CHECK_EQ(pfs::numeric_cast<std::uint32_t>(std::numeric_limits<std::int8_t>::min()), static_cast<std::uint32_t>(std::numeric_limits<std::int8_t>::min()));
     CHECK_EQ(pfs::numeric_cast<std::uint32_t>(std::numeric_limits<std::int16_t>::max()), std::numeric_limits<std::int16_t>::max());
-    CHECK_THROWS_AS(pfs::numeric_cast<std::uint32_t>(std::numeric_limits<std::int16_t>::min()), std::underflow_error);
+    CHECK_EQ(pfs::numeric_cast<std::uint32_t>(std::numeric_limits<std::int16_t>::min()), static_cast<std::uint32_t>(std::numeric_limits<std::int16_t>::min()));
     CHECK_EQ(pfs::numeric_cast<std::uint32_t>(std::numeric_limits<std::int32_t>::max()), std::numeric_limits<std::int32_t>::max());
-    CHECK_THROWS_AS(pfs::numeric_cast<std::uint32_t>(std::numeric_limits<std::int32_t>::min()), std::underflow_error);
+    CHECK_EQ(pfs::numeric_cast<std::uint32_t>(std::numeric_limits<std::int32_t>::min()), static_cast<std::uint32_t>(std::numeric_limits<std::int32_t>::min()));
     CHECK_THROWS_AS(pfs::numeric_cast<std::uint32_t>(std::numeric_limits<std::int64_t>::max()), std::overflow_error);
     CHECK_THROWS_AS(pfs::numeric_cast<std::uint32_t>(std::numeric_limits<std::int64_t>::min()), std::underflow_error);
 
     CHECK_EQ(pfs::numeric_cast<std::uint64_t>(std::numeric_limits<std::int8_t>::max()), std::numeric_limits<std::int8_t>::max());
-    CHECK_THROWS_AS(pfs::numeric_cast<std::uint64_t>(std::numeric_limits<std::int8_t>::min()), std::underflow_error);
+    CHECK_EQ(pfs::numeric_cast<std::uint64_t>(std::numeric_limits<std::int8_t>::min()), static_cast<std::uint64_t>(std::numeric_limits<std::int8_t>::min()));
     CHECK_EQ(pfs::numeric_cast<std::uint64_t>(std::numeric_limits<std::int16_t>::max()), std::numeric_limits<std::int16_t>::max());
-    CHECK_THROWS_AS(pfs::numeric_cast<std::uint64_t>(std::numeric_limits<std::int16_t>::min()), std::underflow_error);
+    CHECK_EQ(pfs::numeric_cast<std::uint64_t>(std::numeric_limits<std::int16_t>::min()), static_cast<std::uint64_t>(std::numeric_limits<std::int16_t>::min()));
     CHECK_EQ(pfs::numeric_cast<std::uint64_t>(std::numeric_limits<std::int32_t>::max()), std::numeric_limits<std::int32_t>::max());
-    CHECK_THROWS_AS(pfs::numeric_cast<std::uint64_t>(std::numeric_limits<std::int32_t>::min()), std::underflow_error);
+    CHECK_EQ(pfs::numeric_cast<std::uint64_t>(std::numeric_limits<std::int32_t>::min()), static_cast<std::uint64_t>(std::numeric_limits<std::int32_t>::min()));
     CHECK_EQ(pfs::numeric_cast<std::uint64_t>(std::numeric_limits<std::int64_t>::max()), std::numeric_limits<std::int64_t>::max());
-    CHECK_THROWS_AS(pfs::numeric_cast<std::uint64_t>(std::numeric_limits<std::int64_t>::min()), std::underflow_error);
+    CHECK_EQ(pfs::numeric_cast<std::uint64_t>(std::numeric_limits<std::int64_t>::min()), static_cast<std::uint64_t>(std::numeric_limits<std::int64_t>::min()));
 }
 
-// Not applicable
-//TEST_CASE("boolean to signed integral types") {
-//    CHECK_EQ(pfs::numeric_cast<std::int8_t>(true), static_cast<std::int8_t>(true));
-//    CHECK_EQ(pfs::numeric_cast<std::int8_t>(false), static_cast<std::int8_t>(false));
-//    CHECK_EQ(pfs::numeric_cast<std::int32_t>(true), static_cast<std::int32_t>(true));
-//    CHECK_EQ(pfs::numeric_cast<std::int32_t>(false), static_cast<std::int32_t>(false));
-//}
+TEST_CASE("boolean to signed integral types") {
+    CHECK_EQ(pfs::numeric_cast<std::int8_t>(true), static_cast<std::int8_t>(true));
+    CHECK_EQ(pfs::numeric_cast<std::int8_t>(false), static_cast<std::int8_t>(false));
+    CHECK_EQ(pfs::numeric_cast<std::int32_t>(true), static_cast<std::int32_t>(true));
+    CHECK_EQ(pfs::numeric_cast<std::int32_t>(false), static_cast<std::int32_t>(false));
+}
 
-// Not applicable
-//TEST_CASE("boolean to unsigned integral types") {
-//    CHECK_EQ(pfs::numeric_cast<std::uint8_t>(true), static_cast<std::uint8_t>(true));
-//    CHECK_EQ(pfs::numeric_cast<std::uint8_t>(false), static_cast<std::uint8_t>(false));
-//    CHECK_EQ(pfs::numeric_cast<std::uint32_t>(true), static_cast<std::uint32_t>(true));
-//    CHECK_EQ(pfs::numeric_cast<std::uint32_t>(false), static_cast<std::uint32_t>(false));
-//}
+TEST_CASE("boolean to unsigned integral types") {
+    CHECK_EQ(pfs::numeric_cast<std::uint8_t>(true), static_cast<std::uint8_t>(true));
+    CHECK_EQ(pfs::numeric_cast<std::uint8_t>(false), static_cast<std::uint8_t>(false));
+    CHECK_EQ(pfs::numeric_cast<std::uint32_t>(true), static_cast<std::uint32_t>(true));
+    CHECK_EQ(pfs::numeric_cast<std::uint32_t>(false), static_cast<std::uint32_t>(false));
+}
 
 TEST_CASE("char to signed integral types") {
     CHECK_EQ(pfs::numeric_cast<std::int8_t>('*'), 42);

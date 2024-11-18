@@ -26,6 +26,23 @@ struct remove_cvref
 template <typename T>
 using remove_cvref_t = typename remove_cvref<T>::type;
 
+template <typename T, typename U>
+struct is_same_decayed: std::is_same<typename std::decay<T>::type, typename std::decay<U>::type>
+{};
+
+template <typename T>
+struct is_bool: is_same_decayed<T, bool>
+{};
+
+template <typename T>
+struct is_signed_integer: std::integral_constant<bool, std::is_signed<T>::value>
+{};
+
+// boolean is unsigned integral type
+template <typename T>
+struct is_unsigned_integer: std::integral_constant<bool, std::is_unsigned<T>::value && !is_bool<T>::value>
+{};
+
 // Attempt to implement is_function_pointer
 // See https://stackoverflow.com/questions/6560590/is-function-pointer-for-type-traits
 // This trait used to avoid overload ambiguity for emitter::connect() and solved the problem,

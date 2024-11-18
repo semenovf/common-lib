@@ -7,36 +7,34 @@
 //      2023.06.28 Initial version.
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
+#include "type_traits.hpp"
 #include <limits>
 #include <stdexcept>
-#include <type_traits>
 
 namespace pfs {
 
-template <typename T, typename S
-    , typename std::enable_if<std::is_integral<S>::value
-        && std::is_same<T, S>::value, int>::type = 0>
+template <typename T, typename U>
 #if __cplusplus >= 201703L
-    T constexpr numeric_cast (S const value)
+constexpr
 #else
-    T numeric_cast (S const value)
+inline
 #endif
+typename std::enable_if<std::is_integral<U>::value && is_same_decayed<T, U>::value, T>::type
+numeric_cast (U const value)
 {
     return value;
 }
 
-template <typename T, typename S
-    , typename std::enable_if<std::is_integral<S>::value
-        && !std::is_same<typename std::decay<T>::type, bool>::value
-        && !std::is_same<typename std::decay<S>::type, bool>::value
-        && !std::is_same<T, S>::value
-        && std::is_signed<T>::value
-        && std::is_signed<S>::value, int>::type = 0>
+// signed(U) => signed(T)
+template <typename T, typename U>
 #if __cplusplus >= 201703L
-    T constexpr numeric_cast (S const value)
+constexpr
 #else
-    T numeric_cast (S const value)
+inline
 #endif
+typename std::enable_if<is_signed_integer<T>::value && is_signed_integer<U>::value
+        && !is_same_decayed<T, U>::value, T>::type
+numeric_cast (U const value)
 {
     if (value > (std::numeric_limits<T>::max)())
         throw std::overflow_error("numeric_cast");
@@ -47,18 +45,17 @@ template <typename T, typename S
     return static_cast<T>(value);
 }
 
-template <typename T, typename S
-    , typename std::enable_if<std::is_integral<S>::value
-        && !std::is_same<typename std::decay<T>::type, bool>::value
-        && !std::is_same<typename std::decay<S>::type, bool>::value
-        && !std::is_same<T, S>::value
-        && std::is_unsigned<T>::value
-        && std::is_unsigned<S>::value, int>::type = 0>
+// unsigned(U) => unsigned(T)
+template <typename T, typename U>
 #if __cplusplus >= 201703L
-    T constexpr numeric_cast (S const value)
+constexpr
 #else
-    T numeric_cast (S const value)
+inline
 #endif
+typename std::enable_if<is_unsigned_integer<T>::value
+        && is_unsigned_integer<U>::value
+        && !is_same_decayed<T, U>::value, T>::type
+numeric_cast (U const value)
 {
     if (value > (std::numeric_limits<T>::max)())
         throw std::overflow_error("numeric_cast");
@@ -66,37 +63,38 @@ template <typename T, typename S
     return static_cast<T>(value);
 }
 
-template <typename T, typename S
-    , typename std::enable_if<std::is_integral<S>::value
-        && !std::is_same<typename std::decay<T>::type, bool>::value
-        && !std::is_same<typename std::decay<S>::type, bool>::value
-        && !std::is_same<T, S>::value
-        && std::is_unsigned<T>::value
-        && std::is_signed<S>::value, int>::type = 0>
-#if __cplusplus >= 201703L
-    T constexpr numeric_cast (S const value)
-#else
-    T numeric_cast (S const value)
-#endif
+// signed(U) => unsigned(T)
+template <typename T, typename U>
+// #if __cplusplus >= 201703L
+// constexpr
+// #else
+// inline
+// #endif
+typename std::enable_if<is_unsigned_integer<T>::value && is_signed_integer<U>::value, T>::type
+numeric_cast (U const value)
 {
-    if (static_cast<std::uintmax_t>(value) > (std::numeric_limits<T>::max)())
-        throw std::overflow_error("numeric_cast");
+    if (value >= 0) {
+        if (static_cast<std::uintmax_t>(value) > (std::numeric_limits<T>::max)())
+            throw std::overflow_error("numeric_cast");
+        return static_cast<T>(value);
+    }
+
+    // value < 0
+    if (sizeof(T) < sizeof(U))
+        throw std::underflow_error("numeric_cast");
 
     return static_cast<T>(value);
 }
 
-template <typename T, typename S
-    , typename std::enable_if<std::is_integral<S>::value
-        && !std::is_same<typename std::decay<T>::type, bool>::value
-        && !std::is_same<typename std::decay<S>::type, bool>::value
-        && !std::is_same<T, S>::value
-        && std::is_signed<T>::value
-        && std::is_unsigned<S>::value, int>::type = 0>
+// unsigned(U) => signed(T)
+template <typename T, typename U>
 #if __cplusplus >= 201703L
-    T constexpr numeric_cast (S const value)
+constexpr
 #else
-    T numeric_cast (S const value)
+inline
 #endif
+typename std::enable_if<is_signed_integer<T>::value && is_unsigned_integer<U>::value, T>::type
+numeric_cast (U const value)
 {
     if (value > static_cast<std::uintmax_t>((std::numeric_limits<T>::max)()))
         throw std::overflow_error("numeric_cast");
@@ -104,17 +102,28 @@ template <typename T, typename S
     return static_cast<T>(value);
 }
 
+// integral(U) => bool(T)
 template <typename T, typename U>
-inline typename std::enable_if<std::is_same<typename std::decay<T>::type, bool>::value
+#if __cplusplus >= 201703L
+constexpr
+#else
+inline
+#endif
+typename std::enable_if<is_bool<T>::value && !is_bool<U>::value
     && std::is_integral<U>::value, bool>::type
 numeric_cast (U const value)
 {
     return static_cast<T>(value);
 }
 
+// bool(U) => integral(T)
 template <typename T, typename U>
-inline typename std::enable_if<std::is_integral<T>::value
-    && std::is_same<typename std::decay<U>::type, bool>::value, T>::type
+#if __cplusplus >= 201703L
+constexpr
+#else
+inline
+#endif
+typename std::enable_if<std::is_integral<T>::value && !is_bool<T>::value && is_bool<U>::value, T>::type
 numeric_cast (U const value)
 {
     return static_cast<T>(value);
