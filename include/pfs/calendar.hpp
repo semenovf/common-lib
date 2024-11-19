@@ -97,6 +97,23 @@ inline int days_in_year (int year)
 }
 
 /**
+ * Determines the the of the week (Sakamoto's method)
+ *
+ * @return The day of the week (1 to 7).
+ * @see https://en.wikipedia.org/wiki/Determination_of_the_day_of_the_week.
+ */
+inline int day_of_week (int y, int m, int d)
+{
+    static int t[] = {0, 3, 2, 5, 0, 3, 5, 1, 4, 6, 2, 4};
+
+    if (m < 3)
+        y--;
+
+    auto x = (y + y / 4 - y / 100 + y / 400 + t[m - 1] + d) % 7;
+    return x == 0 ? 7 : x;
+}
+
+/**
  * Julian day representatio class
  */
 class julian_day final: public compare_operations

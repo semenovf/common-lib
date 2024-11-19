@@ -207,3 +207,15 @@ TEST_CASE("days in year")
     CHECK(calendar::days_in_year(2020) == 366);
     CHECK(calendar::days_in_year(2021) == 365);
 }
+
+TEST_CASE("day of week")
+{
+    CHECK(calendar::day_of_week(2024, 11, 18) == 1);
+    CHECK(calendar::day_of_week(2024, 11, 19) == 2);
+    CHECK(calendar::day_of_week(2024, 11, 20) == 3);
+    CHECK(calendar::day_of_week(2024, 11, 21) == 4);
+    CHECK(calendar::day_of_week(2024, 11, 22) == 5);
+    CHECK(calendar::day_of_week(2024, 11, 23) == 6);
+    CHECK(calendar::day_of_week(2024, 11, 24) == 7);
+    CHECK(calendar::day_of_week(2024, 11, 25) == 1);
+}
