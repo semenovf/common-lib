@@ -65,11 +65,11 @@ numeric_cast (U const value)
 
 // signed(U) => unsigned(T)
 template <typename T, typename U>
-// #if __cplusplus >= 201703L
-// constexpr
-// #else
-// inline
-// #endif
+#if __cplusplus >= 201703L
+constexpr
+#else
+inline
+#endif
 typename std::enable_if<is_unsigned_integer<T>::value && is_signed_integer<U>::value, T>::type
 numeric_cast (U const value)
 {
