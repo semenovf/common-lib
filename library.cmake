@@ -6,16 +6,13 @@
 # Changelog:
 #       2019.12.16 Initial commit.
 #       2024.10.26 Removed `portable_target` dependency.
+#       2024.12.10 Min CMake version is 3.19 (CMakePresets).
 ################################################################################
-cmake_minimum_required (VERSION 3.11)
+cmake_minimum_required (VERSION 3.19)
 project(common
     VERSION 1.0.0
     DESCRIPTION "Common C++ library"
     LANGUAGES CXX C)
-
-option(PFS__FORCE_ULID_STRUCT "Enable ULID struct representation (UUID backend)" OFF)
-option(PFS__ENABLE_NLS "Enable Native Language Support" OFF)
-option(PFS__ENABLE_ICU "Enable `icu` library" ON)
 
 if (NOT DEFINED PFS__LOG_LEVEL)
     if (DEFINED ENV{PFS__LOG_LEVEL})

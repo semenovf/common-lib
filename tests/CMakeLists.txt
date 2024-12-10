@@ -5,16 +5,6 @@
 ################################################################################
 project(common-TESTS CXX C)
 
-if (PFS__ENABLE_COVERAGE)
-    message(STATUS "Coverage feature enabled")
-    if (NOT "${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-        message(FATAL_ERROR "Coverage feature requires GCC")
-    endif()
-
-    set(CMAKE_CXX_FLAGS "-g -O0 --coverage")
-    set(CMAKE_C_FLAGS "-g -O0 --coverage")
-endif()
-
 # Copy test files to build folder
 file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/unicode/utf8/data DESTINATION unicode/utf8)
 
@@ -57,6 +47,7 @@ list(APPEND TEST_NAMES
     source_location
     split
     string_view
+    synchronized
     time_point
     timer_pool
     type_traits
@@ -231,9 +222,4 @@ if (MSVC)
         # So, set_property(TARGET msvc_cplusplus_std PROPERTY CXX_STANDARD 11) sets __cplusplus to 199711L.
         target_compile_options(msvc_cplusplus_std PRIVATE "/Zc:__cplusplus" "/std:c++14")
     endif()
-endif()
-
-if (PFS__ENABLE_COVERAGE)
-    include(${CMAKE_SOURCE_DIR}/cmake/Coverage.cmake)
-    coverage_target("'/usr/*';'*/doctest.h'")
 endif()

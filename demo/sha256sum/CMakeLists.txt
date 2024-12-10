@@ -6,7 +6,7 @@
 # Changelog:
 #      2022.08.07 Initial version
 ################################################################################
-project(sha256sum)
+project(sha256sum-demo)
 
 add_executable(${PROJECT_NAME} main.cpp)
 target_link_libraries(${PROJECT_NAME} PRIVATE pfs::common)
