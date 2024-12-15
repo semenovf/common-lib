@@ -62,6 +62,11 @@ inline std::string to_string (string_view sw)
     return std::string(sw.begin(), sw.end());
 }
 
+inline std::wstring to_string (wstring_view sw)
+{
+    return std::wstring(sw.begin(), sw.end());
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // starts_with
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -84,6 +89,28 @@ inline bool starts_with (string_view const & str, std::string const & prefix)
 }
 
 inline bool starts_with (string_view const & str, string_view const & prefix)
+{
+    return str.size() >= prefix.size() && str.compare(0, prefix.size(), prefix) == 0;
+}
+
+inline bool starts_with (wstring_view const & str, wstring_view::value_type ch)
+{
+    return str.size() >= 1 && str.front() == ch;
+}
+
+inline bool starts_with (wstring_view const & str, wchar_t const * p)
+{
+    // NOTE Not optimal
+    auto len = std::wcslen(p);
+    return str.size() >= len && str.compare(0, len, p) == 0;
+}
+
+inline bool starts_with (wstring_view const & str, std::wstring const & prefix)
+{
+    return str.size() >= prefix.size() && str.compare(0, prefix.size(), prefix) == 0;
+}
+
+inline bool starts_with (wstring_view const & str, wstring_view const & prefix)
 {
     return str.size() >= prefix.size() && str.compare(0, prefix.size(), prefix) == 0;
 }
@@ -116,6 +143,30 @@ inline bool ends_with (string_view const & str, string_view const & suffix)
         && str.compare(str.size() - suffix.size(), string_view::npos, suffix) == 0;
 }
 
+inline bool ends_with (wstring_view const & str, wstring_view::value_type ch)
+{
+    return str.size() >= 1 && str.back() == ch;
+}
+
+inline bool ends_with (wstring_view const & str, wchar_t const * p)
+{
+    // NOTE Not optimal
+    auto len = std::wcslen(p);
+    return str.size() >= len && str.compare(str.size() - len, wstring_view::npos, p) == 0;
+}
+
+inline bool ends_with (wstring_view const & str, std::wstring const & suffix)
+{
+    return str.size() >= suffix.size() 
+        && str.compare(str.size() - suffix.size(), wstring_view::npos, suffix) == 0;
+}
+
+inline bool ends_with (wstring_view const & str, wstring_view const & suffix)
+{
+    return str.size() >= suffix.size() 
+        && str.compare(str.size() - suffix.size(), wstring_view::npos, suffix) == 0;
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // contains
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -140,4 +191,23 @@ inline bool contains (string_view const & str, string_view const & substr)
     return str.find(substr) != string_view::npos;
 }
 
+inline bool contains (wstring_view const & str, wstring_view::value_type ch)
+{
+    return str.find(ch) != wstring_view::npos;
+}
+
+inline bool contains (wstring_view const & str, wchar_t const * substr)
+{
+    return str.find(substr) != wstring_view::npos;
+}
+
+inline bool contains (wstring_view const & str, std::wstring const & substr)
+{
+    return str.find(substr.c_str()) != wstring_view::npos;
+}
+
+inline bool contains (wstring_view const & str, wstring_view const & substr)
+{
+    return str.find(substr) != wstring_view::npos;
+}
 } // namespace pfs

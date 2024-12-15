@@ -9,6 +9,7 @@
 #pragma once
 
 #if _MSC_VER
+#   include "numeric_cast.hpp"
 #   define WIN32_LEAN_AND_MEAN
 #   include <string>
 #   include <windows.h>
@@ -48,8 +49,13 @@ inline std::string utf8_encode (wchar_t const * s)
     return utf8_encode(s, static_cast<int>(std::wcslen(s)));
 }
 
+inline std::string utf8_encode (std::wstring const & s)
+{
+    return utf8_encode(s.data(), pfs::numeric_cast<int>(s.size()));
+}
+
 // Convert an UTF8 string to a wide Unicode String
-inline std::wstring utf8_decode (char const * s, int nchars /*const std::string & str*/)
+inline std::wstring utf8_decode (char const * s, int nchars)
 {
     if (!s)
         return std::wstring{};
@@ -78,6 +84,11 @@ inline std::wstring utf8_decode (char const * s)
     return (s && n > 0) 
         ? utf8_decode(s, static_cast<int>(n))
         : std::wstring{};
+}
+
+inline std::wstring utf8_decode (std::string const & s)
+{
+    return utf8_decode(s.c_str(), pfs::numeric_cast<int>(s.size()));
 }
 
 inline std::string utf8_error (DWORD error_id)

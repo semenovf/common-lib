@@ -15,12 +15,35 @@
 
 namespace pfs {
 
+template <typename CharT = char>
+struct argvapi_traits;
+
+template <>
+struct argvapi_traits <char>
+{
+    static constexpr char const * singledash_str  = "-"; 
+    static constexpr char const * doubledash_str  = "--"; 
+    static constexpr char singledash_char  = '-'; 
+    static constexpr char assign_char  = '='; 
+};
+
+template <>
+struct argvapi_traits <wchar_t>
+{
+    static constexpr wchar_t const * singledash_str  = L"-"; 
+    static constexpr wchar_t const * doubledash_str  = L"--"; 
+    static constexpr wchar_t singledash_char  = L'-'; 
+    static constexpr wchar_t assign_char  = L'='; 
+};
+
 /**
  * Simple Command Line Parser API
  */
-template <typename ArgvFwdIter>
+template <typename ArgvFwdIter, typename CharT = char>
 class argvapi
 {
+    using string_view_type = basic_string_view<CharT>;
+
 private:
     enum class type_enum
     {
@@ -43,11 +66,11 @@ public:
 
     private:
         type_enum _type {type_enum::none};
-        string_view _optname;
-        string_view _arg;
+        string_view_type _optname;
+        string_view_type _arg;
 
     private:
-        item (type_enum type, string_view optname, string_view arg)
+        item (type_enum type, string_view_type optname, string_view_type arg)
             : _type(type)
             , _optname(optname)
             , _arg(arg)
@@ -71,7 +94,7 @@ public:
                 || _type == type_enum::winstyleopt);
         }
 
-        bool is_option (string_view optname) const noexcept
+        bool is_option (string_view_type optname) const noexcept
         {
             return (is_option() && _optname == optname);
         }
@@ -86,12 +109,12 @@ public:
             return !_arg.empty();
         }
 
-        string_view optname () const noexcept
+        string_view_type optname () const noexcept
         {
             return _optname;
         }
 
-        string_view arg () const noexcept
+        string_view_type arg () const noexcept
         {
             return _arg;
         }
@@ -126,35 +149,35 @@ public:
         item next ()
         {
             if (_pos == _end)
-                return item{type_enum::none, string_view{}, string_view{}};
+                return item{type_enum::none, string_view_type{}, string_view_type{}};
 
-            string_view arg{*_pos};
-            string_view optname;
-            string_view optarg;
+            string_view_type arg{*_pos};
+            string_view_type optname;
+            string_view_type optarg;
             auto type = type_enum::none;
 
-            if (pfs::starts_with(arg, "-")) {
-                if (arg == "--") {
+            if (pfs::starts_with(arg, argvapi_traits<CharT>::singledash_str)) { // "-"
+                if (arg == argvapi_traits<CharT>::doubledash_str) { // "--"
                     type = type_enum::doubledash;
-                } else if (arg == "-") {
+                } else if (arg == argvapi_traits<CharT>::singledash_str) { // "-"
                     type = type_enum::singledash;
                 } else {
                     auto first = arg.begin();
                     ++first; // Skip first dash;
 
-                    if (*first == '-') {
+                    if (*first == argvapi_traits<CharT>::singledash_char) { // '-'
                         type = type_enum::longstyleopt;
                         ++first;
                     } else {
                         type = type_enum::shortstyleopt;
                     }
 
-                    auto last = std::find(first, arg.end(), '=');
-                    optname = string_view {first, static_cast<std::size_t>(std::distance(first, last))};
+                    auto last = std::find(first, arg.end(), argvapi_traits<CharT>::assign_char); // '='
+                    optname = string_view_type {first, static_cast<std::size_t>(std::distance(first, last))};
 
                     if (last != arg.end()) {
                         ++last;
-                        optarg = string_view {last, static_cast<std::size_t>(std::distance(last, arg.end()))};
+                        optarg = string_view_type {last, static_cast<std::size_t>(std::distance(last, arg.end()))};
                     }
                 }
             } else {
@@ -183,7 +206,8 @@ public:
             return;
 
         if (!program_name_skipped) {
-            _program = filesystem::canonical(filesystem::utf8_decode(*_pos));
+            //_program = filesystem::canonical(filesystem::utf8_decode(*_pos));
+            _program = filesystem::canonical(*_pos);
             _program_name = _program.filename();
             ++_pos;
         }
@@ -213,17 +237,25 @@ public:
     }
 };
 
-template <typename ArgvFwdIter>
+template <typename ArgvFwdIter, typename CharT = char>
 inline argvapi<ArgvFwdIter> make_argvapi (ArgvFwdIter begin, ArgvFwdIter end
     , bool program_name_skipped = false)
 {
     return argvapi<ArgvFwdIter>{begin, end, program_name_skipped};
 }
 
-inline argvapi<char const * const *> make_argvapi (int argc, char const * const * argv
+inline argvapi<char const * const *, char> make_argvapi (int argc, char const * const * argv
     , bool program_name_skipped = false)
 {
-    return argvapi<char const * const *>{argv, argv + argc, program_name_skipped};
+    return argvapi<char const * const *, char>{argv, argv + argc, program_name_skipped};
 }
+
+#if _MSC_VER
+inline argvapi<wchar_t const * const *, wchar_t> make_argvapi (int argc, wchar_t const * const * argv
+    , bool program_name_skipped = false)
+{
+    return argvapi<wchar_t const * const *, wchar_t>{argv, argv + argc, program_name_skipped};
+}
+#endif
 
 } // namespace pfs
