@@ -19,6 +19,11 @@
 #   include <string_view>
 namespace pfs {
     using string_view = std::string_view;
+    using wstring_view = std::wstring_view;
+
+    template <typename CharT>
+    using basic_string_view = std::basic_string_view<CharT>;
+
 } // namespace pfs
 #else
 #   ifndef STX_NAMESPACE_NAME
@@ -36,6 +41,7 @@ namespace pfs {
     } // namespace pfs
 
     using string_view = pfs::string_view;
+    using wstring_view = pfs::wstring_view;
 
     namespace std {
         template <>
@@ -52,6 +58,22 @@ namespace pfs {
                 return result;
             }
         };
+
+        template <>
+        struct hash<pfs::wstring_view>
+        {
+            std::size_t operator () (pfs::wstring_view sv) const noexcept
+            {
+                std::size_t result = 0;
+                std::hash<pfs::wstring_view::value_type> hasher;
+
+                for (auto & ch: sv)
+                    result = result * 31 + hasher(ch);
+
+                return result;
+            }
+        };
+
     } // namespace std
 #endif
 
