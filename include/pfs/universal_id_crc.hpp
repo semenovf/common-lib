@@ -14,7 +14,35 @@
 
 namespace pfs {
 
-#ifdef ULIDUINT128
+#if defined(PFS__UNIVERSAL_ID_IMPL_UUIDV7)
+template <>
+inline std::int16_t crc16_of<universal_id> (universal_id const & data, std::int16_t initial)
+{
+    auto a = data.to_array();
+    return crc16_all_of(initial
+        , a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8]
+        , a[9], a[10], a[11], a[12], a[13], a[14], a[15]);
+}
+
+template <>
+inline std::int32_t crc32_of<universal_id> (universal_id const & data, std::int32_t initial)
+{
+    auto a = data.to_array();
+    return crc32_all_of(initial
+        , a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8]
+        , a[9], a[10], a[11], a[12], a[13], a[14], a[15]);
+}
+
+template <>
+inline std::int64_t crc64_of<universal_id> (universal_id const & data, std::int64_t initial)
+{
+    auto a = data.to_array();
+    return crc64_all_of(initial
+        , a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8], a[9]
+        , a[10], a[11], a[12], a[13], a[14], a[15]);
+}
+#else // !PFS__UNIVERSAL_ID_IMPL_UUIDV7
+#   ifdef ULIDUINT128
 template <>
 inline std::int16_t crc16_of<universal_id> (universal_id const & data, std::int16_t initial)
 {
@@ -80,7 +108,7 @@ inline std::int64_t crc64_of<universal_id> (universal_id const & data, std::int6
         , static_cast<std::uint8_t>(data.u >> 8)
         , static_cast<std::uint8_t>(data.u >> 0));
 }
-#else // ULIDUINT128
+#   else // ULIDUINT128
 template <>
 inline std::int16_t crc16_of<universal_id> (universal_id const & data, std::int16_t initial)
 {
@@ -146,7 +174,6 @@ inline std::int64_t crc64_of<universal_id> (universal_id const & data, std::int6
         , data.u.data[14]
         , data.u.data[15]);
 }
-
-#endif // ! ULIDUINT128
-
+#   endif // ! ULIDUINT128
+#endif // PFS__UNIVERSAL_ID_IMPL_UUIDV7
 } // namespace pfs

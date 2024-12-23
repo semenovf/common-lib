@@ -68,6 +68,10 @@ if (UNIX)
     target_link_libraries(common INTERFACE dl)
 endif()
 
+if (PFS__UNIVERSAL_ID_IMPL_UUIDV7)
+    target_compile_definitions(common INTERFACE "PFS__UNIVERSAL_ID_IMPL_UUIDV7=1")
+endif()
+
 if (PFS__FORCE_ULID_STRUCT)
     target_compile_definitions(common INTERFACE "PFS__FORCE_ULID_STRUCT=1")
 endif()

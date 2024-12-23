@@ -60,7 +60,8 @@ list(APPEND TEST_NAMES
 ##     utf16le_encode
     utf16be_decode
 ##     utf16be_encode
-    uuid)
+    uuid
+    uuidv7)
 
 set(utf8_resource_SOURCES
     unicode/utf8/cyrillic.c
@@ -188,6 +189,15 @@ if (TARGET utf16be_decode)
             "${CMAKE_CURRENT_SOURCE_DIR}/unicode/utf16be/data"
             "$<TARGET_FILE_DIR:utf16be_decode>/unicode/utf16be/data"
         VERBATIM)
+endif()
+
+if (TARGET uuidv7)
+    find_package(Qt5 COMPONENTS Core)
+
+    if (Qt5Core_FOUND)
+        target_link_libraries(uuidv7 PRIVATE Qt5::Core)
+        target_compile_definitions(uuidv7 PRIVATE "QT5_CORE_ENABLED=1")
+    endif()
 endif()
 
 if (TARGET resources)
