@@ -23,7 +23,7 @@ public:
 
     stopwatch ()
     {
-        _begin = std::chrono::high_resolution_clock::time_point::min();
+        _begin = std::chrono::high_resolution_clock::now();
         _end = _begin;
     }
 
@@ -41,6 +41,12 @@ public:
     {
         using namespace std::chrono;
         return duration_cast<count_type>(_end - _begin).count();
+    }
+
+    inline rep current_count () const
+    {
+        using namespace std::chrono;
+        return duration_cast<count_type>(std::chrono::high_resolution_clock::now() - _begin).count();
     }
 };
 
