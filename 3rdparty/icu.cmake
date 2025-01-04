@@ -71,7 +71,7 @@ if (MSVC)
             BUILD_COMMAND ${CMAKE_COMMAND} -E echo "Build ICU"
                COMMAND ${CMAKE_COMMAND} -E chdir "${_icu_root_dir}" build.cmd
             INSTALL_COMMAND ""
-            BUILD_BYPRODUCTS 
+            BUILD_BYPRODUCTS
                 ${_icu_uc_lib_path}
                 ${_icu_uc_implib_path}
                 ${_icu_data_lib_path}
@@ -88,4 +88,74 @@ if (MSVC)
     set_target_properties(ICU::data PROPERTIES
             IMPORTED_LOCATION "${_icu_data_lib_path}"
             IMPORTED_IMPLIB "${_icu_data_implib_path}")
+else (MSVC)
+    set(_prefix "${CMAKE_CURRENT_BINARY_DIR}/${PROJ_NAME}")
+    get_property(_icu_lib_dir GLOBAL PROPERTY LIBRARY_OUTPUT_DIRECTORY)
+
+    if (NOT _icu_lib_dir)
+        set(_icu_lib_dir ${CMAKE_BINARY_DIR}/output)
+    endif()
+
+    if (CMAKE_SYSTEM_NAME MATCHES "Linux")
+        if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+            set(_icu_platform "Linux/gcc")
+        elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+            set(_icu_platform "Linux/Clang")
+        else()
+            set(_icu_platform "Linux")
+        endif()
+    else()
+        message(FATAL_ERROR "Add instructions to support this platform: ${CMAKE_SYSTEM_NAME}/${CMAKE_CXX_COMPILER_ID}")
+    endif()
+
+    set(_icu_uc_lib_path "${_icu_lib_dir}/libicuuc.so")
+    set(_icu_data_lib_path "${_icu_lib_dir}/libicudata.so")
+    set(_icu_inc_dir "${_icu_lib_dir}/include")
+
+    # --with-data-packaging     specify how to package ICU data. Possible values:
+    #     files    raw files (.res, etc)
+    #     archive  build a single icudtXX.dat file
+    #     library  shared library (.dll/.so/etc.)
+    #     static   static library (.a/.lib/etc.)
+    #     auto     build shared if possible (default)
+    #        See https://unicode-org.github.io/icu/userguide/icudata for more info.
+    include(ExternalProject)
+    ExternalProject_Add(${PROJ_NAME}
+        PREFIX ${_prefix}
+        GIT_REPOSITORY "https://github.com/unicode-org/icu"
+        GIT_TAG "release-71-1"
+        GIT_SHALLOW ON
+        GIT_PROGRESS ON
+        PATCH_COMMAND ""
+        CONFIGURE_COMMAND COMMAND ${CMAKE_COMMAND} -E chdir "../${PROJ_NAME}/icu4c/source"
+            ./runConfigureICU ${_icu_platform}
+                "--prefix=${_prefix}"
+                "--libdir=${_icu_lib_dir}"
+                "--includedir=${_icu_lib_dir}/include"
+                --with-data-packaging=library
+                --enable-extras=no
+                --enable-tools=yes
+                --enable-fuzzer=no
+                --enable-tests=no
+                --enable-samples=no
+                --enable-draft=no
+                --enable-shared=yes
+                --enable-static=no
+                --enable-release=yes
+                --enable-debug=no
+        BUILD_COMMAND COMMAND ${CMAKE_COMMAND} -E chdir "../${PROJ_NAME}/icu4c/source" make
+        INSTALL_COMMAND COMMAND ${CMAKE_COMMAND} -E chdir "../${PROJ_NAME}/icu4c/source" make install
+        BUILD_BYPRODUCTS
+            ${_icu_uc_lib_path}
+            ${_icu_data_lib_path})
+    add_dependencies(common ${PROJ_NAME})
+
+    add_library(ICU::uc SHARED IMPORTED GLOBAL)
+    set_target_properties(ICU::uc PROPERTIES
+        IMPORTED_LOCATION "${_icu_uc_lib_path}"
+        INTERFACE_INCLUDE_DIRECTORIES "${_icu_inc_dir}")
+
+    add_library(ICU::data SHARED IMPORTED GLOBAL)
+    set_target_properties(ICU::data PROPERTIES
+        IMPORTED_LOCATION "${_icu_data_lib_path}")
 endif(MSVC)
