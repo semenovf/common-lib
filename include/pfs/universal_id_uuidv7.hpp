@@ -163,7 +163,10 @@ inline universal_id generate_uuid ()
 {
     static std::random_device s_rd; // Will be used to obtain a seed for the random number engine
     static std::mt19937 s_random_engine{s_rd()}; // Standard mersenne_twister_engine seeded with rd()
-    static std::uniform_int_distribution<std::uint8_t> s_distrib{0, 255};
+
+    // MSVC error C2338: static_assert failed: 'note: char, signed char, unsigned char, char8_t, int8_t, and uint8_t are not allowed'
+    //static std::uniform_int_distribution<std::uint8_t> s_distrib{0, 255};
+    static std::uniform_int_distribution<std::uint16_t> s_distrib{0, 255};
 
     std::array<std::uint8_t, 16> u;
     std::uint8_t const * no_uuid_prev = nullptr;

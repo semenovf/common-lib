@@ -1,28 +1,20 @@
-################################################################################
-## Copyright (c) 2020-2023 Vladislav Trifochkin
-##
-## This file is part of `debby`.
-##
-## Changelog:
-##      2020.03.29 Initial version.
-##      2023.11.25 Removed useless (rare) rules.
-################################################################################
-
 /3rdparty/*
-!/3rdparty/download.sh
 !/3rdparty/README.md
 !/3rdparty/*.cmake
-!/3rdparty/*.in
 !/3rdparty/CMakeLists.txt
 
-/2ndparty/*
-!/2ndparty/download.sh
-!/2ndparty/update.sh
+/2ndparty/
 
 ### KDevelop ###
 *.kdev4
 .kdev4/
 
 ### Visual Studio ###
-.vs
-CMakeSettings.json
+.vs/
+/out/
+/CMakeSettings.json
+
+### VSCode
+.vscode/
+/build/
+

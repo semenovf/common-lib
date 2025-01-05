@@ -1,5 +1,0 @@
-msbuild source\allinone\allinone.sln ^
-  /p:Configuration=Release ^
-  /p:Platform=@CMAKE_GENERATOR_PLATFORM@ ^
-  /p:SkipUWP=true ^
-  /target:common;i18n;makedata

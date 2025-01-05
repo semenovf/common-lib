@@ -54,19 +54,12 @@ endif()
 ## Windows
 
 Required ICU version 71.1.
-Build script uses one of two variants (first variant has higher priority if both meet the conditions):
-
-* uses prebuilt binaries and headers if subdirectory `3rdpaty/icu-prebuilt/include/unicode/` exists;
-* build from sources if solution file `3rdparty/icu/icu4c/sources/allinone.sln` exists (`python 3` required).
+Build from sources required `python 3`.
 
 Note. The path to sources must not contain spaces. There was a problem building ICU library.
 
-### Using prebuilt binaries
+### Using prebuilt binaries (not implemented yet)
 
 1. Download them from `git` repository:
 * [Win32-MSVC2019](https://github.com/unicode-org/icu/releases/download/release-71-1/icu4c-71_1-Win32-MSVC2019.zip)
 * [Win64-MSVC2019](https://github.com/unicode-org/icu/releases/download/release-71-1/icu4c-71_1-Win64-MSVC2019.zip)
-
-2. Unzip archive into `3rdparty/icu-prebuilt`.
-3. `cd scripts`
-4. `build-windows.cmd`

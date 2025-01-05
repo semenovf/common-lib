@@ -5,97 +5,68 @@
 #
 # Changelog:
 #      2024.09.01 Initial version.
+#      2025.01.04 Added build for Linux.
+#      2025.01.05 Fixed build for Windows.
 ################################################################################
-#project(icu-ep)
 set(PROJ_NAME icu-ep)
 
-if (MSVC)
-    if (EXISTS "${CMAKE_CURRENT_LIST_DIR}/icu-prebuilt/include/unicode/utf8.h")
-        set(_build_variant_1 TRUE)
-        set(_icu_root_dir "${CMAKE_CURRENT_LIST_DIR}/icu-prebuilt")
-    elseif (EXISTS "${CMAKE_CURRENT_LIST_DIR}/icu/icu4c/source/allinone/allinone.sln")
-        set(_build_variant_2 TRUE)
-        set(_prefix "${CMAKE_CURRENT_BINARY_DIR}/${PROJ_NAME}")
-        set(_icu_root_dir "${_prefix}/icu/icu4c")
-    else ()
-        message(WARNING
-            "ICU support is preferred for search facilities but ICU library or "
-            "one of it's component not found. See README.md for instructions.")
-        return()
-    endif()
+#message(WARNING
+#    "ICU support is preferred for search facilities but ICU library or "
+#    "one of it's component not found. See README.md for instructions.")
+#return()
 
-    if (CMAKE_GENERATOR_PLATFORM STREQUAL "x64")
+set(_prefix "${CMAKE_CURRENT_BINARY_DIR}/${PROJ_NAME}")
+get_property(_icu_lib_dir GLOBAL PROPERTY LIBRARY_OUTPUT_DIRECTORY)
+
+if (NOT _icu_lib_dir)
+    set(_icu_lib_dir ${CMAKE_BINARY_DIR}/output)
+endif()
+
+if (MSVC)
+    set(_icu_uc_lib_path "${_icu_lib_dir}/icuuc71.dll")
+    set(_icu_uc_implib_path "${_icu_lib_dir}/icuuc.lib")
+    set(_icu_data_lib_path "${_icu_lib_dir}/icudt71.dll")
+    set(_icu_data_implib_path "${_icu_lib_dir}/icudt.lib")
+    set(_icu_inc_dir "${_icu_lib_dir}/include")
+
+    # https://learn.microsoft.com/en-us/cpp/build/cmakesettings-reference?view=msvc-170#environments
+    # Used non-"Visual Studio Generators" or arch is not set by -A option
+    if (CMAKE_GENERATOR_PLATFORM STREQUAL "x64" OR $ENV{VSCMD_ARG_TGT_ARCH} STREQUAL "x64")
+        set(PFS__ICU_ARCH x64)
         set(_icu_lib_subdir "bin64")
         set(_icu_implib_subdir "lib64")
-    elseif (CMAKE_GENERATOR_PLATFORM STREQUAL "Win32")
+    elseif (CMAKE_GENERATOR_PLATFORM STREQUAL "Win32" OR $ENV{VSCMD_ARG_TGT_ARCH} STREQUAL "x86")
+        set(PFS__ICU_ARCH Win32)
         set(_icu_lib_subdir "bin")
         set(_icu_implib_subdir "lib")
     else()
-        message(FATAL_ERROR "Unknown or unsupported target paltform: ${CMAKE_GENERATOR_PLATFORM}")
+        message(FATAL_ERROR "Target platform not set: use -A option (-A x64 or -A Win32)")
     endif()
 
-    set(_icu_uc_lib_path "${_icu_root_dir}/${_icu_lib_subdir}/icuuc71.dll")
-    set(_icu_uc_implib_path "${_icu_root_dir}/${_icu_implib_subdir}/icuuc.lib")
-    set(_icu_data_lib_path "${_icu_root_dir}/${_icu_lib_subdir}/icudt71.dll")
-    set(_icu_data_implib_path "${_icu_root_dir}/${_icu_implib_subdir}/icudt.lib")
+    configure_file(${CMAKE_CURRENT_LIST_DIR}/build-icu.cmd.in ${CMAKE_CURRENT_BINARY_DIR}/build-icu.cmd @ONLY)
 
-    set(_icu_inc_dir "${_icu_root_dir}/include")
-
-    if (_build_variant_1)
-        if (NOT EXISTS ${_icu_inc_dir})
-            message(FATAL_ERROR "ICU include directory not found: ${_icu_inc_dir}")
-        endif()
-
-        if (NOT EXISTS ${_icu_uc_lib_path})
-            message(FATAL_ERROR "ICU UC library not found: ${_icu_uc_lib_path}")
-        endif()
-    endif()
-
-    if (_build_variant_2)
-        string(FIND ${_icu_root_dir} " " _space_pos)
-
-        # NOTE: There is a problem to build ICU when path to library sources contains spaces.
-        if (_space_pos GREATER_EQUAL 0)
-            message(FATAL_ERROR "ICU source directory name contains spaces.")
-        endif()
-
-        include(ExternalProject)
-
-        configure_file(${CMAKE_CURRENT_LIST_DIR}/icu.cmd.in ${_icu_root_dir}/build.cmd @ONLY)
-
-        ExternalProject_Add(${PROJ_NAME} 
-            PREFIX ${_prefix}
-            DOWNLOAD_COMMAND ${CMAKE_COMMAND} -E echo "Copy ICU sources"
-                COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_CURRENT_LIST_DIR}/icu/icu4c/source" "${_icu_root_dir}/source"
-            CONFIGURE_COMMAND ""
-            BUILD_COMMAND ${CMAKE_COMMAND} -E echo "Build ICU"
-               COMMAND ${CMAKE_COMMAND} -E chdir "${_icu_root_dir}" build.cmd
-            INSTALL_COMMAND ""
-            BUILD_BYPRODUCTS
-                ${_icu_uc_lib_path}
-                ${_icu_uc_implib_path}
-                ${_icu_data_lib_path}
-                ${_icu_data_implib_path})
-    endif()
-
-    add_library(ICU::uc SHARED IMPORTED GLOBAL)
-    set_target_properties(ICU::uc PROPERTIES
-            IMPORTED_LOCATION "${_icu_uc_lib_path}"
-            INTERFACE_INCLUDE_DIRECTORIES "${_icu_inc_dir}"
-            IMPORTED_IMPLIB "${_icu_uc_implib_path}")
-
-    add_library(ICU::data SHARED IMPORTED GLOBAL)
-    set_target_properties(ICU::data PROPERTIES
-            IMPORTED_LOCATION "${_icu_data_lib_path}"
-            IMPORTED_IMPLIB "${_icu_data_implib_path}")
+    include(ExternalProject)
+    ExternalProject_Add(${PROJ_NAME}
+        PREFIX ${_prefix}
+        GIT_REPOSITORY "https://github.com/unicode-org/icu"
+        GIT_TAG "release-71-1"
+        GIT_SHALLOW ON
+        GIT_PROGRESS ON
+        PATCH_COMMAND ""
+        CONFIGURE_COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_CURRENT_BINARY_DIR}/build-icu.cmd "../${PROJ_NAME}/icu4c"
+        BUILD_COMMAND ${CMAKE_COMMAND} -E echo "Build ICU"
+            COMMAND ${CMAKE_COMMAND} -E chdir "../${PROJ_NAME}/icu4c" build-icu.cmd
+        INSTALL_COMMAND ${CMAKE_COMMAND} -E copy_if_different "../${PROJ_NAME}/icu4c/${_icu_lib_subdir}/icuuc71.dll" ${_icu_lib_dir}
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different "../${PROJ_NAME}/icu4c/${_icu_lib_subdir}/icudt71.dll" ${_icu_lib_dir}
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different "../${PROJ_NAME}/icu4c/${_icu_implib_subdir}/icuuc.lib" ${_icu_lib_dir}
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different "../${PROJ_NAME}/icu4c/${_icu_implib_subdir}/icudt.lib" ${_icu_lib_dir}
+            COMMAND ${CMAKE_COMMAND} -E copy_directory "../${PROJ_NAME}/icu4c/include" "${_icu_lib_dir}/include"
+        BUILD_BYPRODUCTS
+            ${_icu_uc_lib_path}
+            ${_icu_data_lib_path}
+            ${_icu_uc_implib_path}
+            ${_icu_data_implib_path})
 else (MSVC)
-    set(_prefix "${CMAKE_CURRENT_BINARY_DIR}/${PROJ_NAME}")
-    get_property(_icu_lib_dir GLOBAL PROPERTY LIBRARY_OUTPUT_DIRECTORY)
-
-    if (NOT _icu_lib_dir)
-        set(_icu_lib_dir ${CMAKE_BINARY_DIR}/output)
-    endif()
-
     if (CMAKE_SYSTEM_NAME MATCHES "Linux")
         if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
             set(_icu_platform "Linux/gcc")
@@ -104,13 +75,13 @@ else (MSVC)
         else()
             set(_icu_platform "Linux")
         endif()
+
+        set(_icu_uc_lib_path "${_icu_lib_dir}/libicuuc.so")
+        set(_icu_data_lib_path "${_icu_lib_dir}/libicudata.so")
+        set(_icu_inc_dir "${_icu_lib_dir}/include")
     else()
         message(FATAL_ERROR "Add instructions to support this platform: ${CMAKE_SYSTEM_NAME}/${CMAKE_CXX_COMPILER_ID}")
     endif()
-
-    set(_icu_uc_lib_path "${_icu_lib_dir}/libicuuc.so")
-    set(_icu_data_lib_path "${_icu_lib_dir}/libicudata.so")
-    set(_icu_inc_dir "${_icu_lib_dir}/include")
 
     # --with-data-packaging     specify how to package ICU data. Possible values:
     #     files    raw files (.res, etc)
@@ -148,14 +119,20 @@ else (MSVC)
         BUILD_BYPRODUCTS
             ${_icu_uc_lib_path}
             ${_icu_data_lib_path})
-    add_dependencies(common ${PROJ_NAME})
-
-    add_library(ICU::uc SHARED IMPORTED GLOBAL)
-    set_target_properties(ICU::uc PROPERTIES
-        IMPORTED_LOCATION "${_icu_uc_lib_path}"
-        INTERFACE_INCLUDE_DIRECTORIES "${_icu_inc_dir}")
-
-    add_library(ICU::data SHARED IMPORTED GLOBAL)
-    set_target_properties(ICU::data PROPERTIES
-        IMPORTED_LOCATION "${_icu_data_lib_path}")
 endif(MSVC)
+
+add_dependencies(common ${PROJ_NAME})
+
+add_library(ICU::uc SHARED IMPORTED GLOBAL)
+set_target_properties(ICU::uc PROPERTIES
+    IMPORTED_LOCATION "${_icu_uc_lib_path}"
+    INTERFACE_INCLUDE_DIRECTORIES "${_icu_inc_dir}")
+
+add_library(ICU::data SHARED IMPORTED GLOBAL)
+set_target_properties(ICU::data PROPERTIES
+    IMPORTED_LOCATION "${_icu_data_lib_path}")
+
+if(CMAKE_SYSTEM_NAME MATCHES "Windows")
+    set_target_properties(ICU::uc PROPERTIES IMPORTED_IMPLIB "${_icu_uc_implib_path}")
+    set_target_properties(ICU::data PROPERTIES IMPORTED_IMPLIB "${_icu_data_implib_path}")
+endif()
