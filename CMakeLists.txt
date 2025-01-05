@@ -17,7 +17,7 @@ option(PFS__BUILD_DEMO "Build examples/demo" OFF)
 option(PFS__UNIVERSAL_ID_IMPL_UUIDV7 "Enable UUIDv7 implementation for UUID (default is ULID)" OFF)
 option(PFS__FORCE_ULID_STRUCT "Enable ULID struct representation (UUID backend)" OFF)
 option(PFS__ENABLE_NLS "Enable Native Language Support" OFF)
-option(PFS__ENABLE_ICU "Enable `icu` library" ON)
+option(PFS__ENABLE_ICU "Enable `icu` library" OFF)
 
 if (DEBBY__BUILD_STRICT)
     if (NOT CMAKE_CXX_STANDARD)

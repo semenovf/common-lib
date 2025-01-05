@@ -1,5 +1,4 @@
 /3rdparty/*
-!/3rdparty/README.md
 !/3rdparty/*.cmake
 !/3rdparty/CMakeLists.txt
 

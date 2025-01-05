@@ -1,0 +1,5 @@
+msbuild source\allinone\allinone.sln ^
+  /p:Configuration=Release ^
+  /p:Platform=@PFS__ICU_ARCH@ ^
+  /p:SkipUWP=true ^
+  /target:common;i18n;makedata
