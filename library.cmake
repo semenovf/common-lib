@@ -55,7 +55,7 @@ if (PFS__ENABLE_ICU)
         target_link_libraries(common INTERFACE ICU::uc ICU::data)
         target_compile_definitions(common INTERFACE "PFS__ICU_ENABLED=1")
     else()
-        include(${CMAKE_CURRENT_LIST_DIR}/3rdparty/icu.cmake)
+        include(${CMAKE_CURRENT_LIST_DIR}/icu.cmake)
 
         if (TARGET ICU::uc AND TARGET ICU::data)
             target_link_libraries(common INTERFACE ICU::uc ICU::data)
