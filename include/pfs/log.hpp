@@ -66,31 +66,36 @@ inline std::string stringify_trace_time ()
 #   endif
     }
 
+#   define LOGV(t, f, ...) __android_log_print_helper(ANDROID_LOG_VERBOSE, t, fmt::format(f , ##__VA_ARGS__))
 #   define LOGD(t, f, ...) __android_log_print_helper(ANDROID_LOG_DEBUG, t, fmt::format(f , ##__VA_ARGS__))
 #   define LOGI(t, f, ...) __android_log_print_helper(ANDROID_LOG_INFO, t, fmt::format(f , ##__VA_ARGS__))
 #   define LOGW(t, f, ...) __android_log_print_helper(ANDROID_LOG_WARN, t, fmt::format(f , ##__VA_ARGS__))
 #   define LOGE(t, f, ...) __android_log_print_helper(ANDROID_LOG_ERROR, t, fmt::format(f , ##__VA_ARGS__))
 
-#   ifdef PFS__LOG_LEVEL
-#       if PFS__LOG_LEVEL >= 1
-#           define LOG_TRACE_1(f, ...) __android_log_print_helper(             \
-                  ANDROID_LOG_VERBOSE                                          \
-                , "TRACE-1", fmt::format(f , ##__VA_ARGS__).c_str())
-#       endif
-
-#       if PFS__LOG_LEVEL >= 2
-#           define LOG_TRACE_2(f, ...) __android_log_print_helper(             \
-                  ANDROID_LOG_VERBOSE                                          \
-                , "TRACE-2", fmt::format(f , ##__VA_ARGS__).c_str())
-#       endif
-
-#       if PFS__LOG_LEVEL >= 3
-#           define LOG_TRACE_3(f, ...) __android_log_print_helper(             \
-                  ANDROID_LOG_VERBOSE                                          \
-                , "TRACE-3", fmt::format(f , ##__VA_ARGS__).c_str())
-#       endif
-#   endif // PFS__LOG_LEVEL
+// PFS__LOG_LEVEL DEPRECATED
+// #   ifdef PFS__LOG_LEVEL
+// #       if PFS__LOG_LEVEL >= 1
+// #           define LOG_TRACE_1(f, ...) __android_log_print_helper(             \
+//                   ANDROID_LOG_VERBOSE                                          \
+//                 , "TRACE-1", fmt::format(f , ##__VA_ARGS__).c_str())
+// #       endif
+//
+// #       if PFS__LOG_LEVEL >= 2
+// #           define LOG_TRACE_2(f, ...) __android_log_print_helper(             \
+//                   ANDROID_LOG_VERBOSE                                          \
+//                 , "TRACE-2", fmt::format(f , ##__VA_ARGS__).c_str())
+// #       endif
+//
+// #       if PFS__LOG_LEVEL >= 3
+// #           define LOG_TRACE_3(f, ...) __android_log_print_helper(             \
+//                   ANDROID_LOG_VERBOSE                                          \
+//                 , "TRACE-3", fmt::format(f , ##__VA_ARGS__).c_str())
+// #       endif
+// #   endif // PFS__LOG_LEVEL
 #else  // __ANDROID__
+#   define LOGV(t, f, ...) {                                               \
+        fmt::print(stdout, "{} [V] {}: " f "\n"                            \
+            , stringify_trace_time(), t , ##__VA_ARGS__); fflush(stdout);}
 #   define LOGD(t, f, ...) {                                               \
         fmt::print(stdout, "{} [D] {}: " f "\n"                            \
             , stringify_trace_time(), t , ##__VA_ARGS__); fflush(stdout);}
@@ -104,38 +109,38 @@ inline std::string stringify_trace_time ()
         fmt::print(stderr, "{} [E] {}: " f "\n"                            \
             , stringify_trace_time(), t , ##__VA_ARGS__); fflush(stderr);}
 
-#   ifdef PFS__LOG_LEVEL
-#       if PFS__LOG_LEVEL >= 1
-#           define LOG_TRACE_1(f, ...) {                                       \
-                fmt::print(stdout, "{} -- TRACE(1): " f "\n"                   \
-                    , stringify_trace_time() , ##__VA_ARGS__); fflush(stdout);}
-#       endif
-
-#       if PFS__LOG_LEVEL >= 2
-#           define LOG_TRACE_2(f, ...) {                                       \
-                fmt::print(stdout, "{} -- TRACE(2): " f "\n"                   \
-                    , stringify_trace_time() , ##__VA_ARGS__); fflush(stdout);}
-#       endif
-
-#       if PFS__LOG_LEVEL >= 3
-#           define LOG_TRACE_3(f, ...) {                                       \
-              fmt::print(stdout, "{} -- TRACE(3): " f "\n"                     \
-            , stringify_trace_time() , ##__VA_ARGS__); fflush(stdout);}
-#       endif
-#   endif // PFS__LOG_LEVEL
+// #   ifdef PFS__LOG_LEVEL DEPRECATED
+// #       if PFS__LOG_LEVEL >= 1
+// #           define LOG_TRACE_1(f, ...) {                                       \
+//                 fmt::print(stdout, "{} -- TRACE(1): " f "\n"                   \
+//                     , stringify_trace_time() , ##__VA_ARGS__); fflush(stdout);}
+// #       endif
+//
+// #       if PFS__LOG_LEVEL >= 2
+// #           define LOG_TRACE_2(f, ...) {                                       \
+//                 fmt::print(stdout, "{} -- TRACE(2): " f "\n"                   \
+//                     , stringify_trace_time() , ##__VA_ARGS__); fflush(stdout);}
+// #       endif
+//
+// #       if PFS__LOG_LEVEL >= 3
+// #           define LOG_TRACE_3(f, ...) {                                       \
+//               fmt::print(stdout, "{} -- TRACE(3): " f "\n"                     \
+//             , stringify_trace_time() , ##__VA_ARGS__); fflush(stdout);}
+// #       endif
+// #   endif // PFS__LOG_LEVEL
 #endif // !__ANDROID__
 
-#ifndef LOG_TRACE_1
-#   define LOG_TRACE_1(format, ...)
-#endif
-
-#ifndef LOG_TRACE_2
-#   define LOG_TRACE_2(format, ...)
-#endif
-
-#ifndef LOG_TRACE_3
-#   define LOG_TRACE_3(format, ...)
-#endif
+// #ifndef LOG_TRACE_1
+// #   define LOG_TRACE_1(format, ...)
+// #endif
+//
+// #ifndef LOG_TRACE_2
+// #   define LOG_TRACE_2(format, ...)
+// #endif
+//
+// #ifndef LOG_TRACE_3
+// #   define LOG_TRACE_3(format, ...)
+// #endif
 
 #if __ANDROID__
 #   define LOGEXP(t, x) __android_log_print_helper(ANDROID_LOG_ERROR, t, x.what())
