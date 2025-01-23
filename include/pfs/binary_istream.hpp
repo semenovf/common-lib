@@ -1,18 +1,21 @@
 ////////////////////////////////////////////////////////////////////////////////
-// Copyright (c) 2020-2023 Vladislav Trifochkin
+// Copyright (c) 2023-2025 Vladislav Trifochkin
 //
 // This file is part of `common-lib`.
 //
 // Changelog:
-//      2023.03.22 Initial version.
+//      2023.03.22 Initial version (as original binary_istream).
+//      2024.05.07 Initial version (named as binary_istream_nt).
+//      2025.01.23 Renamed into binary_istream.
+//                 Refactored.
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
 #include "error.hpp"
 #include "endian.hpp"
 #include "numeric_cast.hpp"
-#include "optional.hpp"
 #include "string_view.hpp"
 #include <cstdint>
+#include <algorithm>
 #include <functional>
 #include <type_traits>
 #include <utility>
@@ -20,33 +23,25 @@
 
 namespace pfs {
 
-#ifndef PFS__EXPECTED_SIZE_DEFINED
-#   define PFS__EXPECTED_SIZE_DEFINED 1
-    struct expected_size // [[deprecated]]
-    {
-        std::uint32_t sz;
-    };
-#endif
-
+/**
+ * No-throw version of @c binary_istream class.
+ */
 template <endian Endianess = endian::native>
 class binary_istream
 {
-    enum transaction_state
-    {
-          initial
-        , started
-        , failed
-    };
-
 public:
     using size_type = std::uint32_t;
+
+    enum status_enum {
+          good
+        , out_of_bound
+        , corrupted
+    };
 
 private:
     char const * _p {nullptr};
     char const * _end {nullptr};
-    optional<size_type> _expected_size; // [[deprecated]]
-
-    transaction_state _ts {transaction_state::initial};
+    status_enum _state {status_enum::good};
     char const * _saved_pos {nullptr};
 
 public:
@@ -81,9 +76,14 @@ public:
         return _p == _end;
     }
 
+    bool is_good () const noexcept
+    {
+        return _state == good;
+    }
+
     operator bool () const noexcept
     {
-        return !empty();
+        return !this->empty() && _state == good;
     }
 
     size_type available () const noexcept
@@ -91,37 +91,16 @@ public:
         return numeric_cast<size_type>(_end - _p);
     }
 
-   /**
-     * Peeks character from underlying istream instance.
-     *
-     * @return Character peek from stream or @c nullopt on failure.
-     *
-     * @deprecated Will be removed in future versions.
-     */
-    [[deprecated]]
-    optional<char> peek () const noexcept
-    {
-        return _p != _end ? make_optional(*_p) : nullopt;
-    }
-
     /**
      * Skips @a nbytes in stream.
-     *
-     * @throws error {std::errc::result_out_of_range} if result position is out of bounds.
      */
     void skip (size_type nbytes)
     {
-        if (_ts == transaction_state::failed)
-            return;
-
-        if (_p + nbytes <= _end) {
-            _p += nbytes;
-        } else {
-            if (_ts == transaction_state::started) {
-                _ts = transaction_state::failed;
-                return;
+        if (_state == status_enum::good) {
+            if (this->_p + nbytes <= this->_end) {
+                this->_p += nbytes;
             } else {
-                throw error { std::make_error_code(std::errc::result_out_of_range) };
+                _state = status_enum::out_of_bound;
             }
         }
     }
@@ -133,51 +112,38 @@ public:
         return *this;
     }
 
+    template <std::size_t N>
+    binary_istream & operator >> (std::array<char, N> & v)
+    {
+        unpack(*this, v);
+        return *this;
+    }
+
     template <typename SizeType>
-    binary_istream & operator >> (std::pair<std::string &, SizeType> ref)
+    binary_istream & operator >> (std::pair<std::string *, SizeType *> && v)
     {
-        return *this;
-    }
+        string_view tmp;
+        unpack(*this, tmp, *v.second);
 
-    /**
-     * @deprecated
-     */
-    [[deprecated]]
-    binary_istream & operator >> (std::pair<char *, size_type> raw)
-    {
-        unpack(*this, raw);
-        return *this;
-    }
+        if (_state == status_enum::good)
+            *v.first = to_string(tmp);
 
-    /**
-     * @deprecated
-     */
-    [[deprecated]]
-    binary_istream & operator >> (expected_size esz)
-    {
-        _expected_size = esz.sz;
         return *this;
     }
 
     void start_transaction ()
     {
-        _ts = transaction_state::started;
         _saved_pos = _p;
     }
 
     bool commit_transaction ()
     {
-        if (_ts == transaction_state::initial)
-            return false;
+        if (_state == status_enum::good)
+            return true;
 
-        if (_ts == transaction_state::failed) {
-            _p = _saved_pos;
-            _ts = transaction_state::initial;
-            return false;
-        }
-
-        _ts = transaction_state::initial;
-        return true;
+        _p = _saved_pos;
+        _state = status_enum::good;
+        return false;
     }
 
 private:
@@ -185,44 +151,28 @@ private:
     friend typename std::enable_if<std::is_same<typename std::decay<T>::type, bool>::value, void>::type
     unpack (binary_istream & in, T & v)
     {
-        if (in._ts == transaction_state::failed)
-            return;
-
-        if (in._p + sizeof(std::int8_t) <= in._end) {
-            auto p = reinterpret_cast<std::int8_t const *>(in._p);
-            v = static_cast<bool>(*p);
-            in._p += sizeof(std::int8_t);
-        } else {
-            if (in._ts == transaction_state::started) {
-                in._ts = transaction_state::failed;
-                return;
+        if (in._state == status_enum::good) {
+            if (in._p + sizeof(std::int8_t) <= in._end) {
+                auto p = reinterpret_cast<std::int8_t const *>(in._p);
+                v = static_cast<bool>(*p);
+                in._p += sizeof(std::int8_t);
             } else {
-                throw error { std::make_error_code(std::errc::result_out_of_range) };
+                in._state = status_enum::out_of_bound;
             }
         }
     }
 
-    /**
-     * @throws error {std::errc::result_out_of_range} if not enough data to
-     *         deserialize value.
-     */
     template <typename T>
     friend typename std::enable_if<std::is_integral<T>::value && !std::is_same<typename std::decay<T>::type, bool>::value, void>::type
     unpack (binary_istream & in, T & v)
     {
-        if (in._ts == transaction_state::failed)
-            return;
-
-        if (in._p + sizeof(T) <= in._end) {
-            T const * p = reinterpret_cast<T const *>(in._p);
-            v = Endianess == endian::network ? to_native_order(*p) : *p;
-            in._p += sizeof(T);
-        } else {
-            if (in._ts == transaction_state::started) {
-                in._ts = transaction_state::failed;
-                return;
+        if (in._state == status_enum::good) {
+            if (in._p + sizeof(T) <= in._end) {
+                T const * p = reinterpret_cast<T const *>(in._p);
+                v = Endianess == endian::network ? to_native_order(*p) : *p;
+                in._p += sizeof(T);
             } else {
-                throw error { std::make_error_code(std::errc::result_out_of_range) };
+                in._state = status_enum::out_of_bound;
             }
         }
     }
@@ -233,222 +183,103 @@ private:
     {
         typename std::underlying_type<T>::type tmp;
         unpack(in, tmp);
-        v = static_cast<T>(tmp);
+
+        if (in._state == status_enum::good)
+            v = static_cast<T>(tmp);
     }
 
-    /**
-     * @throws error {std::errc::result_out_of_range} if not enough data to
-     *         deserialize value.
-     */
     friend void unpack (binary_istream & in, float & v)
     {
         union { float f; std::uint32_t d; } x;
         unpack(in, x.d);
-        v = x.f;
 
-        // static constexpr auto divider = (std::numeric_limits<std::int32_t>::max)();
-        // std::int32_t exp {0};
-        // std::int32_t mant {0};
-        // this->operator >> (exp);
-        // this->operator >> (mant);
-        // v = std::ldexp(static_cast<float>(mant) / divider, exp);
+        if (in._state == status_enum::good)
+            v = x.f;
     }
 
     /**
-     * @throws error {std::errc::result_out_of_range} if not enough data to
-     *         deserialize value.
      */
     friend void unpack (binary_istream & in, double & v)
     {
         union { double f; std::uint64_t d; } x;
         unpack(in, x.d);
-        v = x.f;
 
-        // static constexpr auto divider = (std::numeric_limits<std::int64_t>::max)();
-        // std::int64_t exp {0};
-        // std::int64_t mant {0};
-        // this->operator >> (exp);
-        // this->operator >> (mant);
-        // v = std::ldexp(static_cast<double>(mant) / divider, exp);
+        if (in._state == status_enum::good)
+            v = x.f;
     }
 
     /**
      * Reads byte sequence into string view. Lifetime of the string view must be less or equals to
      * the stream's lifetime
-     *
-     * @throws error {std::errc::result_out_of_range} if not enough data to
-     *         deserialize value.
      */
-    friend void unpack (binary_istream & in, string_view & v)
+    friend void unpack (binary_istream & in, string_view & v, size_type n)
     {
-        if (in._ts == transaction_state::failed)
+        if (n == 0)
             return;
 
-        size_type sz = 0;
+        if (in._state != status_enum::good)
+            return;
 
-        if (in._expected_size) {
-            sz = *in._expected_size;
-        } else {
-            unpack(in, sz);
+        auto sz = in.available();
 
-            if (in._ts == transaction_state::failed)
-                return;
+        if (sz < n) {
+            in._state = status_enum::out_of_bound;
+            return;
         }
 
-        if (sz > 0) {
-            if (in._p + sz <= in._end) {
-                v = string_view(in._p, sz);
-                in._p += sz;
-            } else {
-                if (in._ts == transaction_state::started) {
-                    in._ts = transaction_state::failed;
-                    return;
-                } else {
-                    throw error { std::make_error_code(std::errc::result_out_of_range) };
-                }
-            }
-        }
-
-        in._expected_size = nullopt;
-    }
-
-    /**
-     * @throws error {std::errc::result_out_of_range} if not enough data to
-     *         deserialize value.
-     */
-    friend void unpack (binary_istream & in, std::string & v)
-    {
-        string_view sw;
-        unpack(in, sw);
-        v = std::string(sw.data(), sw.size());
+        v = string_view(in._p, n);
+        in._p += n;
     }
 
     template <typename Char>
-    static void unpack_helper (binary_istream & in, std::vector<Char> & v)
+    static void unpack_helper (binary_istream & in, std::vector<Char> & v, size_type n)
     {
-        if (in._ts == transaction_state::failed)
+        if (n == 0)
             return;
 
-        // No data left
-        if (in._p == in._end)
+        if (in._state != status_enum::good)
             return;
 
-        size_type sz = 0;
+        auto sz = in.available();
 
-        if (in._expected_size) {
-            sz = *in._expected_size;
-        } else {
-            unpack(in, sz);
-
-            if (in._ts == transaction_state::failed)
-                return;
+        if (sz < n) {
+            in._state = status_enum::out_of_bound;
+            return;
         }
 
-        if (sz > 0) {
-            if (in._p + sz <= in._end) {
-                v.resize(sz);
-                std::memcpy(reinterpret_cast<Char *>(v.data()), in._p, sz);
-                in._p += sz;
-            } else {
-                if (in._ts == transaction_state::started) {
-                    in._ts = transaction_state::failed;
-                    return;
-                } else {
-                    throw error { std::make_error_code(std::errc::result_out_of_range) };
-                }
-            }
-        }
-
-        in._expected_size = nullopt;
+        v.resize(n);
+        std::memcpy(reinterpret_cast<Char *>(v.data()), in._p, n);
+        in._p += n;
     }
 
-    friend void unpack (binary_istream & in, std::vector<char> & v)
+    friend void unpack (binary_istream & in, std::vector<char> & v, size_type n)
     {
-        binary_istream<Endianess>::unpack_helper(in, v);
+        binary_istream<Endianess>::unpack_helper(in, v, n);
     }
 
-    friend void unpack (binary_istream & in, std::vector<std::uint8_t> & v)
+    friend void unpack (binary_istream & in, std::vector<std::uint8_t> & v, size_type n)
     {
-        binary_istream<Endianess>::unpack_helper(in, v);
+        binary_istream<Endianess>::unpack_helper(in, v, n);
     }
 
     /**
-     * @throws error {std::errc::not_enough_memory} if array is smaller than expected size.
-     * @throws error {std::errc::result_out_of_range} if not enough data to deserialize value.
      */
     template <std::size_t N>
     friend void unpack (binary_istream & in, std::array<char, N> & v)
     {
-        if (in._ts == transaction_state::failed)
+        if (in._state != status_enum::good)
             return;
 
-        size_type sz = 0;
+        auto sz = in.available();
 
-        if (in._expected_size) {
-            sz = *in._expected_size;
-        } else {
-            unpack(in, sz);
-
-            if (in._ts == transaction_state::failed)
-                return;
-        }
-
-        if (sz > N)
-            throw error { std::make_error_code(std::errc::not_enough_memory) };
-
-        if (sz > 0) {
-            if (in._p + sz <= in._end) {
-                std::copy(in._p, in._p + sz, v.data());
-                in._p += sz;
-            } else {
-                if (in._ts == transaction_state::started) {
-                    in._ts = transaction_state::failed;
-                    return;
-                } else {
-                    throw error { std::make_error_code(std::errc::result_out_of_range) };
-                }
-            }
-        }
-
-        in._expected_size = nullopt;
-    }
-
-    friend void unpack (binary_istream & in, std::pair<char *, size_type> raw)
-    {
-        if (in._ts == transaction_state::failed)
+        if (sz < N) {
+            in._state = status_enum::out_of_bound;
             return;
-
-        size_type sz = 0;
-
-        if (in._expected_size) {
-            sz = *in._expected_size;
-        } else {
-            unpack(in, sz);
-
-            if (in._ts == transaction_state::failed)
-                return;
         }
 
-        if (sz > raw.second)
-            throw error { std::make_error_code(std::errc::not_enough_memory) };
-
-        if (sz > 0) {
-            if (in._p + sz <= in._end) {
-                std::copy(in._p, in._p + sz, raw.first);
-                in._p += sz;
-            } else {
-                if (in._ts == transaction_state::started) {
-                    in._ts = transaction_state::failed;
-                    return;
-                } else {
-                    throw error { std::make_error_code(std::errc::result_out_of_range) };
-                }
-            }
-
-            in._expected_size = nullopt;
-        }
+        std::copy(in._p, in._p + N, v.data());
+        in._p += N;
     }
 };
 
 } // namespace pfs
-

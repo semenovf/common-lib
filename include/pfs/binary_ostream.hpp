@@ -1,14 +1,16 @@
 ////////////////////////////////////////////////////////////////////////////////
-// Copyright (c) 2020-2023 Vladislav Trifochkin
+// Copyright (c) 2023-2025 Vladislav Trifochkin
 //
 // This file is part of `common-lib`.
 //
 // Changelog:
 //      2023.03.22 Initial version.
+//      2025.01.23 Refactored.
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
 #include "error.hpp"
 #include "endian.hpp"
+#include "namespace.hpp"
 #include "numeric_cast.hpp"
 #include "string_view.hpp"
 #include <cmath>
@@ -18,10 +20,9 @@
 #include <utility>
 #include <vector>
 
-namespace pfs {
+PFS__NAMESPACE_BEGIN
 
-struct exclude_size {};
-struct reserve_space { std::size_t sz; };
+// struct reserve_space { std::size_t sz; };
 
 template <endian Endianess = endian::native>
 class binary_ostream
@@ -35,7 +36,6 @@ private:
     archive_type * _pbuf {nullptr};
     offset_type _off {0};
     bool _has_ownership {false};
-    bool _exclude_size {false};
 
 public:
     binary_ostream (size_type reserve_bytes = 0)
@@ -95,18 +95,6 @@ public:
     {
         pack(*this, v);
         return *this;
-    }
-
-    binary_ostream & operator << (exclude_size)
-    {
-        _exclude_size = true;
-        return *this;
-    }
-
-    binary_ostream & operator << (reserve_space const & rs)
-    {
-        if (rs.sz > 0)
-            _pbuf->reserve(_pbuf->size() + rs.sz);
     }
 
 private:
@@ -169,92 +157,43 @@ private:
     }
 
     /**
-     * Writes raw sequence into the stream without size.
-     *
-     * @throw error {std::errc::result_out_of_range} if @a raw points to reverse
-     *        sequence.
+     * Writes raw sequence into the stream.
      */
-    friend void pack (binary_ostream & out, std::pair<char const *, char const *> const & raw)
+    friend void pack (binary_ostream & out, char const * s, std::size_t n)
     {
-        if (raw.first > raw.second)
-            throw error { std::make_error_code(std::errc::result_out_of_range) };
+        if (n == 0)
+            return;
 
-        auto nbytes = static_cast<size_type>(raw.second - raw.first);
-
-        if (nbytes > 0) {
-            if (!out._exclude_size)
-                pack(out, nbytes);
-
-            out._pbuf->resize(out._pbuf->size() + nbytes);
-            std::memcpy(out._pbuf->data() + out._off, raw.first, nbytes);
-            out._off += nbytes;
-        } else {
-            if (!out._exclude_size)
-                pack(out, nbytes);
-        }
-
-        out._exclude_size = false;
-    }
-
-    friend void pack (binary_ostream & out, std::pair<char const *, size_type> const & raw)
-    {
-        pack(out, std::make_pair(raw.first, raw.first + raw.second));
-    }
-
-    /**
-     * @throw error {std::errc::value_too_large} if @a sw is too long.
-     */
-    friend void pack (binary_ostream & out, string_view sw)
-    {
-        if (sw.size() > 0) {
-            if ((sw.size() > (std::numeric_limits<size_type>::max)()))
-                throw error { std::make_error_code(std::errc::value_too_large) };
-
-            if (!out._exclude_size)
-                pack(out, static_cast<size_type>(sw.size()));
-
-            out._pbuf->resize(out._pbuf->size() + sw.size());
-            std::memcpy(out._pbuf->data() + out._off, sw.data(), sw.size());
-            out._off += numeric_cast<size_type>(sw.size());
-        } else {
-            if (!out._exclude_size)
-                pack(out, numeric_cast<size_type>(sw.size()));
-        }
-
-        out._exclude_size = false;
+        out._pbuf->resize(out._pbuf->size() + n);
+        std::memcpy(out._pbuf->data() + out._off, s, n);
+        out._off += n;
     }
 
     friend void pack (binary_ostream & out, char const * s)
     {
-        pack(out, string_view(s, std::strlen(s)));
+        pack(out, s, std::strlen(s));
     }
 
     friend void pack (binary_ostream & out, std::string const & s)
     {
-        pack(out, string_view{s});
+        pack(out, s.data(), s.size());
     }
 
     friend void pack (binary_ostream & out, std::vector<char> const & s)
     {
-        pack(out, string_view{s.data(), s.size()});
+        pack(out, s.data(), s.size());
     }
 
     friend void pack (binary_ostream & out, std::vector<std::uint8_t> const & s)
     {
-        pack(out, string_view{reinterpret_cast<char const *>(s.data()), s.size()});
+        pack(out, reinterpret_cast<char const *>(s.data()), s.size());
     }
 
     template <std::size_t N>
     friend void pack (binary_ostream & out, std::array<char, N> const & a)
     {
-        pack(out, string_view{a.data(), a.size()});
-    }
-
-    template <std::size_t N>
-    friend void pack (binary_ostream & out, std::array<std::uint8_t, N> const & a)
-    {
-        pack(out, string_view{reinterpret_cast<char const *>(a.data()), a.size()});
+        pack(out, a.data(), a.size());
     }
 };
 
-} // namespace pfs
+PFS__NAMESPACE_END

@@ -1,5 +1,5 @@
 ////////////////////////////////////////////////////////////////////////////////
-// Copyright (c) 2020-2023 Vladislav Trifochkin
+// Copyright (c) 2023-2025 Vladislav Trifochkin
 //
 // This file is part of `common-lib`.
 //
@@ -12,11 +12,11 @@
 #include "pfs/binary_ostream.hpp"
 #include <vector>
 
-template <pfs::endian Endian>
+template <pfs::endian Endianess>
 void serialize ()
 {
     std::vector<char> buffer;
-    pfs::binary_ostream<Endian> os {buffer};
+    pfs::binary_ostream<Endianess> os {buffer};
 
     char a0          = 'a';
     std::int8_t b0   = std::int8_t{-42};
@@ -29,12 +29,12 @@ void serialize ()
     std::uint64_t i0 = (std::numeric_limits<std::uint64_t>::max)();
     float j0         = 3.14159f;
     double k0        = 3.14159f;
-    std::string l0   = "Hello";
+    std::string s0   = "Hello";
 
-    os << a0 << b0 << c0 << d0 << e0 << f0 << g0 << h0 << i0 << j0 << k0 << l0
-        << a0;
+    os << a0 << b0 << c0 << d0 << e0 << f0 << g0 << h0 << i0 << j0 << k0
+        << s0.size() << s0 << a0;
 
-    pfs::binary_istream<Endian> is {buffer.data(), buffer.size()};
+    pfs::binary_istream<Endianess> is {buffer.data(), buffer.size()};
 
     char a1, a2, a3;
     std::int8_t b1;
@@ -47,10 +47,11 @@ void serialize ()
     std::uint64_t i1;
     float j1;
     double k1;
-    std::string l1;
+    std::string s1;
+    std::string::size_type sz1;
 
-    is >> a1 >> b1 >> c1 >> d1 >> e1 >> f1 >> g1 >> h1 >> i1 >> j1 >> k1 >> l1
-        >> a2;
+    is >> a1 >> b1 >> c1 >> d1 >> e1 >> f1 >> g1 >> h1 >> i1 >> j1 >> k1
+        >> sz1 >> std::make_pair(& s1, & sz1) >> a2;
 
     CHECK_EQ(a1, a0);
     CHECK_EQ(b1, b0);
@@ -63,11 +64,12 @@ void serialize ()
     CHECK_EQ(i1, i0);
     CHECK_EQ(j1, j0);
     CHECK_EQ(k1, k0);
-    CHECK_EQ(l1, l0);
+    CHECK_EQ(s1, s0);
 
-    CHECK_EQ(a2, a0);
+     is.start_transaction();
+    is >> a3;
 
-    CHECK_THROWS(is >> a3);
+    CHECK_FALSE(is.commit_transaction());
 }
 
 TEST_CASE("native order") { serialize<pfs::endian::native>(); }
