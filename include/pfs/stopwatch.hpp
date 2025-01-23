@@ -13,13 +13,13 @@ namespace pfs {
 //
 // https://www.reddit.com/r/cpp_questions/comments/40f6xn/timer_using_stdchronosteady_clock/
 //
-template<typename period = std::micro, typename rep = std::size_t>
+template<typename period = std::micro, typename rep = std::int64_t>
 class stopwatch
 {
     std::chrono::time_point<std::chrono::high_resolution_clock> _begin, _end;
 
 public:
-    using count_type = std::chrono::duration<rep, period>;
+    using duration_type = std::chrono::duration<rep, period>;
 
     stopwatch ()
     {
@@ -40,13 +40,13 @@ public:
     inline rep count () const
     {
         using namespace std::chrono;
-        return duration_cast<count_type>(_end - _begin).count();
+        return duration_cast<duration_type>(_end - _begin).count();
     }
 
     inline rep current_count () const
     {
         using namespace std::chrono;
-        return duration_cast<count_type>(std::chrono::high_resolution_clock::now() - _begin).count();
+        return duration_cast<duration_type>(std::chrono::high_resolution_clock::now() - _begin).count();
     }
 };
 

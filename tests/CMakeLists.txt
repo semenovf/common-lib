@@ -16,6 +16,7 @@ list(APPEND TEST_NAMES
     calendar
     charconv
     compare_op
+    countdown_timer
     crc16_32_64
     dynamic_library
     emitter

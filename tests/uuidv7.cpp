@@ -14,8 +14,8 @@
 #include <pfs/fmt.hpp>
 #include <pfs/log.hpp>
 #include <pfs/universal_id_uuidv7.hpp>
-#include "pfs/universal_id_crc.hpp"
-#include "pfs/universal_id_hash.hpp"
+#include <pfs/universal_id_crc.hpp>
+#include <pfs/universal_id_hash.hpp>
 #include <unordered_map>
 
 #if defined(QT5_CORE_ENABLED)
