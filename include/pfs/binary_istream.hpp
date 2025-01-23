@@ -22,7 +22,7 @@ namespace pfs {
 
 #ifndef PFS__EXPECTED_SIZE_DEFINED
 #   define PFS__EXPECTED_SIZE_DEFINED 1
-    struct expected_size
+    struct expected_size // [[deprecated]]
     {
         std::uint32_t sz;
     };
@@ -31,18 +31,29 @@ namespace pfs {
 template <endian Endianess = endian::native>
 class binary_istream
 {
+    enum transaction_state
+    {
+          initial
+        , started
+        , failed
+    };
+
 public:
     using size_type = std::uint32_t;
 
 private:
     char const * _p {nullptr};
     char const * _end {nullptr};
-    optional<size_type> _expected_size;
+    optional<size_type> _expected_size; // [[deprecated]]
+
+    transaction_state _ts {transaction_state::initial};
+    char const * _saved_pos {nullptr};
 
 public:
     binary_istream (char const * begin, char const * end)
         : _p(begin)
         , _end(end)
+        , _saved_pos(begin)
     {
         if (_p == nullptr || _end == nullptr)
             throw error {make_error_code(std::errc::invalid_argument)};
@@ -54,6 +65,7 @@ public:
     binary_istream (char const * begin, std::size_t size)
         : _p(begin)
         , _end(begin + numeric_cast<size_type>(size))
+        , _saved_pos(begin)
     {
         if (_p == nullptr)
             throw error {make_error_code(std::errc::invalid_argument)};
@@ -86,6 +98,7 @@ public:
      *
      * @deprecated Will be removed in future versions.
      */
+    [[deprecated]]
     optional<char> peek () const noexcept
     {
         return _p != _end ? make_optional(*_p) : nullopt;
@@ -94,15 +107,22 @@ public:
     /**
      * Skips @a nbytes in stream.
      *
-     * @throws error {std::errc::result_out_of_range} if result position is
-     *         out of bounds.
+     * @throws error {std::errc::result_out_of_range} if result position is out of bounds.
      */
     void skip (size_type nbytes)
     {
+        if (_ts == transaction_state::failed)
+            return;
+
         if (_p + nbytes <= _end) {
             _p += nbytes;
         } else {
-            throw error { std::make_error_code(std::errc::result_out_of_range) };
+            if (_ts == transaction_state::started) {
+                _ts = transaction_state::failed;
+                return;
+            } else {
+                throw error { std::make_error_code(std::errc::result_out_of_range) };
+            }
         }
     }
 
@@ -113,16 +133,51 @@ public:
         return *this;
     }
 
+    template <typename SizeType>
+    binary_istream & operator >> (std::pair<std::string &, SizeType> ref)
+    {
+        return *this;
+    }
+
+    /**
+     * @deprecated
+     */
+    [[deprecated]]
     binary_istream & operator >> (std::pair<char *, size_type> raw)
     {
         unpack(*this, raw);
         return *this;
     }
 
+    /**
+     * @deprecated
+     */
+    [[deprecated]]
     binary_istream & operator >> (expected_size esz)
     {
         _expected_size = esz.sz;
         return *this;
+    }
+
+    void start_transaction ()
+    {
+        _ts = transaction_state::started;
+        _saved_pos = _p;
+    }
+
+    bool commit_transaction ()
+    {
+        if (_ts == transaction_state::initial)
+            return false;
+
+        if (_ts == transaction_state::failed) {
+            _p = _saved_pos;
+            _ts = transaction_state::initial;
+            return false;
+        }
+
+        _ts = transaction_state::initial;
+        return true;
     }
 
 private:
@@ -130,12 +185,20 @@ private:
     friend typename std::enable_if<std::is_same<typename std::decay<T>::type, bool>::value, void>::type
     unpack (binary_istream & in, T & v)
     {
+        if (in._ts == transaction_state::failed)
+            return;
+
         if (in._p + sizeof(std::int8_t) <= in._end) {
             auto p = reinterpret_cast<std::int8_t const *>(in._p);
             v = static_cast<bool>(*p);
             in._p += sizeof(std::int8_t);
         } else {
-            throw error { std::make_error_code(std::errc::result_out_of_range) };
+            if (in._ts == transaction_state::started) {
+                in._ts = transaction_state::failed;
+                return;
+            } else {
+                throw error { std::make_error_code(std::errc::result_out_of_range) };
+            }
         }
     }
 
@@ -147,12 +210,20 @@ private:
     friend typename std::enable_if<std::is_integral<T>::value && !std::is_same<typename std::decay<T>::type, bool>::value, void>::type
     unpack (binary_istream & in, T & v)
     {
+        if (in._ts == transaction_state::failed)
+            return;
+
         if (in._p + sizeof(T) <= in._end) {
             T const * p = reinterpret_cast<T const *>(in._p);
             v = Endianess == endian::network ? to_native_order(*p) : *p;
             in._p += sizeof(T);
         } else {
-            throw error { std::make_error_code(std::errc::result_out_of_range) };
+            if (in._ts == transaction_state::started) {
+                in._ts = transaction_state::failed;
+                return;
+            } else {
+                throw error { std::make_error_code(std::errc::result_out_of_range) };
+            }
         }
     }
 
@@ -210,19 +281,31 @@ private:
      */
     friend void unpack (binary_istream & in, string_view & v)
     {
+        if (in._ts == transaction_state::failed)
+            return;
+
         size_type sz = 0;
 
-        if (in._expected_size)
+        if (in._expected_size) {
             sz = *in._expected_size;
-        else
+        } else {
             unpack(in, sz);
+
+            if (in._ts == transaction_state::failed)
+                return;
+        }
 
         if (sz > 0) {
             if (in._p + sz <= in._end) {
                 v = string_view(in._p, sz);
                 in._p += sz;
             } else {
-                throw error { std::make_error_code(std::errc::result_out_of_range) };
+                if (in._ts == transaction_state::started) {
+                    in._ts = transaction_state::failed;
+                    return;
+                } else {
+                    throw error { std::make_error_code(std::errc::result_out_of_range) };
+                }
             }
         }
 
@@ -243,16 +326,23 @@ private:
     template <typename Char>
     static void unpack_helper (binary_istream & in, std::vector<Char> & v)
     {
+        if (in._ts == transaction_state::failed)
+            return;
+
         // No data left
         if (in._p == in._end)
             return;
 
         size_type sz = 0;
 
-        if (in._expected_size)
+        if (in._expected_size) {
             sz = *in._expected_size;
-        else
+        } else {
             unpack(in, sz);
+
+            if (in._ts == transaction_state::failed)
+                return;
+        }
 
         if (sz > 0) {
             if (in._p + sz <= in._end) {
@@ -260,7 +350,12 @@ private:
                 std::memcpy(reinterpret_cast<Char *>(v.data()), in._p, sz);
                 in._p += sz;
             } else {
-                throw error { std::make_error_code(std::errc::result_out_of_range) };
+                if (in._ts == transaction_state::started) {
+                    in._ts = transaction_state::failed;
+                    return;
+                } else {
+                    throw error { std::make_error_code(std::errc::result_out_of_range) };
+                }
             }
         }
 
@@ -284,12 +379,19 @@ private:
     template <std::size_t N>
     friend void unpack (binary_istream & in, std::array<char, N> & v)
     {
+        if (in._ts == transaction_state::failed)
+            return;
+
         size_type sz = 0;
 
-        if (in._expected_size)
+        if (in._expected_size) {
             sz = *in._expected_size;
-        else
+        } else {
             unpack(in, sz);
+
+            if (in._ts == transaction_state::failed)
+                return;
+        }
 
         if (sz > N)
             throw error { std::make_error_code(std::errc::not_enough_memory) };
@@ -299,7 +401,12 @@ private:
                 std::copy(in._p, in._p + sz, v.data());
                 in._p += sz;
             } else {
-                throw error { std::make_error_code(std::errc::result_out_of_range) };
+                if (in._ts == transaction_state::started) {
+                    in._ts = transaction_state::failed;
+                    return;
+                } else {
+                    throw error { std::make_error_code(std::errc::result_out_of_range) };
+                }
             }
         }
 
@@ -308,12 +415,19 @@ private:
 
     friend void unpack (binary_istream & in, std::pair<char *, size_type> raw)
     {
+        if (in._ts == transaction_state::failed)
+            return;
+
         size_type sz = 0;
 
-        if (in._expected_size)
+        if (in._expected_size) {
             sz = *in._expected_size;
-        else
+        } else {
             unpack(in, sz);
+
+            if (in._ts == transaction_state::failed)
+                return;
+        }
 
         if (sz > raw.second)
             throw error { std::make_error_code(std::errc::not_enough_memory) };
@@ -323,7 +437,12 @@ private:
                 std::copy(in._p, in._p + sz, raw.first);
                 in._p += sz;
             } else {
-                throw error { std::make_error_code(std::errc::result_out_of_range) };
+                if (in._ts == transaction_state::started) {
+                    in._ts = transaction_state::failed;
+                    return;
+                } else {
+                    throw error { std::make_error_code(std::errc::result_out_of_range) };
+                }
             }
 
             in._expected_size = nullopt;
