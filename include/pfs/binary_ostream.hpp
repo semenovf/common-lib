@@ -174,6 +174,11 @@ private:
         pack(out, s, std::strlen(s));
     }
 
+    friend void pack (binary_ostream & out, pfs::string_view const & s)
+    {
+        pack(out, s, s.size());
+    }
+
     friend void pack (binary_ostream & out, std::string const & s)
     {
         pack(out, s.data(), s.size());
