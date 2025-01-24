@@ -32,7 +32,7 @@ void serialize ()
     std::string s0   = "Hello";
 
     os << a0 << b0 << c0 << d0 << e0 << f0 << g0 << h0 << i0 << j0 << k0
-        << s0.size() << s0 << a0;
+        << std::make_pair(s0.data(), s0.size()) << a0;
 
     pfs::binary_istream<Endianess> is {buffer.data(), buffer.size()};
 
@@ -66,7 +66,7 @@ void serialize ()
     CHECK_EQ(k1, k0);
     CHECK_EQ(s1, s0);
 
-     is.start_transaction();
+    is.start_transaction();
     is >> a3;
 
     CHECK_FALSE(is.commit_transaction());
