@@ -17,6 +17,7 @@
 #include <cstdint>
 #include <algorithm>
 #include <functional>
+#include <stack>
 #include <type_traits>
 #include <utility>
 #include <vector>
@@ -42,13 +43,12 @@ private:
     char const * _p {nullptr};
     char const * _end {nullptr};
     status_enum _state {status_enum::good};
-    char const * _saved_pos {nullptr};
+    std::stack<std::pair<status_enum, char const *>> _state_stack;
 
 public:
     binary_istream (char const * begin, char const * end)
         : _p(begin)
         , _end(end)
-        , _saved_pos(begin)
     {
         if (_p == nullptr || _end == nullptr)
             throw error {make_error_code(std::errc::invalid_argument)};
@@ -60,7 +60,6 @@ public:
     binary_istream (char const * begin, std::size_t size)
         : _p(begin)
         , _end(begin + numeric_cast<size_type>(size))
-        , _saved_pos(begin)
     {
         if (_p == nullptr)
             throw error {make_error_code(std::errc::invalid_argument)};
@@ -133,16 +132,20 @@ public:
 
     void start_transaction ()
     {
-        _saved_pos = _p;
+        _state_stack.push(std::make_pair(_state, _p));
     }
 
     bool commit_transaction ()
     {
-        if (_state == status_enum::good)
+        if (_state == status_enum::good) {
+            _state_stack.pop();
             return true;
+        }
 
-        _p = _saved_pos;
-        _state = status_enum::good;
+        _state = _state_stack.top().first;
+        _p = _state_stack.top().second;
+        _state_stack.pop();
+
         return false;
     }
 
