@@ -15,6 +15,7 @@
 #include "endian.hpp"
 #include "i128.hpp"
 #include "fmt.hpp"
+#include "optional.hpp"
 #include <array>
 #include <random>
 
@@ -73,12 +74,30 @@ inline std::string to_string (universal_id const & value)
 template <typename T>
 T from_string (std::string const & str);
 
+/**
+ * @deprecated Use @c parse_universal_id instead
+ */
 template <>
-inline universal_id from_string<universal_id> (std::string const & str)
+[[deprecated]] inline universal_id from_string<universal_id> (std::string const & str)
 {
     return str.size() == 26
         ? ulid::Unmarshal(str)
         : universal_id{};
+}
+
+inline pfs::optional<universal_id> parse_universal_id (char const * s, std::size_t n)
+{
+    if (n != 26)
+        return pfs::nullopt;
+
+    universal_id id;
+    ulid::UnmarshalFrom(s, id.u);
+    return id;
+}
+
+inline pfs::optional<universal_id> parse_universal_id (std::string const & text)
+{
+    return parse_universal_id(text.data(), text.size());
 }
 
 #ifdef ULIDUINT128

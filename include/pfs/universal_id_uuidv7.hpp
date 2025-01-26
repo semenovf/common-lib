@@ -9,9 +9,8 @@
 #pragma once
 #include "namespace.hpp"
 #include "assert.hpp"
-// #include "endian.hpp"
-// #include "i128.hpp"
 #include "fmt.hpp"
+#include "optional.hpp"
 #include <array>
 #include <chrono>
 #include <cstdint>
@@ -32,7 +31,7 @@ namespace details {
 // 3. https://antonz.org/uuidv7/#cpp
 //
 // NOTE! `uuid_t` name conficts with macro `uuid_t` defined in MSVC's shared/rpcdece.h
-class universal_id //uuid_t
+class universal_id
 {
     bool _initialized {false};
     std::array<std::uint8_t, 16> _u;
@@ -189,8 +188,11 @@ inline std::string to_string (universal_id const & value)
 template <typename T>
 T from_string (std::string const & str);
 
+/**
+ * @deprecated Use @c parse_universal_id instead
+ */
 template <>
-universal_id from_string<universal_id> (std::string const & str)
+[[deprecated]] inline universal_id from_string<universal_id> (std::string const & str)
 {
     std::array<std::uint8_t, 16> u;
 
@@ -217,6 +219,43 @@ universal_id from_string<universal_id> (std::string const & str)
     }
 
     return pfs::universal_id {std::move(u)};
+}
+
+inline pfs::optional<universal_id> parse_universal_id (char const * s, std::size_t n)
+{
+    std::array<std::uint8_t, 16> u;
+
+    if (n < 16)
+        return pfs::nullopt;
+
+    if (s[0] == '{' && s[n-1] == '}') {
+        if (n != 38)
+            return pfs::nullopt;
+
+        std::array<char, 37> tmp;
+        std::copy(s + 1, s + n - 1, tmp.begin());
+        tmp[36] = '\x0';
+
+        auto rc = details::uuidv7_from_string(tmp.data(), u.data());
+
+        if (rc != 0)
+            return pfs::nullopt;
+    } else {
+        if (n != 36)
+            return pfs::nullopt;
+
+        auto rc = details::uuidv7_from_string(s, u.data());
+
+        if (rc != 0)
+            return pfs::nullopt;
+    }
+
+    return pfs::universal_id {std::move(u)};
+}
+
+inline pfs::optional<universal_id> parse_universal_id (std::string const & text)
+{
+    return parse_universal_id(text.data(), text.size());
 }
 
 inline int compare (universal_id const & u1, universal_id const & u2)
