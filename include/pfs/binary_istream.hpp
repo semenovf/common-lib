@@ -130,6 +130,13 @@ public:
         return *this;
     }
 
+    template <typename Char, typename SizeType>
+    binary_istream & operator >> (std::pair<std::vector<Char> *, SizeType *> && v)
+    {
+        unpack(*this, *v.first, *v.second);
+        return *this;
+    }
+
     void start_transaction ()
     {
         _state_stack.push(std::make_pair(_state, _p));
