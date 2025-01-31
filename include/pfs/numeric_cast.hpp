@@ -8,6 +8,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
 #include "type_traits.hpp"
+#include <cstdint>
 #include <limits>
 #include <stdexcept>
 
