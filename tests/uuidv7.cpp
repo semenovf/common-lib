@@ -26,7 +26,7 @@
 TEST_CASE("literal") {
     {
         auto uuid = "01234567-89ab-7000-8000-000000000000"_uuidv7;
-        CHECK_EQ(uuid, pfs::from_string<pfs::universal_id>("01234567-89ab-7000-8000-000000000000"));
+        CHECK_EQ(uuid, *pfs::parse_universal_id("01234567-89ab-7000-8000-000000000000"));
         CHECK_EQ(to_string(uuid), std::string{"01234567-89ab-7000-8000-000000000000"});
     }
 }
@@ -46,12 +46,12 @@ TEST_CASE("generate_uuid") {
 }
 
 TEST_CASE("crc16_32_64") {
-    auto uuid = pfs::from_string<pfs::universal_id>("0193f3a3-c500-717f-9f9c-4740b063c413");
-    REQUIRE_NE(uuid, pfs::universal_id{});
+    auto uuid_opt = pfs::parse_universal_id("0193f3a3-c500-717f-9f9c-4740b063c413");
+    REQUIRE(uuid_opt);
 
-    auto crc16 = pfs::crc16_of(uuid);
-    auto crc32 = pfs::crc32_of(uuid);
-    auto crc64 = pfs::crc64_of(uuid);
+    auto crc16 = pfs::crc16_of(*uuid_opt);
+    auto crc32 = pfs::crc32_of(*uuid_opt);
+    auto crc64 = pfs::crc64_of(*uuid_opt);
 
 #if defined(_MSC_VER)
 #   pragma warning(push)
@@ -69,11 +69,11 @@ TEST_CASE("crc16_32_64") {
 
 TEST_CASE("serialize")
 {
-    auto u = pfs::from_string<pfs::universal_id>("0193f3a3-c500-717f-9f9c-4740b063c413");
+    auto u = pfs::parse_universal_id("0193f3a3-c500-717f-9f9c-4740b063c413");
 
-    REQUIRE_NE(u, pfs::universal_id{});
+    REQUIRE(u);
 
-    auto a = u.to_array();
+    auto a = u->to_array();
     CHECK_EQ(a[0], 0x01);
     CHECK_EQ(a[1], 0x93);
     CHECK_EQ(a[2], 0xF3);
@@ -94,10 +94,10 @@ TEST_CASE("serialize")
 
 TEST_CASE("comparison")
 {
-    auto u1 = pfs::from_string<pfs::universal_id>("{0193f3a3-c500-717f-9f9c-4740b063c413}");
-    auto u2 = pfs::from_string<pfs::universal_id>("{0193f3a3-c500-717f-9f9c-4740b063c413}");
-    auto u3 = pfs::from_string<pfs::universal_id>("{0193f3a3-c500-724b-84fa-d02d4cae55c0}");
-    auto u4 = pfs::from_string<pfs::universal_id>("{0193f3a3-c500-7f24-95be-4d31c0bf06f3}");
+    auto u1 = *pfs::parse_universal_id("{0193f3a3-c500-717f-9f9c-4740b063c413}");
+    auto u2 = *pfs::parse_universal_id("{0193f3a3-c500-717f-9f9c-4740b063c413}");
+    auto u3 = *pfs::parse_universal_id("{0193f3a3-c500-724b-84fa-d02d4cae55c0}");
+    auto u4 = *pfs::parse_universal_id("{0193f3a3-c500-7f24-95be-4d31c0bf06f3}");
 
     CHECK(u1 == u2);
     CHECK(u1 <= u2);
@@ -113,8 +113,8 @@ TEST_CASE("comparison")
 
 TEST_CASE("hash")
 {
-    auto u1 = pfs::from_string<pfs::universal_id>("0193f3a3-c500-717f-9f9c-4740b063c413");
-    auto u2 = pfs::from_string<pfs::universal_id>("0193f3a3-c500-724b-84fa-d02d4cae55c0");
+    auto u1 = *pfs::parse_universal_id("0193f3a3-c500-717f-9f9c-4740b063c413");
+    auto u2 = *pfs::parse_universal_id("0193f3a3-c500-724b-84fa-d02d4cae55c0");
 
     std::unordered_map<pfs::universal_id, int> m;
     m[u1] = 42;
