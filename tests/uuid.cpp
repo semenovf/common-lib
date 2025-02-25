@@ -25,13 +25,13 @@ TEST_CASE ("") {
 TEST_CASE("literal") {
     {
         auto uuid = "01D78XYFJ1PRM1WPBCBT3VHMNV"_uuid;
-        CHECK_EQ(uuid, pfs::from_string<pfs::universal_id>("01D78XYFJ1PRM1WPBCBT3VHMNV"));
+        CHECK_EQ(uuid, *pfs::parse_universal_id("01D78XYFJ1PRM1WPBCBT3VHMNV"));
         CHECK_EQ(to_string(uuid), "01D78XYFJ1PRM1WPBCBT3VHMNV");
     }
 }
 
 TEST_CASE("crc16_32_64") {
-    auto uuid = pfs::from_string<pfs::universal_id>("01D78XYFJ1PRM1WPBCBT3VHMNV");
+    auto uuid = *pfs::parse_universal_id("01D78XYFJ1PRM1WPBCBT3VHMNV");
     REQUIRE_NE(uuid, pfs::universal_id{});
 
     auto crc16 = pfs::crc16_of(uuid);
@@ -52,9 +52,19 @@ TEST_CASE("crc16_32_64") {
 #endif
 }
 
+TEST_CASE("make from 64-bit parts")
+{
+    auto orig = *pfs::parse_universal_id("01D78XYFJ1PRM1WPBCBT3VHMNV");
+    auto hi = pfs::high(orig);
+    auto lo = pfs::low(orig);
+    auto u = pfs::make_uuid(hi, lo);
+
+    CHECK_EQ(orig, u);
+}
+
 TEST_CASE("serialize")
 {
-    auto u = pfs::from_string<pfs::universal_id>("01D78XYFJ1PRM1WPBCBT3VHMNV");
+    auto u = *pfs::parse_universal_id("01D78XYFJ1PRM1WPBCBT3VHMNV");
 
     REQUIRE_NE(u, pfs::universal_id{});
 
@@ -105,9 +115,9 @@ TEST_CASE("serialize")
 
 TEST_CASE("comparison")
 {
-    auto u1 = pfs::from_string<pfs::universal_id>("01D78XYFJ1PRM1WPBCBT3VHMNV");
-    auto u2 = pfs::from_string<pfs::universal_id>("01D78XYFJ1PRM1WPBCBT3VHMNV");
-    auto u3 = pfs::from_string<pfs::universal_id>("02D78XYFJ1PRM1WPBCBT3VHMNV");
+    auto u1 = *pfs::parse_universal_id("01D78XYFJ1PRM1WPBCBT3VHMNV");
+    auto u2 = *pfs::parse_universal_id("01D78XYFJ1PRM1WPBCBT3VHMNV");
+    auto u3 = *pfs::parse_universal_id("02D78XYFJ1PRM1WPBCBT3VHMNV");
 
     CHECK(u1 == u2);
     CHECK(u1 <= u2);
@@ -120,8 +130,8 @@ TEST_CASE("comparison")
 
 TEST_CASE("hash")
 {
-    auto u1 = pfs::from_string<pfs::universal_id>("01D78XYFJ1PRM1WPBCBT3VHMNV");
-    auto u2 = pfs::from_string<pfs::universal_id>("02D78XYFJ1PRM1WPBCBT3VHMNV");
+    auto u1 = *pfs::parse_universal_id("01D78XYFJ1PRM1WPBCBT3VHMNV");
+    auto u2 = *pfs::parse_universal_id("02D78XYFJ1PRM1WPBCBT3VHMNV");
 
     std::unordered_map<pfs::universal_id, int> m;
     m[u1] = 42;

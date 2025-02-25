@@ -31,7 +31,6 @@ namespace details {
 // NOTE! `uuid_t` name conficts with macro `uuid_t` defined in MSVC's shared/rpcdece.h
 class universal_id
 {
-    bool _initialized {false};
     std::array<std::uint8_t, 16> _u;
 
 public:
@@ -41,8 +40,7 @@ public:
     }
 
     universal_id (std::array<std::uint8_t, 16> u)
-        : _initialized{true}
-        , _u(std::move(u))
+        : _u(std::move(u))
     {}
 
 public:
@@ -193,40 +191,29 @@ inline std::string to_string (universal_id const & value)
     return value.to_string();
 }
 
-template <typename T>
-T from_string (std::string const & str);
-
-/**
- * @deprecated Use @c parse_universal_id instead
- */
-template <>
-[[deprecated]] inline universal_id from_string<universal_id> (std::string const & str)
+inline universal_id make_uuid (std::uint64_t hi, std::uint64_t lo)
 {
     std::array<std::uint8_t, 16> u;
 
-    if (str.front() == '{' && str.back() == '}') {
-        if (str.size() != 38)
-            return pfs::universal_id{};
+    u[15] = static_cast<std::uint8_t>(hi);
+    u[14] = static_cast<std::uint8_t>(hi >>  8);
+    u[13] = static_cast<std::uint8_t>(hi >> 16);
+    u[12] = static_cast<std::uint8_t>(hi >> 24);
+    u[11] = static_cast<std::uint8_t>(hi >> 32);
+    u[10] = static_cast<std::uint8_t>(hi >> 40);
+    u[9]  = static_cast<std::uint8_t>(hi >> 48);
+    u[8]  = static_cast<std::uint8_t>(hi >> 56);
 
-        std::array<char, 37> tmp;
-        std::copy(str.begin() + 1, str.end(), tmp.begin());
-        tmp[36] = '\x0';
+    u[7]  = static_cast<std::uint8_t>(lo);
+    u[6]  = static_cast<std::uint8_t>(lo >>  8);
+    u[5]  = static_cast<std::uint8_t>(lo >> 16);
+    u[4]  = static_cast<std::uint8_t>(lo >> 24);
+    u[3]  = static_cast<std::uint8_t>(lo >> 32);
+    u[2]  = static_cast<std::uint8_t>(lo >> 40);
+    u[1]  = static_cast<std::uint8_t>(lo >> 48);
+    u[0]  = static_cast<std::uint8_t>(lo >> 56);
 
-        auto rc = details::uuidv7_from_string(tmp.data(), u.data());
-
-        if (rc != 0)
-            return pfs::universal_id{};
-    } else {
-        if (str.size() != 36)
-            return pfs::universal_id{};
-
-        auto rc = details::uuidv7_from_string(str.data(), u.data());
-
-        if (rc != 0)
-            return pfs::universal_id{};
-    }
-
-    return pfs::universal_id {std::move(u)};
+    return universal_id{std::move(u)};
 }
 
 inline pfs::optional<universal_id> parse_universal_id (char const * s, std::size_t n)
