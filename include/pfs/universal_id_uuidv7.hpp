@@ -17,8 +17,6 @@
 #include <cstring>
 #include <random>
 
-#include "log.hpp"
-
 PFS__NAMESPACE_BEGIN
 
 namespace details {
@@ -157,6 +155,16 @@ public: // static
         return 0;
     }
 };
+
+inline std::uint64_t low (universal_id const & id)
+{
+    return id.low();
+}
+
+inline std::uint64_t high (universal_id const & id)
+{
+    return id.high();
+}
 
 inline universal_id generate_uuid ()
 {

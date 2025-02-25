@@ -15,6 +15,7 @@
 #include "endian.hpp"
 #include "i128.hpp"
 #include "fmt.hpp"
+#include "namespace.hpp"
 #include "optional.hpp"
 #include <array>
 #include <random>
@@ -25,7 +26,7 @@
 #   include "3rdparty/ulid/ulid.hh"
 #endif
 
-namespace pfs {
+PFS__NAMESPACE_BEGIN
 
 // See https://github.com/suyash/ulid
 // NOTE! Struct-based implementation assumes big-endian order.
@@ -42,6 +43,40 @@ public:
 
     universal_id () {}
     universal_id (ulid::ULID v) : u(v) {}
+
+    std::uint64_t high () const noexcept
+    {
+#ifdef ULIDUINT128
+        return static_cast<std::uint64_t>(u >> 64);
+#else
+        std::uint64_t hi = static_cast<std::uint64_t>(u.u.data[15])
+            | static_cast<std::uint64_t>(u.u.data[14]) << 8
+            | static_cast<std::uint64_t>(u.u.data[13]) << 16
+            | static_cast<std::uint64_t>(u.u.data[12]) << 24
+            | static_cast<std::uint64_t>(u.u.data[11]) << 32
+            | static_cast<std::uint64_t>(u.u.data[10]) << 40
+            | static_cast<std::uint64_t>(u.u.data[9])  << 48
+            | static_cast<std::uint64_t>(u.u.data[8])  << 56;
+        return hi;
+#endif
+    }
+
+    std::uint64_t low () const noexcept
+    {
+#ifdef ULIDUINT128
+        return static_cast<std::uint64_t>(u);
+#else
+        std::uint64_t lo = static_cast<std::uint64_t>(u.u.data[7])
+            | static_cast<std::uint64_t>(u.u.data[6]) << 8
+            | static_cast<std::uint64_t>(u.u.data[5]) << 16
+            | static_cast<std::uint64_t>(u.u.data[4]) << 24
+            | static_cast<std::uint64_t>(u.u.data[3]) << 32
+            | static_cast<std::uint64_t>(u.u.data[2]) << 40
+            | static_cast<std::uint64_t>(u.u.data[1]) << 48
+            | static_cast<std::uint64_t>(u.u.data[0]) << 56;
+        return lo;
+#endif
+    }
 };
 
 using random_engine_t = std::mt19937;
@@ -51,6 +86,16 @@ inline auto random_engine () -> random_engine_t &
     static std::random_device __rd; // Will be used to obtain a seed for the random number engine
     static random_engine_t result{__rd()}; // Standard mersenne_twister_engine seeded with rd()
     return result;
+}
+
+inline std::uint64_t low (universal_id const & id)
+{
+    return id.low();
+}
+
+inline std::uint64_t high (universal_id const & id)
+{
+    return id.high();
 }
 
 inline universal_id generate_uuid ()
@@ -310,7 +355,7 @@ inline bool operator >= (universal_id const & u1, universal_id const & u2)
     return compare(u1, u2) >= 0;
 }
 
-} // namespace pfs
+PFS__NAMESPACE_END
 
 namespace fmt {
 
