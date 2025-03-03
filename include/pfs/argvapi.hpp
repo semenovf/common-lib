@@ -21,19 +21,19 @@ struct argvapi_traits;
 template <>
 struct argvapi_traits <char>
 {
-    static constexpr char const * singledash_str  = "-"; 
-    static constexpr char const * doubledash_str  = "--"; 
-    static constexpr char singledash_char  = '-'; 
-    static constexpr char assign_char  = '='; 
+    static constexpr char const * singledash_str  = "-";
+    static constexpr char const * doubledash_str  = "--";
+    static constexpr char singledash_char  = '-';
+    static constexpr char assign_char  = '=';
 };
 
 template <>
 struct argvapi_traits <wchar_t>
 {
-    static constexpr wchar_t const * singledash_str  = L"-"; 
-    static constexpr wchar_t const * doubledash_str  = L"--"; 
-    static constexpr wchar_t singledash_char  = L'-'; 
-    static constexpr wchar_t assign_char  = L'='; 
+    static constexpr wchar_t const * singledash_str  = L"-";
+    static constexpr wchar_t const * doubledash_str  = L"--";
+    static constexpr wchar_t singledash_char  = L'-';
+    static constexpr wchar_t assign_char  = L'=';
 };
 
 /**
@@ -257,5 +257,15 @@ inline argvapi<wchar_t const * const *, wchar_t> make_argvapi (int argc, wchar_t
     return argvapi<wchar_t const * const *, wchar_t>{argv, argv + argc, program_name_skipped};
 }
 #endif
+
+constexpr char const * argvapi_traits<char>::singledash_str;
+constexpr char const * argvapi_traits<char>::doubledash_str;
+constexpr char argvapi_traits<char>::singledash_char;
+constexpr char argvapi_traits<char>::assign_char;
+
+constexpr wchar_t const * argvapi_traits <wchar_t>::singledash_str;
+constexpr wchar_t const * argvapi_traits <wchar_t>::doubledash_str;
+constexpr wchar_t argvapi_traits <wchar_t>::singledash_char;
+constexpr wchar_t argvapi_traits <wchar_t>::assign_char;
 
 } // namespace pfs
