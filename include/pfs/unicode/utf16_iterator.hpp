@@ -7,6 +7,7 @@
 //      2020.11.01 Initial version
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
+#include "../i18n.hpp"
 #include "utf_iterator.hpp"
 #include "pfs/endian.hpp"
 
@@ -79,7 +80,7 @@ protected:
 
         while (n-- > 0) {
             if (pos == last)
-                throw error {make_error_code(errc::broken_sequence)};
+                throw error {tr::_("broken sequence")};
 
             std::uint16_t w1 = code_unit_cast<std::uint16_t>(*pos);
             w1 = Utf16ByteSwap::byteswap(w1);
@@ -93,7 +94,7 @@ protected:
                 ;
             } else if (w1 >= 0xD800 && w1 <= 0xDBFF) {
                 if (pos == last)
-                    throw error {make_error_code(errc::broken_sequence)};
+                    throw error {tr::_("broken sequence")};
 
                 w2 = code_unit_cast<std::uint16_t>(*pos);
                 w2 = Utf16ByteSwap::byteswap(w2);
@@ -102,9 +103,9 @@ protected:
                 if (w2 >= 0xDC00 && w2 <= 0xDFFF)
                     ++pos;
                 else
-                    throw error {make_error_code(errc::broken_sequence)};
+                    throw error {tr::_("broken sequence")};
             } else {
-                throw error {make_error_code(errc::broken_sequence)};
+                throw error {tr::_("broken sequence")};
             }
 
             if (w2) {
@@ -134,7 +135,7 @@ protected:
             } else if (w1 >= 0xD800 && w1 <= 0xDBFF) {
                 ++pos;
             } else {
-                throw error {make_error_code(errc::broken_sequence)};
+                throw error {tr::_("broken sequence")};
             }
         }
     }
@@ -163,7 +164,7 @@ protected:
                 cu_count += 2;
                 ++pos;
             } else {
-                throw error {make_error_code(errc::broken_sequence)};
+                throw error {tr::_("broken sequence")};
             }
 
             cp_count++;
