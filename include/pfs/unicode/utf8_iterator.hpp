@@ -10,6 +10,7 @@
 //      2023.05.12 Renamed `utf8_input_iterator` into `utf8_iterator`.
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
+#include "../i18n.hpp"
 #include "utf_iterator.hpp"
 
 /* UTF-8
@@ -55,7 +56,7 @@ protected:
 
         while (n-- > 0) {
             if (pos == last)
-                throw error {make_error_code(errc::broken_sequence)};
+                throw error {tr::_("broken sequence")};
 
             std::uint8_t b = code_unit_cast<std::uint8_t>(*pos);
             ++pos;
@@ -80,12 +81,12 @@ protected:
                 result = b & 0x01;
                 nunits = 6;
             } else {
-                throw error {make_error_code(errc::broken_sequence)};
+                throw error {tr::_("broken sequence")};
             }
 
             while (--nunits) {
                 if (pos == last)
-                    throw error {make_error_code(errc::broken_sequence)};
+                    throw error {tr::_("broken sequence")};
 
                 b = code_unit_cast<std::uint8_t>(*pos);
                 ++pos;
@@ -93,7 +94,7 @@ protected:
                 if ((b & 0xC0) == 0x80) {
                     result = (result << 6) | (b & 0x3F);
                 } else {
-                    throw error {make_error_code(errc::broken_sequence)};
+                    throw error {tr::_("broken sequence")};
                 }
             }
         }
@@ -123,7 +124,7 @@ protected:
             } else if ((b & 0xFE) == 0xFC) {
                 pos += 5;
             } else {
-                throw error {make_error_code(errc::broken_sequence)};
+                throw error {tr::_("broken sequence")};
             }
         }
     }
@@ -163,7 +164,7 @@ protected:
                 cu_count += 6;
                 pos += 5;
             } else {
-                throw error {make_error_code(errc::broken_sequence)};
+                throw error {tr::_("broken sequence")};
             }
 
             cp_count++;
