@@ -8,7 +8,6 @@
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
 #include "assert.hpp"
-#include "c++support.hpp"
 #include <string>
 #include <system_error>
 #include <string.h>
