@@ -22,51 +22,54 @@ if (NOT _icu_lib_dir)
     set(_icu_lib_dir ${CMAKE_BINARY_DIR}/output)
 endif()
 
-if (MSVC)
-    set(_icu_uc_lib_path "${_icu_lib_dir}/icuuc71.dll")
-    set(_icu_uc_implib_path "${_icu_lib_dir}/icuuc.lib")
-    set(_icu_data_lib_path "${_icu_lib_dir}/icudt71.dll")
-    set(_icu_data_implib_path "${_icu_lib_dir}/icudt.lib")
-    set(_icu_inc_dir "${_icu_lib_dir}/include")
+if (CMAKE_SYSTEM_NAME MATCHES "Windows")
+    if (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+        set(_icu_uc_lib_path "${_icu_lib_dir}/icuuc71.dll")
+        set(_icu_uc_implib_path "${_icu_lib_dir}/icuuc.lib")
+        set(_icu_data_lib_path "${_icu_lib_dir}/icudt71.dll")
+        set(_icu_data_implib_path "${_icu_lib_dir}/icudt.lib")
+        set(_icu_inc_dir "${_icu_lib_dir}/include")
 
-    # https://learn.microsoft.com/en-us/cpp/build/cmakesettings-reference?view=msvc-170#environments
-    # Used non-"Visual Studio Generators" or arch is not set by -A option
-    if (CMAKE_GENERATOR_PLATFORM STREQUAL "x64" OR $ENV{VSCMD_ARG_TGT_ARCH} STREQUAL "x64")
-        set(PFS__ICU_ARCH x64)
-        set(_icu_lib_subdir "bin64")
-        set(_icu_implib_subdir "lib64")
-    elseif (CMAKE_GENERATOR_PLATFORM STREQUAL "Win32" OR $ENV{VSCMD_ARG_TGT_ARCH} STREQUAL "x86")
-        set(PFS__ICU_ARCH Win32)
-        set(_icu_lib_subdir "bin")
-        set(_icu_implib_subdir "lib")
-    else()
-        message(FATAL_ERROR "Target platform not set: use -A option (-A x64 or -A Win32)")
+        # https://learn.microsoft.com/en-us/cpp/build/cmakesettings-reference?view=msvc-170#environments
+        # Used non-"Visual Studio Generators" or arch is not set by -A option
+        if (CMAKE_GENERATOR_PLATFORM STREQUAL "x64" OR $ENV{VSCMD_ARG_TGT_ARCH} STREQUAL "x64")
+            set(PFS__ICU_ARCH x64)
+            set(_icu_lib_subdir "bin64")
+            set(_icu_implib_subdir "lib64")
+        elseif (CMAKE_GENERATOR_PLATFORM STREQUAL "Win32" OR $ENV{VSCMD_ARG_TGT_ARCH} STREQUAL "x86")
+            set(PFS__ICU_ARCH Win32)
+            set(_icu_lib_subdir "bin")
+            set(_icu_implib_subdir "lib")
+        else()
+            message(FATAL_ERROR "Target platform not set: use -A option (-A x64 or -A Win32)")
+        endif()
+
+        configure_file(${CMAKE_CURRENT_LIST_DIR}/build-icu.cmd.in ${CMAKE_CURRENT_BINARY_DIR}/build-icu.cmd @ONLY)
+
+        include(ExternalProject)
+        ExternalProject_Add(${PROJ_NAME}
+            PREFIX ${_prefix}
+            GIT_REPOSITORY "https://github.com/unicode-org/icu"
+            GIT_TAG "release-71-1"
+            GIT_SHALLOW ON
+            GIT_PROGRESS ON
+            PATCH_COMMAND ""
+            CONFIGURE_COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_CURRENT_BINARY_DIR}/build-icu.cmd "../${PROJ_NAME}/icu4c"
+            BUILD_COMMAND ${CMAKE_COMMAND} -E echo "Build ICU"
+                COMMAND ${CMAKE_COMMAND} -E chdir "../${PROJ_NAME}/icu4c" build-icu.cmd
+            INSTALL_COMMAND ${CMAKE_COMMAND} -E copy_if_different "../${PROJ_NAME}/icu4c/${_icu_lib_subdir}/icuuc71.dll" ${_icu_lib_dir}
+                COMMAND ${CMAKE_COMMAND} -E copy_if_different "../${PROJ_NAME}/icu4c/${_icu_lib_subdir}/icudt71.dll" ${_icu_lib_dir}
+                COMMAND ${CMAKE_COMMAND} -E copy_if_different "../${PROJ_NAME}/icu4c/${_icu_implib_subdir}/icuuc.lib" ${_icu_lib_dir}
+                COMMAND ${CMAKE_COMMAND} -E copy_if_different "../${PROJ_NAME}/icu4c/${_icu_implib_subdir}/icudt.lib" ${_icu_lib_dir}
+                COMMAND ${CMAKE_COMMAND} -E copy_directory "../${PROJ_NAME}/icu4c/include" "${_icu_lib_dir}/include"
+            BUILD_BYPRODUCTS
+                ${_icu_uc_lib_path}
+                ${_icu_data_lib_path}
+                ${_icu_uc_implib_path}
+                ${_icu_data_implib_path})    else()
+        message(FATAL_ERROR "Add instructions to support this platform: ${CMAKE_SYSTEM_NAME}/${CMAKE_CXX_COMPILER_ID}")
     endif()
-
-    configure_file(${CMAKE_CURRENT_LIST_DIR}/build-icu.cmd.in ${CMAKE_CURRENT_BINARY_DIR}/build-icu.cmd @ONLY)
-
-    include(ExternalProject)
-    ExternalProject_Add(${PROJ_NAME}
-        PREFIX ${_prefix}
-        GIT_REPOSITORY "https://github.com/unicode-org/icu"
-        GIT_TAG "release-71-1"
-        GIT_SHALLOW ON
-        GIT_PROGRESS ON
-        PATCH_COMMAND ""
-        CONFIGURE_COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_CURRENT_BINARY_DIR}/build-icu.cmd "../${PROJ_NAME}/icu4c"
-        BUILD_COMMAND ${CMAKE_COMMAND} -E echo "Build ICU"
-            COMMAND ${CMAKE_COMMAND} -E chdir "../${PROJ_NAME}/icu4c" build-icu.cmd
-        INSTALL_COMMAND ${CMAKE_COMMAND} -E copy_if_different "../${PROJ_NAME}/icu4c/${_icu_lib_subdir}/icuuc71.dll" ${_icu_lib_dir}
-            COMMAND ${CMAKE_COMMAND} -E copy_if_different "../${PROJ_NAME}/icu4c/${_icu_lib_subdir}/icudt71.dll" ${_icu_lib_dir}
-            COMMAND ${CMAKE_COMMAND} -E copy_if_different "../${PROJ_NAME}/icu4c/${_icu_implib_subdir}/icuuc.lib" ${_icu_lib_dir}
-            COMMAND ${CMAKE_COMMAND} -E copy_if_different "../${PROJ_NAME}/icu4c/${_icu_implib_subdir}/icudt.lib" ${_icu_lib_dir}
-            COMMAND ${CMAKE_COMMAND} -E copy_directory "../${PROJ_NAME}/icu4c/include" "${_icu_lib_dir}/include"
-        BUILD_BYPRODUCTS
-            ${_icu_uc_lib_path}
-            ${_icu_data_lib_path}
-            ${_icu_uc_implib_path}
-            ${_icu_data_implib_path})
-else (MSVC)
+else ()
     if (CMAKE_SYSTEM_NAME MATCHES "Linux")
         if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
             set(_icu_platform "Linux/gcc")
