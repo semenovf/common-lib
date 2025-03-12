@@ -123,7 +123,7 @@ else ()
         BUILD_BYPRODUCTS
             ${_icu_uc_lib_path}
             ${_icu_data_lib_path})
-endif(MSVC)
+endif()
 
 add_dependencies(common ${PROJ_NAME})
 
