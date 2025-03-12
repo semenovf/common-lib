@@ -66,7 +66,8 @@ if (CMAKE_SYSTEM_NAME MATCHES "Windows")
                 ${_icu_uc_lib_path}
                 ${_icu_data_lib_path}
                 ${_icu_uc_implib_path}
-                ${_icu_data_implib_path})    else()
+                ${_icu_data_implib_path})
+    else()
         message(FATAL_ERROR "Add instructions to support this platform: ${CMAKE_SYSTEM_NAME}/${CMAKE_CXX_COMPILER_ID}")
     endif()
 else ()
