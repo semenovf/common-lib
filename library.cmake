@@ -7,18 +7,13 @@
 #       2019.12.16 Initial commit.
 #       2024.10.26 Removed `portable_target` dependency.
 #       2024.12.10 Min CMake version is 3.19 (CMakePresets).
+#       2025.03.19 Removed PFS__LOG_LEVEL.
 ################################################################################
 cmake_minimum_required (VERSION 3.19)
 project(common
     VERSION 1.0.0
     DESCRIPTION "Common C++ library"
     LANGUAGES CXX C)
-
-if (NOT DEFINED PFS__LOG_LEVEL)
-    if (DEFINED ENV{PFS__LOG_LEVEL})
-        set(PFS__LOG_LEVEL $ENV{PFS__LOG_LEVEL} CACHE INTERNAL "")
-    endif()
-endif()
 
 if (PFS__ENABLE_NLS)
     if (MSVC)
@@ -42,7 +37,7 @@ target_link_libraries(common INTERFACE Threads::Threads)
 if (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
     target_compile_definitions(common INTERFACE _UNICODE UNICODE)
     target_compile_definitions(common INTERFACE NOMINMAX)
-    target_compile_options(common INTERFACE "/utf-8")
+    target_compile_options(common INTERFACE "/utf-8" "/Zc:__cplusplus")
 endif()
 
 if (PFS__ENABLE_ICU)
@@ -74,10 +69,6 @@ endif()
 
 if (PFS__FORCE_ULID_STRUCT)
     target_compile_definitions(common INTERFACE "PFS__FORCE_ULID_STRUCT=1")
-endif()
-
-if (PFS__LOG_LEVEL)
-    target_compile_definitions(common INTERFACE "PFS__LOG_LEVEL=${PFS__LOG_LEVEL}")
 endif()
 
 if (PFS__ENABLE_NLS)
