@@ -88,6 +88,11 @@ std::uint64_t byteswap<std::uint64_t> (std::uint64_t x) noexcept
 // https://docs.microsoft.com/en-us/cpp/c-runtime-library/reference
 //      /byteswap-uint64-byteswap-ulong-byteswap-ushort?view=msvc-160
 
+#ifdef PFS_BYTESWAP_CONSTEXPR
+#   undef PFS_BYTESWAP_CONSTEXPR
+#   define PFS_BYTESWAP_CONSTEXPR
+#endif
+
 template <>
 inline PFS_BYTESWAP_CONSTEXPR
 std::uint16_t byteswap<std::uint16_t> (std::uint16_t x) noexcept

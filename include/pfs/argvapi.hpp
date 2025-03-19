@@ -173,11 +173,11 @@ public:
                     }
 
                     auto last = std::find(first, arg.end(), argvapi_traits<CharT>::assign_char); // '='
-                    optname = string_view_type {first, static_cast<std::size_t>(std::distance(first, last))};
+                    optname = string_view_type {& *first, static_cast<std::size_t>(std::distance(first, last))};
 
                     if (last != arg.end()) {
                         ++last;
-                        optarg = string_view_type {last, static_cast<std::size_t>(std::distance(last, arg.end()))};
+                        optarg = string_view_type {& *last, static_cast<std::size_t>(std::distance(last, arg.end()))};
                     }
                 }
             } else {
