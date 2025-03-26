@@ -12,22 +12,22 @@
 #include "endian.hpp"
 #include "binary_istream.hpp"
 #include "binary_ostream.hpp"
+#include <cstdint>
 
 namespace pfs {
 
 template <endian Endianess>
 void pack (binary_ostream<Endianess> & out, universal_id const & uuid)
 {
-    auto a = pfs::to_array2<char>(uuid, Endianess);
-    out << a; // Output 16 bytes
+    out << high(uuid) << low(uuid);
 }
 
 template <endian Endianess>
 void unpack (binary_istream<Endianess> & in, universal_id & uuid)
 {
-    std::array<char, 16> a;
-    in >> a;
-    uuid = pfs::make_uuid2<char>(a, Endianess);
+    std::uint64_t h {0}, l {0};
+    in >> h >> l;
+    uuid = pfs::make_uuid(h, l);
 }
 
 } // namespace pfs

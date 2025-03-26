@@ -27,6 +27,7 @@ using basic_value_t = pfs::variant<
     , blob_t        // bytes sequence
     , std::string>; // utf-8 encoded string
 
+// DEPRECATED No replacement, will be removed
 struct unified_value: public basic_value_t
 {
     using string_view = pfs::string_view;
