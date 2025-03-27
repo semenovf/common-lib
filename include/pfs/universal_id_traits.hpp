@@ -20,6 +20,11 @@ struct universal_id_traits
     using type = pfs::universal_id;
     using rep_type = pfs::universal_id_rep;
 
+    static std::string to_string (type const & id)
+    {
+        return pfs::to_string(id);
+    }
+
     static std::string to_string (rep_type const & rep)
     {
         return pfs::to_string(cast(rep));

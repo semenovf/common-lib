@@ -23,7 +23,6 @@ using error_code = std::error_code;
 enum class errc
 {
       success = 0
-    , custom_error     // Default error for all cases excluding enumerated below
     , system_error     // More information can be obtained using errno (Linux) or
                        // WSAGetLastError (Windows)
     , unexpected_error // Replaces any unexpected error
@@ -43,11 +42,11 @@ public:
             case errc::success:
                 return std::string{"no error"};
 
-            case errc::custom_error:
-                return std::string{""};
-
             case errc::system_error:
                 return std::string{"system error"};
+
+            case errc::unexpected_error:
+                return std::string{"unexpected error"};
 
             default: return std::string{"unknown error"};
         }
@@ -71,7 +70,7 @@ inline std::error_code make_error_code (errc e)
 class error: public std::system_error
 {
 public:
-    error () : std::system_error(make_error_code(errc::success))
+    error () : std::system_error()
     {}
 
     error (std::error_code ec)
@@ -84,7 +83,7 @@ public:
     {}
 
     error (std::string const & description)
-        : std::system_error(make_error_code(errc::custom_error), description)
+        : std::system_error(std::error_code{}, description)
     {}
 
     error (error const & other ) /*noexcept*/ = default;
