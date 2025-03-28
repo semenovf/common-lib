@@ -70,7 +70,7 @@ inline std::error_code make_error_code (errc e)
 class error: public std::system_error
 {
 public:
-    error () : std::system_error()
+    error () : std::system_error(std::error_code{})
     {}
 
     error (std::error_code ec)

@@ -193,7 +193,7 @@ if (TARGET utf16be_decode)
 endif()
 
 if (TARGET uuidv7)
-    find_package(Qt5 COMPONENTS Core)
+    find_package(Qt5 QUIET COMPONENTS Core)
 
     if (Qt5Core_FOUND)
         target_link_libraries(uuidv7 PRIVATE Qt5::Core)
