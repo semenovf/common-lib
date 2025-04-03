@@ -23,9 +23,10 @@ using error_code = std::error_code;
 enum class errc
 {
       success = 0
-    , system_error     // More information can be obtained using errno (Linux) or
-                       // WSAGetLastError (Windows)
-    , unexpected_error // Replaces any unexpected error
+    , unclassified_error // Unclassified error
+    , system_error       // More information can be obtained using errno (Linux) or
+                         // WSAGetLastError (Windows)
+    , unexpected_error   // Replaces any unexpected error
 };
 
 class error_category : public std::error_category
@@ -41,6 +42,9 @@ public:
         switch (static_cast<errc>(ev)) {
             case errc::success:
                 return std::string{"no error"};
+
+            case errc::unclassified_error:
+                return std::string{"unclassified error"};
 
             case errc::system_error:
                 return std::string{"system error"};
@@ -83,7 +87,7 @@ public:
     {}
 
     error (std::string const & description)
-        : std::system_error(std::error_code{}, description)
+        : std::system_error(make_error_code(errc::unclassified_error), description)
     {}
 
     error (error const & other ) /*noexcept*/ = default;
