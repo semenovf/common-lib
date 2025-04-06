@@ -1,4 +1,14 @@
+////////////////////////////////////////////////////////////////////////////////
+// Copyright (c) 2020-2023 Vladislav Trifochkin
+//
+// This file is part of `common-lib`.
+//
+// Changelog:
+//      20??.??.?? Initial version
+////////////////////////////////////////////////////////////////////////////////
 #pragma once
+#include <cstdint>
+
 #if PFS__ICU_ENABLED
 #   include <unicode/uchar.h>
 #else
@@ -17,18 +27,18 @@ inline T1 code_unit_cast (T2 x)
 
 struct char_t
 {
-    static uint32_t const max_code_point           = 0x0010ffff;
-    static uint32_t const null_code_point          = 0x00000000;
-    static uint32_t const default_replacement_char = 0x0000FFFD;
-    static uint32_t const max_bmp                  = 0x0000FFFF;
-    static uint32_t const bom_charstatic           = 0x0000FEFF;
-    static uint32_t const hi_surrogate_start       = 0x0000D800;
-    static uint32_t const hi_surrogate_end         = 0x0000DBFF;
-    static uint32_t const low_surrogate_start      = 0x0000DC00;
-    static uint32_t const low_surrogate_end        = 0x0000DFFF;
+    static std::uint32_t const max_code_point           = 0x0010ffff;
+    static std::uint32_t const null_code_point          = 0x00000000;
+    static std::uint32_t const default_replacement_char = 0x0000FFFD;
+    static std::uint32_t const max_bmp                  = 0x0000FFFF;
+    static std::uint32_t const bom_charstatic           = 0x0000FEFF;
+    static std::uint32_t const hi_surrogate_start       = 0x0000D800;
+    static std::uint32_t const hi_surrogate_end         = 0x0000DBFF;
+    static std::uint32_t const low_surrogate_start      = 0x0000DC00;
+    static std::uint32_t const low_surrogate_end        = 0x0000DFFF;
 
-    static uint32_t const replacement_char = default_replacement_char;
-    typedef uint32_t value_type;
+    static std::uint32_t const replacement_char = default_replacement_char;
+    using value_type = std::uint32_t;
 
     value_type value;
 
