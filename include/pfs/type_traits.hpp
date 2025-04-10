@@ -11,16 +11,22 @@
 
 namespace pfs {
 
+#if __cplusplus < 201402L
 template <typename T>
 using remove_cv_t = typename std::remove_cv<T>::type;
 
 template <typename T>
 using remove_reference_t = typename std::remove_reference<T>::type;
+#endif
 
 template <typename T>
 struct remove_cvref
 {
+#if __cplusplus < 201402L
     using type = remove_cv_t<remove_reference_t<T>>;
+#else
+    using type = std::remove_cv_t<std::remove_reference_t<T>>;
+#endif
 };
 
 template <typename T>
