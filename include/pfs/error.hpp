@@ -140,7 +140,6 @@ inline std::string system_error_text (int errn = 0)
     return windows::utf8_error(errn == 0 ? GetLastError() : static_cast<DWORD>(errn));
 #else // POSIX
     char buffer[256];
-    strerror_r(errn == 0 ? errno : errn, buffer, sizeof(buffer));
     return strerror_adapter(strerror_r(errn == 0 ? errno : errn, buffer, sizeof(buffer)), buffer);
 #endif
 }
