@@ -49,14 +49,14 @@ public:
 #ifdef ULIDUINT128
         return static_cast<std::uint64_t>(u >> 64);
 #else
-        std::uint64_t hi = static_cast<std::uint64_t>(u.data[15])
-            | static_cast<std::uint64_t>(u.data[14]) << 8
-            | static_cast<std::uint64_t>(u.data[13]) << 16
-            | static_cast<std::uint64_t>(u.data[12]) << 24
-            | static_cast<std::uint64_t>(u.data[11]) << 32
-            | static_cast<std::uint64_t>(u.data[10]) << 40
-            | static_cast<std::uint64_t>(u.data[9])  << 48
-            | static_cast<std::uint64_t>(u.data[8])  << 56;
+        std::uint64_t hi = static_cast<std::uint64_t>(u.data[7])
+            | static_cast<std::uint64_t>(u.data[6]) << 8
+            | static_cast<std::uint64_t>(u.data[5]) << 16
+            | static_cast<std::uint64_t>(u.data[4]) << 24
+            | static_cast<std::uint64_t>(u.data[3]) << 32
+            | static_cast<std::uint64_t>(u.data[2]) << 40
+            | static_cast<std::uint64_t>(u.data[1]) << 48
+            | static_cast<std::uint64_t>(u.data[0]) << 56;
         return hi;
 #endif
     }
@@ -66,14 +66,14 @@ public:
 #ifdef ULIDUINT128
         return static_cast<std::uint64_t>(u);
 #else
-        std::uint64_t lo = static_cast<std::uint64_t>(u.data[7])
-            | static_cast<std::uint64_t>(u.data[6]) << 8
-            | static_cast<std::uint64_t>(u.data[5]) << 16
-            | static_cast<std::uint64_t>(u.data[4]) << 24
-            | static_cast<std::uint64_t>(u.data[3]) << 32
-            | static_cast<std::uint64_t>(u.data[2]) << 40
-            | static_cast<std::uint64_t>(u.data[1]) << 48
-            | static_cast<std::uint64_t>(u.data[0]) << 56;
+        std::uint64_t lo = static_cast<std::uint64_t>(u.data[15])
+            | static_cast<std::uint64_t>(u.data[14]) << 8
+            | static_cast<std::uint64_t>(u.data[13]) << 16
+            | static_cast<std::uint64_t>(u.data[12]) << 24
+            | static_cast<std::uint64_t>(u.data[11]) << 32
+            | static_cast<std::uint64_t>(u.data[10]) << 40
+            | static_cast<std::uint64_t>(u.data[9])  << 48
+            | static_cast<std::uint64_t>(u.data[8])  << 56;
         return lo;
 #endif
     }
