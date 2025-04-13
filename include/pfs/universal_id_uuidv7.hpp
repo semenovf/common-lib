@@ -58,19 +58,6 @@ public:
 
     std::uint64_t high () const noexcept
     {
-        std::uint64_t result = static_cast<std::uint64_t>(_u[15])
-            | static_cast<std::uint64_t>(_u[14]) << 8
-            | static_cast<std::uint64_t>(_u[13]) << 16
-            | static_cast<std::uint64_t>(_u[12]) << 24
-            | static_cast<std::uint64_t>(_u[11]) << 32
-            | static_cast<std::uint64_t>(_u[10]) << 40
-            | static_cast<std::uint64_t>(_u[9])  << 48
-            | static_cast<std::uint64_t>(_u[8])  << 56;
-        return result;
-    }
-
-    std::uint64_t low () const noexcept
-    {
         std::uint64_t result = static_cast<std::uint64_t>(_u[7])
             | static_cast<std::uint64_t>(_u[6]) << 8
             | static_cast<std::uint64_t>(_u[5]) << 16
@@ -79,6 +66,19 @@ public:
             | static_cast<std::uint64_t>(_u[2]) << 40
             | static_cast<std::uint64_t>(_u[1]) << 48
             | static_cast<std::uint64_t>(_u[0]) << 56;
+        return result;
+    }
+
+    std::uint64_t low () const noexcept
+    {
+        std::uint64_t result = static_cast<std::uint64_t>(_u[15])
+            | static_cast<std::uint64_t>(_u[14]) << 8
+            | static_cast<std::uint64_t>(_u[13]) << 16
+            | static_cast<std::uint64_t>(_u[12]) << 24
+            | static_cast<std::uint64_t>(_u[11]) << 32
+            | static_cast<std::uint64_t>(_u[10]) << 40
+            | static_cast<std::uint64_t>(_u[9])  << 48
+            | static_cast<std::uint64_t>(_u[8])  << 56;
         return result;
     }
 
@@ -195,23 +195,23 @@ inline universal_id make_uuid (std::uint64_t hi, std::uint64_t lo)
 {
     std::array<std::uint8_t, 16> u;
 
-    u[15] = static_cast<std::uint8_t>(hi);
-    u[14] = static_cast<std::uint8_t>(hi >>  8);
-    u[13] = static_cast<std::uint8_t>(hi >> 16);
-    u[12] = static_cast<std::uint8_t>(hi >> 24);
-    u[11] = static_cast<std::uint8_t>(hi >> 32);
-    u[10] = static_cast<std::uint8_t>(hi >> 40);
-    u[9]  = static_cast<std::uint8_t>(hi >> 48);
-    u[8]  = static_cast<std::uint8_t>(hi >> 56);
+    u[15] = static_cast<std::uint8_t>(lo);
+    u[14] = static_cast<std::uint8_t>(lo >>  8);
+    u[13] = static_cast<std::uint8_t>(lo >> 16);
+    u[12] = static_cast<std::uint8_t>(lo >> 24);
+    u[11] = static_cast<std::uint8_t>(lo >> 32);
+    u[10] = static_cast<std::uint8_t>(lo >> 40);
+    u[9]  = static_cast<std::uint8_t>(lo >> 48);
+    u[8]  = static_cast<std::uint8_t>(lo >> 56);
 
-    u[7]  = static_cast<std::uint8_t>(lo);
-    u[6]  = static_cast<std::uint8_t>(lo >>  8);
-    u[5]  = static_cast<std::uint8_t>(lo >> 16);
-    u[4]  = static_cast<std::uint8_t>(lo >> 24);
-    u[3]  = static_cast<std::uint8_t>(lo >> 32);
-    u[2]  = static_cast<std::uint8_t>(lo >> 40);
-    u[1]  = static_cast<std::uint8_t>(lo >> 48);
-    u[0]  = static_cast<std::uint8_t>(lo >> 56);
+    u[7]  = static_cast<std::uint8_t>(hi);
+    u[6]  = static_cast<std::uint8_t>(hi >>  8);
+    u[5]  = static_cast<std::uint8_t>(hi >> 16);
+    u[4]  = static_cast<std::uint8_t>(hi >> 24);
+    u[3]  = static_cast<std::uint8_t>(hi >> 32);
+    u[2]  = static_cast<std::uint8_t>(hi >> 40);
+    u[1]  = static_cast<std::uint8_t>(hi >> 48);
+    u[0]  = static_cast<std::uint8_t>(hi >> 56);
 
     return universal_id{std::move(u)};
 }

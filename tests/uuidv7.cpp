@@ -69,12 +69,19 @@ TEST_CASE("crc16_32_64") {
 
 TEST_CASE("make from 64-bit parts")
 {
-    auto orig = *pfs::parse_universal_id("0193f3a3-c500-717f-9f9c-4740b063c413");
-    auto hi = pfs::high(orig);
-    auto lo = pfs::low(orig);
-    auto u = pfs::make_uuid(hi, lo);
+    auto orig1 = *pfs::parse_universal_id("0193f3a3-c500-717f-9f9c-4740b063c413");
+    auto orig2 = *pfs::parse_universal_id("0193f3a3-c500-717f-9f9c-4740b063c414");
 
-    CHECK_EQ(orig, u);
+    auto hi1 = pfs::high(orig1);
+    auto lo1 = pfs::low(orig1);
+    auto u1 = pfs::make_uuid(hi1, lo1);
+
+    auto hi2 = pfs::high(orig2);
+    auto lo2 = pfs::low(orig2);
+
+    CHECK_EQ(orig1, u1);
+    CHECK(hi1 == hi2);
+    CHECK(lo1 < lo2);
 }
 
 TEST_CASE("serialize")
