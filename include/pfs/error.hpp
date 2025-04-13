@@ -26,6 +26,7 @@ enum class errc
     , unclassified_error // Unclassified error
     , system_error       // More information can be obtained using errno (Linux) or
                          // WSAGetLastError (Windows)
+    , backend_error      // Any backend error (like system error)
     , unexpected_error   // Replaces any unexpected error
 };
 
@@ -48,6 +49,9 @@ public:
 
             case errc::system_error:
                 return std::string{"system error"};
+
+            case errc::backend_error:
+                return std::string{"backend error"};
 
             case errc::unexpected_error:
                 return std::string{"unexpected error"};
