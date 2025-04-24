@@ -118,24 +118,24 @@ public:
         return *this;
     }
 
-    // template <typename SizeType>
-    // binary_istream & operator >> (std::pair<std::string *, SizeType> && v)
-    // {
-    //     string_view tmp;
-    //     unpack(*this, tmp, v.second);
-    //
-    //     if (_state == status_enum::good)
-    //         *v.first = to_string(tmp);
-    //
-    //     return *this;
-    // }
+    template <typename SizeType>
+    binary_istream & operator >> (std::pair<std::string *, SizeType> && v)
+    {
+        string_view tmp;
+        unpack(*this, tmp, v.second);
 
-    // template <typename Char, typename SizeType>
-    // binary_istream & operator >> (std::pair<std::vector<Char> *, SizeType> && v)
-    // {
-    //     unpack(*this, *v.first, v.second);
-    //     return *this;
-    // }
+        if (_state == status_enum::good)
+            *v.first = to_string(tmp);
+
+        return *this;
+    }
+
+    template <typename Char, typename SizeType>
+    binary_istream & operator >> (std::pair<std::vector<Char> *, SizeType> && v)
+    {
+        unpack(*this, *v.first, v.second);
+        return *this;
+    }
 
     template <typename SizeType>
     binary_istream & operator >> (std::pair<SizeType *, std::string *> && v)
