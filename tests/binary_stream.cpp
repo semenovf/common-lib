@@ -61,7 +61,7 @@ void serialize ()
     std::uint16_t vector_size = 0;
 
     is >> a1 >> b1 >> c1 >> d1 >> e1 >> f1 >> g1 >> h1 >> i1 >> j1 >> k1
-        >> sz1 >> std::make_pair(& s1, & sz1)
+        >> sz1 >> std::make_pair(& s1, sz1)
         >> std::make_pair(& sz2, & s2)
         >> std::make_pair(& vector_size, & vector)
         >> a2;
