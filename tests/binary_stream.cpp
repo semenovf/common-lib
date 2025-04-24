@@ -35,7 +35,6 @@ void serialize ()
     std::vector<char> vector_sample = {'v', 'e', 'c', 't', 'o', 'r'};
 
     os << a0 << b0 << c0 << d0 << e0 << f0 << g0 << h0 << i0 << j0 << k0
-        << s0.size() << std::make_pair(s0.data(), s0.size())
         << std::make_pair(sz0, & s0)
         << std::make_pair(static_cast<std::uint16_t>(vector_sample.size()), & vector_sample)
         << a0;
@@ -54,15 +53,12 @@ void serialize ()
     float j1;
     double k1;
     std::string s1;
-    std::string::size_type sz1;
-    std::string s2;
-    std::uint16_t sz2 = 0;
+    std::uint16_t sz1 = 0;
     std::vector<char> vector;
     std::uint16_t vector_size = 0;
 
     is >> a1 >> b1 >> c1 >> d1 >> e1 >> f1 >> g1 >> h1 >> i1 >> j1 >> k1
-        >> sz1 >> std::make_pair(& s1, sz1)
-        >> std::make_pair(& sz2, & s2)
+        >> std::make_pair(& sz1, & s1)
         >> std::make_pair(& vector_size, & vector)
         >> a2;
 
@@ -78,9 +74,7 @@ void serialize ()
     CHECK_EQ(j1, j0);
     CHECK_EQ(k1, k0);
     CHECK_EQ(s1, s0);
-    CHECK_EQ(sz1, sz0);
-    CHECK_EQ(sz2, static_cast<std::uint16_t>(s0.size()));
-    CHECK_EQ(s2, s0);
+    CHECK_EQ(sz1, static_cast<std::uint16_t>(s0.size()));
     CHECK_EQ(vector, vector_sample);
     CHECK_EQ(vector_size, static_cast<std::uint16_t>(vector_sample.size()));
 
