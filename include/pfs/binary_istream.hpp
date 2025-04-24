@@ -119,7 +119,7 @@ public:
     }
 
     template <typename SizeType>
-    binary_istream & operator >> (std::pair<std::string *, SizeType *> && v)
+    binary_istream & operator >> (std::pair<std::string *, SizeType *> && v) // && here
     {
         string_view tmp;
         unpack(*this, tmp, *v.second);
@@ -131,9 +131,34 @@ public:
     }
 
     template <typename Char, typename SizeType>
-    binary_istream & operator >> (std::pair<std::vector<Char> *, SizeType *> && v)
+    binary_istream & operator >> (std::pair<std::vector<Char> *, SizeType *> & v)
     {
         unpack(*this, *v.first, *v.second);
+        return *this;
+    }
+
+    template <typename SizeType>
+    binary_istream & operator >> (std::pair<SizeType *, std::string *> && v) // && here
+    {
+        unpack(*this, *v.first);
+
+        if (_state == status_enum::good) {
+            string_view tmp;
+
+            unpack(*this, tmp, *v.first);
+
+            if (_state == status_enum::good)
+                *v.second = to_string(tmp);
+        }
+
+        return *this;
+    }
+
+    template <typename Char, typename SizeType>
+    binary_istream & operator >> (std::pair<SizeType *, std::vector<Char> *> && v)
+    {
+        unpack(*this, *v.first);
+        unpack(*this, *v.second, static_cast<size_type>(*v.first));
         return *this;
     }
 

@@ -211,6 +211,48 @@ private:
     {
         pack(out, v.first, pfs::numeric_cast<std::size_t>(v.second));
     }
+
+    template <typename SizeType>
+    friend void pack (binary_ostream & out, std::pair<SizeType, std::string const *> const & v)
+    {
+        pack(out, v.first);
+        pack(out, *v.second);
+    }
+
+    template <typename SizeType>
+    friend void pack (binary_ostream & out, std::pair<SizeType, std::string *> const & v)
+    {
+        pack(out, v.first);
+        pack(out, *v.second);
+    }
+
+    template <typename SizeType>
+    friend void pack (binary_ostream & out, std::pair<SizeType, std::vector<char> const *> const & v)
+    {
+        pack(out, v.first);
+        pack(out, *v.second);
+    }
+
+    template <typename SizeType>
+    friend void pack (binary_ostream & out, std::pair<SizeType, std::vector<char> *> const & v)
+    {
+        pack(out, v.first);
+        pack(out, *v.second);
+    }
+
+    template <typename SizeType>
+    friend void pack (binary_ostream & out, std::pair<SizeType, std::vector<std::uint8_t> const *> const & v)
+    {
+        pack(out, v.first);
+        pack(out, *v.second);
+    }
+
+    template <typename SizeType>
+    friend void pack (binary_ostream & out, std::pair<SizeType, std::vector<std::uint8_t> *> const & v)
+    {
+        pack(out, v.first);
+        pack(out, *v.second);
+    }
 };
 
 PFS__NAMESPACE_END
