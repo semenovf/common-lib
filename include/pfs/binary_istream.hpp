@@ -119,7 +119,7 @@ public:
     }
 
     template <typename SizeType>
-    binary_istream & operator >> (std::pair<std::string *, SizeType> && v) // && here
+    binary_istream & operator >> (std::pair<std::string *, SizeType> && v)
     {
         string_view tmp;
         unpack(*this, tmp, v.second);
@@ -131,14 +131,14 @@ public:
     }
 
     template <typename Char, typename SizeType>
-    binary_istream & operator >> (std::pair<std::vector<Char> *, SizeType> & v)
+    binary_istream & operator >> (std::pair<std::vector<Char> *, SizeType> && v)
     {
         unpack(*this, *v.first, v.second);
         return *this;
     }
 
     template <typename SizeType>
-    binary_istream & operator >> (std::pair<SizeType *, std::string *> && v) // && here
+    binary_istream & operator >> (std::pair<SizeType *, std::string *> && v)
     {
         unpack(*this, *v.first);
 
