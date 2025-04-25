@@ -9,6 +9,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
 #include "namespace.hpp"
+#include "optional.hpp"
 #include "universal_id.hpp"
 #include "universal_id_rep.hpp"
 #include <string>
@@ -40,7 +41,7 @@ struct universal_id_traits
         return rep_type {high(id), low(id)};
     }
 
-    static type parse (std::string const & s)
+    static pfs::optional<type> parse (std::string const & s)
     {
         return parse_universal_id(s);
     }
