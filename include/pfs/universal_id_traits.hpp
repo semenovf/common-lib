@@ -39,6 +39,11 @@ struct universal_id_traits
     {
         return rep_type {high(id), low(id)};
     }
+
+    static type parse (std::string const & s)
+    {
+        return parse_universal_id(s);
+    }
 };
 
 PFS__NAMESPACE_END
