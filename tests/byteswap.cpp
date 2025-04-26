@@ -29,7 +29,7 @@ TEST_CASE("byteswap") {
     CHECK_EQ(pfs::byteswap(pfs::byteswap(std::uint64_t{0x0123456789ABCDEFull}))
         , std::uint64_t{0x0123456789ABCDEFull});
 
-#if defined(PFS_HAS_INT128)
+#if defined(PFS__HAS_INT128)
     {
         auto x = pfs::construct_uint128(0x1234567890ABCDEFull, 0x1234567890ABCDEFull);
         auto y = pfs::construct_uint128(0xEFCDAB9078563412ull, 0xEFCDAB9078563412ull);
@@ -109,7 +109,7 @@ TEST_CASE("byteswap") {
 #endif
 }
 
-#if defined(PFS_HAS_INT128)
+#if defined(PFS__HAS_INT128)
 inline constexpr __uint128_t construct_uint128 (std::uint64_t hi
     , std::uint64_t low) noexcept
 {
@@ -182,7 +182,7 @@ std::uint64_t byteswap<std::uint64_t> (std::uint64_t x) noexcept
     return x;
 }
 
-#if defined(PFS_HAS_INT128)
+#if defined(PFS__HAS_INT128)
 template <>
 inline PFS_BYTESWAP_CONSTEXPR
 __uint128_t byteswap<__uint128_t> (__uint128_t x) noexcept
@@ -269,7 +269,7 @@ std::uint64_t byteswap<std::uint64_t> (std::uint64_t x) noexcept
 
 #endif
 
-#if defined(PFS_HAS_INT128)
+#if defined(PFS__HAS_INT128)
 template <>
 inline PFS_BYTESWAP_CONSTEXPR
 __uint128_t byteswap<__uint128_t> (__uint128_t x) noexcept
@@ -295,7 +295,7 @@ namespace modern {
 
 template <typename T>
 T byteswap (T x, typename std::enable_if<std::is_arithmetic<T>::value
-#if defined(PFS_HAS_INT128)
+#if defined(PFS__HAS_INT128)
         || std::is_same<T, __int128>::value
         || std::is_same<T, unsigned __int128>::value
 #endif
@@ -332,7 +332,7 @@ void benchmark_op ()
     }
 }
 
-#if defined(PFS_HAS_INT128)
+#if defined(PFS__HAS_INT128)
 TEST_CASE("byteswap_uint128") {
     auto x = construct_uint128(0x1234567890ABCDEFull, 0x1234567890ABCDEFull);
     auto y = construct_uint128(0xEFCDAB9078563412ull, 0xEFCDAB9078563412ull);
@@ -411,7 +411,7 @@ TEST_CASE("benchmark") {
     ankerl::nanobench::Bench().title("std::uint64_t").name("intrinsics").run(benchmark_op<std::uint64_t, intrinsics::byteswap_helper>);
 #endif
 
-#if defined(PFS_HAS_INT128)
+#if defined(PFS__HAS_INT128)
     ankerl::nanobench::Bench().title("__uint128_t").name("classic").run(benchmark_op<__uint128_t, classic::byteswap_helper>);
     ankerl::nanobench::Bench().title("__uint128_t").name("modern").run(benchmark_op<__uint128_t, modern::byteswap_helper>);
 #if PFS_BYTESWAP_HAS_INTRINSICS

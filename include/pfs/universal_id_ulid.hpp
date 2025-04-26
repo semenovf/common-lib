@@ -23,7 +23,12 @@
 #if PFS__FORCE_ULID_STRUCT
 #   include "3rdparty/ulid/ulid_struct_chrono.hh"
 #else
-#   include "3rdparty/ulid/ulid.hh"
+#   if PFS__HAS_INT128
+#       define ULIDUINT128 1
+#       include "3rdparty/ulid/ulid_uint128.hh"
+#   else
+#       include "3rdparty/ulid/ulid_struct_chrono.hh"
+#   endif
 #endif
 
 PFS__NAMESPACE_BEGIN

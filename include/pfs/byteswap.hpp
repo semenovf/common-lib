@@ -164,7 +164,7 @@ std::int64_t byteswap<std::int64_t> (std::int64_t x) noexcept
     return static_cast<std::int64_t>(byteswap(static_cast<std::uint64_t>(x)));
 }
 
-#if defined(PFS_HAS_INT128)
+#if defined(PFS__HAS_INT128)
 template <>
 inline PFS_BYTESWAP_CONSTEXPR
 uint128_type byteswap<uint128_type> (uint128_type x) noexcept
@@ -179,6 +179,6 @@ int128_type byteswap<int128_type> (int128_type x) noexcept
 {
     return static_cast<int128_type>(byteswap(static_cast<uint128_type>(x)));
 }
-#endif // PFS_HAS_INT128
+#endif // PFS__HAS_INT128
 
 } // namespace pfs

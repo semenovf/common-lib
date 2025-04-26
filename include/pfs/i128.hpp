@@ -9,9 +9,8 @@
 #pragma once
 #include <cstdint>
 
-#ifndef PFS_HAS_INT128
+#ifndef PFS__HAS_INT128
 #   if defined(__SIZEOF_INT128__) && !defined(__NVCC__) && !(__clang__ && _MSC_VER)
-#       define PFS_HAS_INT128 1 // DEPRECATED
 #       define PFS__HAS_INT128 1
 #   endif
 #endif
@@ -25,8 +24,7 @@
 namespace pfs {
 
 #if PFS__HAS_INT128
-inline constexpr __uint128_t construct_uint128 (std::uint64_t hi
-    , std::uint64_t lo) noexcept
+inline constexpr __uint128_t construct_uint128 (std::uint64_t hi, std::uint64_t lo) noexcept
 {
     return (static_cast<__uint128_t>(hi) << 64) | lo;
 }
