@@ -40,6 +40,9 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC"
         OR (CMAKE_CXX_COMPILER_ID MATCHES "Clang" AND CMAKE_CXX_SIMULATE_ID MATCHES "MSVC"))
     target_compile_definitions(common INTERFACE _UNICODE UNICODE)
     target_compile_definitions(common INTERFACE NOMINMAX)
+endif()
+
+if (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
     target_compile_options(common INTERFACE "/utf-8" "/Zc:__cplusplus")
 endif()
 
