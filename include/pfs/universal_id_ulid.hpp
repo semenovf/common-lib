@@ -213,51 +213,51 @@ inline universal_id make_uuid (std::uint64_t hi, std::uint64_t lo)
     universal_id result;
     std::uint8_t * a = & result.u.data[0];
 
-    a[15] = static_cast<std::uint8_t>(hi);
-
-    hi >>= 8;
-    a[14] = static_cast<uint8_t>(hi);
-
-    hi >>= 8;
-    a[13] = static_cast<uint8_t>(hi);
-
-    hi >>= 8;
-    a[12] = static_cast<uint8_t>(hi);
-
-    hi >>= 8;
-    a[11] = static_cast<uint8_t>(hi);
-
-    hi >>= 8;
-    a[10] = static_cast<uint8_t>(hi);
-
-    hi >>= 8;
-    a[9] = static_cast<uint8_t>(hi);
-
-    hi >>= 8;
-    a[8] = static_cast<uint8_t>(hi);
-
-    a[7] = static_cast<std::uint8_t>(lo);
+    a[15] = static_cast<std::uint8_t>(lo);
 
     lo >>= 8;
-    a[6] = static_cast<uint8_t>(lo);
+    a[14] = static_cast<uint8_t>(lo);
 
     lo >>= 8;
-    a[5] = static_cast<uint8_t>(lo);
+    a[13] = static_cast<uint8_t>(lo);
 
     lo >>= 8;
-    a[4] = static_cast<uint8_t>(lo);
+    a[12] = static_cast<uint8_t>(lo);
 
     lo >>= 8;
-    a[3] = static_cast<uint8_t>(lo);
+    a[11] = static_cast<uint8_t>(lo);
 
     lo >>= 8;
-    a[2] = static_cast<uint8_t>(lo);
+    a[10] = static_cast<uint8_t>(lo);
 
     lo >>= 8;
-    a[1] = static_cast<uint8_t>(lo);
+    a[9] = static_cast<uint8_t>(lo);
 
     lo >>= 8;
-    a[0] = static_cast<uint8_t>(lo);
+    a[8] = static_cast<uint8_t>(lo);
+
+    a[7] = static_cast<std::uint8_t>(hi);
+
+    hi >>= 8;
+    a[6] = static_cast<uint8_t>(hi);
+
+    hi >>= 8;
+    a[5] = static_cast<uint8_t>(hi);
+
+    hi >>= 8;
+    a[4] = static_cast<uint8_t>(hi);
+
+    hi >>= 8;
+    a[3] = static_cast<uint8_t>(hi);
+
+    hi >>= 8;
+    a[2] = static_cast<uint8_t>(hi);
+
+    hi >>= 8;
+    a[1] = static_cast<uint8_t>(hi);
+
+    hi >>= 8;
+    a[0] = static_cast<uint8_t>(hi);
 
     return result;
 }

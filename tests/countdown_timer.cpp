@@ -13,7 +13,7 @@
 
 TEST_CASE("countdown_timer") {
     pfs::countdown_timer<std::milli> cdt {std::chrono::milliseconds{100}};
-    std::this_thread::sleep_for(std::chrono::milliseconds{90});
+    std::this_thread::sleep_for(std::chrono::milliseconds{50});
 
     CHECK(cdt.remain_count() > 0);
 

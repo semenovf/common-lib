@@ -57,6 +57,9 @@ TEST_CASE("make from 64-bit parts")
     auto orig1 = *pfs::parse_universal_id("01D78XYFJ1PRM1WPBCBT3VHMNV");
     auto orig2 = *pfs::parse_universal_id("01D78XYFJ1PRM1WPBCBT3VHMNW");
 
+    CHECK_EQ(to_string(orig1), std::string("01D78XYFJ1PRM1WPBCBT3VHMNV"));
+    CHECK_EQ(to_string(orig2), std::string("01D78XYFJ1PRM1WPBCBT3VHMNW"));
+
     auto hi1 = pfs::high(orig1);
     auto lo1 = pfs::low(orig1);
     auto u1 = pfs::make_uuid(hi1, lo1);
