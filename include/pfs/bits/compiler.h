@@ -43,6 +43,13 @@
 
 #   define PFS__COMPILER_CLANG_VERSION \
         (__clang_major__ * 10000 + __clang_minor__ * 100 + __clang_patchlevel__)
+
+// clang-cl is a driver program for clang that attempts to be compatible with MSVC's cl.exe.
+#   if _MSC_VER
+#       define PFS__COMPILER_CLANG_CL 1
+#       define PFS__COMPILER_CLANG_MSC 1
+#       define PFS__COMPILER_CLANG_MSVC 1
+#   endif
 #elif defined(__GNUC__)
 // echo | gcc -dM -E -
 // echo | clang -dM -E -
