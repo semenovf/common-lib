@@ -39,7 +39,7 @@ inline optional<std::string> getenv (char const * name)
         ::getenv_s(& required_size, buffer.data(), buffer.size(), name);
 
         // Remove trailing whitespaces
-        while (std::isspace(buffer.data()[required_size - 1]));
+        while (std::isspace(buffer.data()[required_size - 1]))
             required_size--;
 
         result = std::string(buffer.data(), required_size);
@@ -48,7 +48,7 @@ inline optional<std::string> getenv (char const * name)
         ::getenv_s(& required_size, buffer, required_size, name);
 
         // Remove trailing whitespaces
-        while (std::isspace(buffer[required_size - 1]));
+        while (std::isspace(buffer[required_size - 1]))
             required_size--;
 
         result = std::string(buffer, required_size);
@@ -102,7 +102,7 @@ inline optional<std::wstring> wgetenv (wchar_t const * name)
         _wgetenv_s(& required_size, buffer.data(), buffer.size(), name);
 
         // Remove trailing whitespaces
-        while (iswspace(buffer.data()[required_size - 1]));
+        while (iswspace(buffer.data()[required_size - 1]))
             required_size--;
 
         result = std::wstring(buffer.data(), required_size);
@@ -111,7 +111,7 @@ inline optional<std::wstring> wgetenv (wchar_t const * name)
         _wgetenv_s(& required_size, buffer, required_size, name);
 
         // Remove trailing whitespaces
-        while (iswspace(buffer[required_size - 1]));
+        while (iswspace(buffer[required_size - 1]))
             required_size--;
 
         result = std::wstring(buffer, required_size);
