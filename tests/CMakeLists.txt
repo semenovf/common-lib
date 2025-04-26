@@ -132,7 +132,8 @@ endforeach()
 add_library(shared_object SHARED shared_object.c)
 
 if (TARGET endian)
-    if (MSVC)
+    if (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC"
+            OR (CMAKE_CXX_COMPILER_ID MATCHES "Clang" AND CMAKE_CXX_SIMULATE_ID MATCHES "MSVC"))
         target_link_libraries(endian PRIVATE Ws2_32)
     endif()
 endif()

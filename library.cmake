@@ -34,7 +34,7 @@ add_library(pfs::common ALIAS common)
 target_include_directories(common INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
 target_link_libraries(common INTERFACE Threads::Threads)
 
-# On Windows, Clang is not self-sufficient, and is supposed to be used in combination 
+# On Windows, Clang is not self-sufficient, and is supposed to be used in combination
 # with an other compiler: either MinGW (GCC) or MSVC
 if (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC"
         OR (CMAKE_CXX_COMPILER_ID MATCHES "Clang" AND CMAKE_CXX_SIMULATE_ID MATCHES "MSVC"))

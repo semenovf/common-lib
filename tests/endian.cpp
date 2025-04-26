@@ -16,7 +16,7 @@
 #   define __HAS_HTONx__ 1
 #endif
 
-#if PFS__COMPILER_MSVC
+#if PFS__COMPILER_MSC || PFS__COMPILER_CLANG_MSC
 #   include <winsock.h> // for htons/htonl and vice versa
 #   define __HAS_HTONx__ 1
 #endif
