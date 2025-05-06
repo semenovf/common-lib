@@ -13,6 +13,7 @@
 #include "nanobench.h"
 #include "pfs/emitter.hpp"
 #include "pfs/function_queue.hpp"
+#include <functional>
 #include <string>
 #include <thread>
 
@@ -402,13 +403,15 @@ void benchmark_op ()
 
 // |               ns/op |                op/s |    err% |     total | benchmark
 // |--------------------:|--------------------:|--------:|----------:|:----------
-// |        2,193,590.00 |              455.87 |    4.7% |      0.03 | `direct`
-// |        6,408,245.00 |              156.05 |    1.6% |      0.07 | `emitter ST`
-// |        8,305,328.00 |              120.40 |    1.5% |      0.09 | `emitter MT (std::mutex based)`
-// |       11,417,780.00 |               87.58 |    1.0% |      0.13 | `emitter MT (atomic-based)`
-// |        9,057,392.00 |              110.41 |    0.6% |      0.10 | `emitter MT (atomic-based modified)`
-// |        8,741,734.00 |              114.39 |    1.0% |      0.10 | `emitter MT (spinlock-based)`
-// |        9,905,949.00 |              100.95 |    1.5% |      0.11 | `emitter MT (fast_mutex-based)`
+// |        1,517,949.00 |              658.78 |    2.2% |      0.02 | `direct`
+// |        1,587,723.00 |              629.83 |    0.4% |      0.02 | `lambda`
+// |        3,231,233.00 |              309.48 |    0.4% |      0.04 | `std::function`
+// |        4,625,526.00 |              216.19 |    0.6% |      0.05 | `emitter ST`
+// |        6,750,692.00 |              148.13 |    0.6% |      0.07 | `emitter MT (std::mutex based)`
+// |        6,892,076.00 |              145.09 |    0.4% |      0.08 | `emitter MT (atomic-based)`
+// |        6,501,288.00 |              153.82 |    2.1% |      0.07 | `emitter MT (atomic-based modified)`
+// |        6,355,174.00 |              157.35 |    0.8% |      0.07 | `emitter MT (spinlock-based)`
+// |        7,003,257.00 |              142.79 |    0.6% |      0.08 | `emitter MT (fast_mutex-based)`
 //
 TEST_CASE("benchmark") {
     ankerl::nanobench::Bench().run("direct", [] {
@@ -416,6 +419,26 @@ TEST_CASE("benchmark") {
 
         for (int i = 0, count = std::numeric_limits<uint16_t>::max(); i < count; i++) {
             a.benchmark(42, "Viva la PFS");
+        }
+    });
+
+    ankerl::nanobench::Bench().run("lambda", [] {
+        t0::A a;
+        auto f = [& a] (int x, std::string const & s) { a.benchmark(x, s); };
+
+        for (int i = 0, count = std::numeric_limits<uint16_t>::max(); i < count; i++) {
+            f(42, "Viva la PFS");
+        }
+    });
+
+    ankerl::nanobench::Bench().run("std::function", [] {
+        t0::A a;
+        std::function<void (int, std::string const &)> f = [& a] (int x, std::string const & s) {
+            a.benchmark(x, s);
+        };
+
+        for (int i = 0, count = std::numeric_limits<uint16_t>::max(); i < count; i++) {
+            f(42, "Viva la PFS");
         }
     });
 
