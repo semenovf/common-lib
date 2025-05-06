@@ -13,6 +13,7 @@
 #include "nanobench.h"
 #include "pfs/emitter.hpp"
 #include "pfs/function_queue.hpp"
+#include "pfs/transient_function.hpp"
 #include <functional>
 #include <string>
 #include <thread>
@@ -403,15 +404,16 @@ void benchmark_op ()
 
 // |               ns/op |                op/s |    err% |     total | benchmark
 // |--------------------:|--------------------:|--------:|----------:|:----------
-// |        1,517,949.00 |              658.78 |    2.2% |      0.02 | `direct`
-// |        1,587,723.00 |              629.83 |    0.4% |      0.02 | `lambda`
-// |        3,231,233.00 |              309.48 |    0.4% |      0.04 | `std::function`
-// |        4,625,526.00 |              216.19 |    0.6% |      0.05 | `emitter ST`
-// |        6,750,692.00 |              148.13 |    0.6% |      0.07 | `emitter MT (std::mutex based)`
-// |        6,892,076.00 |              145.09 |    0.4% |      0.08 | `emitter MT (atomic-based)`
-// |        6,501,288.00 |              153.82 |    2.1% |      0.07 | `emitter MT (atomic-based modified)`
-// |        6,355,174.00 |              157.35 |    0.8% |      0.07 | `emitter MT (spinlock-based)`
-// |        7,003,257.00 |              142.79 |    0.6% |      0.08 | `emitter MT (fast_mutex-based)`
+// |        1,560,607.00 |              640.78 |    4.9% |      0.02 | `direct`
+// |        1,605,643.00 |              622.80 |    0.2% |      0.02 | `lambda`
+// |        1,856,874.00 |              538.54 |    0.1% |      0.02 | `transient_function`
+// |        3,269,622.00 |              305.85 |    0.1% |      0.04 | `std::function`
+// |        4,636,516.00 |              215.68 |    1.1% |      0.05 | `emitter ST`
+// |        6,795,927.00 |              147.15 |    0.0% |      0.07 | `emitter MT (std::mutex based)`
+// |        6,705,406.00 |              149.13 |    0.2% |      0.07 | `emitter MT (atomic-based)`
+// |        6,571,554.00 |              152.17 |    0.1% |      0.07 | `emitter MT (atomic-based modified)`
+// |        6,277,530.00 |              159.30 |    0.1% |      0.07 | `emitter MT (spinlock-based)`
+// |        7,257,509.00 |              137.79 |    0.7% |      0.08 | `emitter MT (fast_mutex-based)`
 //
 TEST_CASE("benchmark") {
     ankerl::nanobench::Bench().run("direct", [] {
@@ -425,6 +427,17 @@ TEST_CASE("benchmark") {
     ankerl::nanobench::Bench().run("lambda", [] {
         t0::A a;
         auto f = [& a] (int x, std::string const & s) { a.benchmark(x, s); };
+
+        for (int i = 0, count = std::numeric_limits<uint16_t>::max(); i < count; i++) {
+            f(42, "Viva la PFS");
+        }
+    });
+
+    ankerl::nanobench::Bench().run("transient_function", [] {
+        t0::A a;
+        pfs::transient_function<void (int, std::string const &)> f = [& a] (int x, std::string const & s) {
+            a.benchmark(x, s);
+        };
 
         for (int i = 0, count = std::numeric_limits<uint16_t>::max(); i < count; i++) {
             f(42, "Viva la PFS");
