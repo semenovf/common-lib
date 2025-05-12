@@ -11,6 +11,8 @@
 #include "namespace.hpp"
 #include "optional.hpp"
 #include "universal_id.hpp"
+#include "universal_id_hash.hpp"
+#include "universal_id_pack.hpp"
 #include "universal_id_rep.hpp"
 #include <string>
 
