@@ -12,7 +12,7 @@
 
 PFS__NAMESPACE_BEGIN
 
-template<typename R, typename ...Args>
-using transient_function = TransientFunction<R, Args...>;
+template <typename T>
+using transient_function = TransientFunction<T>;
 
 PFS__NAMESPACE_END

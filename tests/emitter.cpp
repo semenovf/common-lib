@@ -402,6 +402,7 @@ void benchmark_op ()
     }
 }
 
+// Output on Ubuntu 24.04 (g++)
 // |               ns/op |                op/s |    err% |     total | benchmark
 // |--------------------:|--------------------:|--------:|----------:|:----------
 // |        1,560,607.00 |              640.78 |    4.9% |      0.02 | `direct`
@@ -415,6 +416,21 @@ void benchmark_op ()
 // |        6,277,530.00 |              159.30 |    0.1% |      0.07 | `emitter MT (spinlock-based)`
 // |        7,257,509.00 |              137.79 |    0.7% |      0.08 | `emitter MT (fast_mutex-based)`
 //
+
+// Output on Windows 11 (MSVC 2022)
+// |               ns/op |                op/s |    err% |     total | benchmark 
+// |--------------------:|--------------------:|--------:|----------:|:----------
+// |       21,777,500.00 |               45.92 |    1.2% |      0.24 | `direct`   
+// |       21,495,100.00 |               46.52 |    0.4% |      0.24 | `lambda`
+// |       21,584,500.00 |               46.33 |    0.3% |      0.24 | `transient_function`
+// |       22,681,600.00 |               44.09 |    0.8% |      0.25 | `std::function`
+// |       25,184,000.00 |               39.71 |    0.7% |      0.28 | `emitter ST`
+// |       29,743,000.00 |               33.62 |    0.4% |      0.33 | `emitter MT (std::mutex based)`
+// |       28,812,000.00 |               34.71 |    1.2% |      0.32 | `emitter MT (atomic-based)`
+// |       28,557,800.00 |               35.02 |    1.5% |      0.31 | `emitter MT (atomic-based modified)`
+// |       28,400,200.00 |               35.21 |    2.0% |      0.31 | `emitter MT (spinlock-based)`
+// |       29,420,700.00 |               33.99 |    0.8% |      0.32 | `emitter MT (fast_mutex-based)`
+
 TEST_CASE("benchmark") {
     ankerl::nanobench::Bench().run("direct", [] {
         t0::A a;
