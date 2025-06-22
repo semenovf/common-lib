@@ -20,7 +20,7 @@ fs::path PROGRAM_DIR;
 DOCTEST_MSVC_SUPPRESS_WARNING_WITH_PUSH(4007) // 'function' : must be 'attribute' - see issue #182
 int main (int argc, char** argv)
 {
-    auto program_path = fs::utf8_decode(argv[0]);
+    auto program_path = pfs::utf8_decode_path(argv[0]);
     PROGRAM_DIR = fs::absolute(program_path).parent_path();
 
     return doctest::Context(argc, argv).run();

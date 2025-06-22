@@ -21,10 +21,10 @@ int main (int argc, char * argv[])
         return EXIT_FAILURE;
     }
 
-    auto path = fs::utf8_decode(argv[1]);
+    auto path = pfs::utf8_decode_path(argv[1]);
 
     if (!fs::exists(path)) {
-        std::cerr << "File not found: " << fs::utf8_encode(path) << "\n";
+        std::cerr << "File not found: " << pfs::utf8_encode_path(path) << "\n";
         return EXIT_FAILURE;
     }
 

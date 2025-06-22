@@ -17,7 +17,7 @@ namespace pfs {
 template <endian Endianess>
 void pack (binary_ostream<Endianess> & out, filesystem::path const & p)
 {
-    auto text = filesystem::utf8_encode(p);
+    auto text = utf8_encode_path(p);
     out << std::make_pair(text.data(), pfs::numeric_cast<std::uint16_t>(text.size()));
 }
 
@@ -30,7 +30,7 @@ void unpack (binary_istream<Endianess> & in, filesystem::path & p)
     in >> sz >> std::make_pair(& text, & sz);
 
     if (in.commit_transaction())
-        p = filesystem::utf8_decode(text);
+        p = utf8_decode_path(text);
 }
 
 } // namespace pfs

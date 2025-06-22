@@ -12,6 +12,3 @@
 ## Other resources
 
 1. [C++ Function Benchmark](https://github.com/jamboree/CxxFunctionBenchmark)
-
-
-

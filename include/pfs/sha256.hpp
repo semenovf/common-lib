@@ -143,7 +143,7 @@ public: // static
             return sha256_digest{};
         }
 
-        std::ifstream ifs{filesystem::utf8_encode(path), std::ios::binary};
+        std::ifstream ifs{pfs::utf8_encode_path(path), std::ios::binary};
         return digest(ifs, ec);
     }
 
