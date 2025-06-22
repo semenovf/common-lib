@@ -9,6 +9,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
 #include "bits/compiler.h"
+#include "c++support.hpp"
 #include "fmt.hpp"
 
 #if defined(PFS__COMPILER_MSVC)
@@ -52,34 +53,61 @@ namespace filesystem {
 #endif
 
 namespace pfs {
-namespace filesystem {
+
+#if PFS_HAVE_STD_FILESYSTEM
+using _path_t = std::filesystem::path;
+#else
+using _path_t = pfs::filesystem::path;
+#endif
 
 #if defined(PFS__COMPILER_MSVC)
 #   if !(defined(_UNICODE) || defined(UNICODE))
 #       error "Expected _UNICODE/UNICODE is enabled"
 #   endif
-inline std::string utf8_encode (path const & p)
+inline std::string utf8_encode_path (_path_t const & p)
 {
     return pfs::windows::utf8_encode(p.c_str());
 }
 
-inline path utf8_decode (std::string const & s)
+inline _path_t utf8_decode_path (std::string const & s)
 {
-    return path{pfs::windows::utf8_decode(s.c_str(), static_cast<int>(s.size()))};
+    return _path_t{pfs::windows::utf8_decode(s.c_str(), static_cast<int>(s.size()))};
 }
 
 #else
-inline std::string utf8_encode (path const & p)
+inline std::string utf8_encode_path (_path_t const & p)
 {
     return p.native();
 }
 
-inline path utf8_decode (std::string const & s)
+inline _path_t utf8_decode_path (std::string const & s)
 {
-    return path{s};
+    return _path_t{s};
 }
 
 #endif
+
+} // namespace filesystem
+
+
+namespace pfs {
+namespace filesystem {
+
+/**
+ * Use pfs::utf8_encode_path instead
+ */
+PFS__DEPRECATED inline std::string utf8_encode (path const & p)
+{
+    return pfs::utf8_encode_path(p);
+}
+
+/**
+ * Use pfs::utf8_decode_path instead
+ */
+PFS__DEPRECATED inline path utf8_decode (std::string const & s)
+{
+    return utf8_decode_path(s);
+}
 
 }} // namespace pfs::filesystem
 
@@ -97,7 +125,7 @@ struct formatter<pfs::filesystem::path>
     template <typename FormatContext>
     auto format (pfs::filesystem::path const & path, FormatContext & ctx) const -> decltype(ctx.out())
     {
-        return format_to(ctx.out(), "{}", pfs::filesystem::utf8_encode(path));
+        return format_to(ctx.out(), "{}", pfs::utf8_encode_path(path));
     }
 };
 

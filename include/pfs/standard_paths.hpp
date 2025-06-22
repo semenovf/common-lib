@@ -35,12 +35,12 @@ public:
         if (home_env->empty())
             return path{};
 
-        return utf8_decode(*home_env);
+        return utf8_decode_path(*home_env);
 #elif PFS__OS_WIN
         auto userprofile_env = getenv("USERPROFILE");
 
         if (userprofile_env && !userprofile_env->empty()) {
-            auto home = utf8_decode(*userprofile_env);
+            auto home = utf8_decode_path(*userprofile_env);
 
             if (exists(home))
                 return home;
@@ -50,7 +50,7 @@ public:
         auto homepath_env  = getenv("HOMEPATH");
 
         if (homedrive_env && !homedrive_env->empty() && homepath_env && !homepath_env->empty()) {
-            auto home = utf8_decode(*homedrive_env + *homepath_env);
+            auto home = utf8_decode_path(*homedrive_env + *homepath_env);
 
             if (exists(home))
                 return home;
@@ -59,7 +59,7 @@ public:
         auto home_env = getenv("HOME");
 
         if (home_env && !home_env->empty()) {
-            auto home = utf8_decode(*home_env);
+            auto home = utf8_decode_path(*home_env);
 
             if (exists(home))
                 return home;
@@ -77,12 +77,12 @@ public:
     static path temp_folder ()
     {
 #if PFS__OS_LINUX
-        return utf8_decode("/tmp");
+        return utf8_decode_path("/tmp");
 #elif PFS__OS_WIN
         auto temp_env = getenv("TEMP");
 
         if (temp_env && !temp_env->empty()) {
-            auto temp = utf8_decode(*temp_env);
+            auto temp = utf8_decode_path(*temp_env);
 
             if (exists(temp))
                 return temp;
@@ -101,9 +101,9 @@ public:
     {
         auto home = home_folder();
 #if PFS__OS_LINUX
-        return home.empty() ? path{} : home / utf8_decode("Downloads");
+        return home.empty() ? path{} : home / utf8_decode_path("Downloads");
 #elif PFS__OS_WIN
-        return home.empty() ? path{} : home / utf8_decode("Downloads");
+        return home.empty() ? path{} : home / utf8_decode_path("Downloads");
 #else
         return path{};
 #endif
@@ -116,9 +116,9 @@ public:
     {
         auto home = home_folder();
 #if PFS__OS_LINUX
-        return home.empty() ? path{} : home / utf8_decode("Desktop");
+        return home.empty() ? path{} : home / utf8_decode_path("Desktop");
 #elif PFS__OS_WIN
-        return home.empty() ? path{} : home / utf8_decode("Desktop");
+        return home.empty() ? path{} : home / utf8_decode_path("Desktop");
 #else
         return path{};
 #endif
@@ -131,9 +131,9 @@ public:
     {
         auto home = home_folder();
 #if PFS__OS_LINUX
-        return home.empty() ? path{} : home / utf8_decode("Documents");
+        return home.empty() ? path{} : home / utf8_decode_path("Documents");
 #elif PFS__OS_WIN
-        return home.empty() ? path{} : home / utf8_decode("Documents");
+        return home.empty() ? path{} : home / utf8_decode_path("Documents");
 #else
         return path{};
 #endif
@@ -146,9 +146,9 @@ public:
     {
         auto home = home_folder();
 #if PFS__OS_LINUX
-        return home.empty() ? path{} : home / utf8_decode("Music");
+        return home.empty() ? path{} : home / utf8_decode_path("Music");
 #elif PFS__OS_WIN
-        return home.empty() ? path{} : home / utf8_decode("Music");
+        return home.empty() ? path{} : home / utf8_decode_path("Music");
 #else
         return path{};
 #endif
@@ -161,9 +161,9 @@ public:
     {
         auto home = home_folder();
 #if PFS__OS_LINUX
-        return home.empty() ? path{} : home / utf8_decode("Videos");
+        return home.empty() ? path{} : home / utf8_decode_path("Videos");
 #elif PFS__OS_WIN
-        return home.empty() ? path{} : home / utf8_decode("Videos");
+        return home.empty() ? path{} : home / utf8_decode_path("Videos");
 #else
         return path{};
 #endif
@@ -176,9 +176,9 @@ public:
     {
         auto home = home_folder();
 #if PFS__OS_LINUX
-        return home.empty() ? path{} : home / utf8_decode("Pictures");
+        return home.empty() ? path{} : home / utf8_decode_path("Pictures");
 #elif PFS__OS_WIN
-        return home.empty() ? path{} : home / utf8_decode("Pictures");
+        return home.empty() ? path{} : home / utf8_decode_path("Pictures");
 #else
         return path{};
 #endif
@@ -191,9 +191,9 @@ public:
     {
         auto home = home_folder();
 #if PFS__OS_LINUX
-        return home.empty() ? path{} : home / utf8_decode(".local/share");
+        return home.empty() ? path{} : home / utf8_decode_path(".local/share");
 #elif PFS__OS_WIN
-        return home.empty() ? path{} : home / utf8_decode("AppData\\Local");
+        return home.empty() ? path{} : home / utf8_decode_path("AppData\\Local");
 #else
         return path{};
 #endif
@@ -206,9 +206,9 @@ public:
     {
         auto home = home_folder();
 #if PFS__OS_LINUX
-        return home.empty() ? path{} : home / utf8_decode(".cache");
+        return home.empty() ? path{} : home / utf8_decode_path(".cache");
 #elif PFS__OS_WIN
-        return home.empty() ? path{} : home / utf8_decode("AppData\\Local");
+        return home.empty() ? path{} : home / utf8_decode_path("AppData\\Local");
 #else
         return path{};
 #endif
@@ -221,9 +221,9 @@ public:
     {
         auto home = home_folder();
 #if PFS__OS_LINUX
-        return home.empty() ? path{} : home / utf8_decode(".config");
+        return home.empty() ? path{} : home / utf8_decode_path(".config");
 #elif PFS__OS_WIN
-        return home.empty() ? path{} : home / utf8_decode("AppData\\Local");
+        return home.empty() ? path{} : home / utf8_decode_path("AppData\\Local");
 #else
         return path{};
 #endif
