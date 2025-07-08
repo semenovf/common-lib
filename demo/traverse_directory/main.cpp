@@ -18,7 +18,7 @@ int main (int argc, char * argv[])
         return EXIT_FAILURE;
     }
 
-    auto initial_dir = fs::utf8_decode(argv[1]);
+    auto initial_dir = pfs::utf8_encode_path(argv[1]);
 
     fs::directory_traversal dt;
 
