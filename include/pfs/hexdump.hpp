@@ -12,9 +12,6 @@
 #include <iterator>
 #include <cctype>
 
-// FIXME REMOVE
-#include "log.hpp"
-
 PFS__NAMESPACE_BEGIN
 
 /**
