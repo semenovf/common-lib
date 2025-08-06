@@ -11,7 +11,8 @@ file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/unicode/utf8/data DESTINATION unicode/utf8
 list(APPEND TEST_NAMES
     any
     argvapi
-    binary_stream
+    binary_stream # DEPRECATED
+    binary_ostream
     byteswap
     calendar
     charconv

@@ -22,7 +22,7 @@
 
 PFS__NAMESPACE_BEGIN
 
-// struct reserve_space { std::size_t sz; };
+// DEPRECATED Use v2::binary_ostream instead
 
 template <endian Endianess = endian::native>
 class binary_ostream

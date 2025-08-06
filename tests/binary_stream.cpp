@@ -98,4 +98,4 @@ void serialize ()
 }
 
 TEST_CASE("native order") { serialize<pfs::endian::native>(); }
-//TEST_CASE("network order") { serialize<pfs::endian::network>(); }
+TEST_CASE("network order") { serialize<pfs::endian::network>(); }
