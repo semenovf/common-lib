@@ -17,13 +17,13 @@
 namespace pfs {
 
 template <endian Endianess>
-void pack (binary_ostream<Endianess> & out, universal_id const & uuid)
+void pack (v1::binary_ostream<Endianess> & out, universal_id const & uuid)
 {
     out << high(uuid) << low(uuid);
 }
 
 template <endian Endianess>
-void unpack (binary_istream<Endianess> & in, universal_id & uuid)
+void unpack (v1::binary_istream<Endianess> & in, universal_id & uuid)
 {
     std::uint64_t h {0}, l {0};
     in >> h >> l;

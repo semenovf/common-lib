@@ -15,14 +15,14 @@
 namespace pfs {
 
 template <endian Endianess>
-void pack (binary_ostream<Endianess> & out, filesystem::path const & p)
+void pack (v1::binary_ostream<Endianess> & out, filesystem::path const & p)
 {
     auto text = utf8_encode_path(p);
     out << std::make_pair(text.data(), pfs::numeric_cast<std::uint16_t>(text.size()));
 }
 
 template <endian Endianess>
-void unpack (binary_istream<Endianess> & in, filesystem::path & p)
+void unpack (v1::binary_istream<Endianess> & in, filesystem::path & p)
 {
     std::string text;
     std::uint16_t sz;
