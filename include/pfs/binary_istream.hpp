@@ -8,27 +8,25 @@
 //      2024.05.07 Initial version (named as binary_istream_nt).
 //      2025.01.23 Renamed into binary_istream.
 //                 Refactored.
+//      2025.08.07 v2 is default implementation now.
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
-#include "error.hpp"
-#include "endian.hpp"
-#include "numeric_cast.hpp"
-#include "string_view.hpp"
-#include <cstdint>
-#include <algorithm>
-#include <functional>
-#include <stack>
-#include <type_traits>
-#include <utility>
-#include <vector>
+#include "c++support.hpp"
+#include "namespace.hpp"
+#include "v2/binary_istream.hpp"
 
-namespace pfs {
+PFS__NAMESPACE_BEGIN
+
+template <endian Endianess = endian::native>
+using binary_istream = v2::binary_istream<Endianess>;
+
+namespace v1 {
 
 /**
  * No-throw version of @c binary_istream class.
  */
 template <endian Endianess = endian::native>
-class binary_istream
+class PFS__DEPRECATED binary_istream // Use v2::binary_istream instead
 {
 public:
     using size_type = std::uint32_t;
@@ -292,4 +290,6 @@ private:
     }
 };
 
-} // namespace pfs
+} // namespace v1
+
+PFS__NAMESPACE_END

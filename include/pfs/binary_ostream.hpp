@@ -6,26 +6,24 @@
 // Changelog:
 //      2023.03.22 Initial version.
 //      2025.01.23 Refactored.
+//      2025.08.07 v2 is default implementation now.
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
-#include "error.hpp"
-#include "endian.hpp"
+#include "c++support.hpp"
 #include "namespace.hpp"
 #include "numeric_cast.hpp"
-#include "string_view.hpp"
-#include <cmath>
-#include <cstdint>
-#include <limits>
-#include <type_traits>
+#include "v2/binary_ostream.hpp"
 #include <utility>
-#include <vector>
 
 PFS__NAMESPACE_BEGIN
 
-// DEPRECATED Use v2::binary_ostream instead
+template <typename Archive = std::vector<char>, endian Endianess = endian::native>
+using binary_ostream = v2::binary_ostream<Archive, Endianess>;
+
+namespace v1 {
 
 template <endian Endianess = endian::native>
-class binary_ostream
+class PFS__DEPRECATED binary_ostream // Use v2::binary_ostream instead
 {
 public:
     using archive_type = std::vector<char>;
@@ -254,5 +252,7 @@ private:
         pack(out, *v.second);
     }
 };
+
+} // namespace v1
 
 PFS__NAMESPACE_END

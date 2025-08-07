@@ -12,6 +12,7 @@ list(APPEND TEST_NAMES
     any
     argvapi
     binary_stream # DEPRECATED
+    binary_istream
     binary_ostream
     byteswap
     calendar

@@ -10,10 +10,14 @@
 #include "../error.hpp"
 #include "../endian.hpp"
 #include "../namespace.hpp"
+#include "../numeric_cast.hpp"
 #include "../string_view.hpp"
+#include <algorithm>
 #include <array>
 #include <cstdint>
 #include <type_traits>
+#include <stack>
+#include <utility>
 #include <vector>
 
 PFS__NAMESPACE_BEGIN
@@ -103,7 +107,7 @@ public:
     template <typename T>
     binary_istream & operator >> (T && v)
     {
-        unpack(*this, std::forward<T>(v));
+        unpack(std::forward<T>(v));
         return *this;
     }
 
@@ -127,164 +131,135 @@ public:
     }
 
 private:
-    template <typename T>
-    friend typename std::enable_if<std::is_same<typename std::decay<T>::type, bool>::value, void>::type
-    unpack (binary_istream & in, T & v)
-    {
-        if (in._state == status_enum::good) {
-            if (in._p + sizeof(std::int8_t) <= in._end) {
-                auto p = reinterpret_cast<std::int8_t const *>(in._p);
-                v = static_cast<bool>(*p);
-                in._p += sizeof(std::int8_t);
-            } else {
-                in._state = status_enum::out_of_bound;
-            }
-        }
-    }
-
-    template <typename T>
-    friend typename std::enable_if<std::is_integral<T>::value && !std::is_same<typename std::decay<T>::type, bool>::value, void>::type
-    unpack (binary_istream & in, T & v)
-    {
-        if (in._state == status_enum::good) {
-            if (in._p + sizeof(T) <= in._end) {
-                T const * p = reinterpret_cast<T const *>(in._p);
-                v = Endianess == endian::network ? to_native_order(*p) : *p;
-                in._p += sizeof(T);
-            } else {
-                in._state = status_enum::out_of_bound;
-            }
-        }
-    }
-
-    template <typename T>
-    friend typename std::enable_if<std::is_enum<T>::value, void>::type
-    unpack (binary_istream & in, T & v)
-    {
-        typename std::underlying_type<T>::type tmp;
-        unpack(in, tmp);
-
-        if (in._state == status_enum::good)
-            v = static_cast<T>(tmp);
-    }
-
-    friend void unpack (binary_istream & in, float & v)
-    {
-        union { float f; std::uint32_t d; } x;
-        unpack(in, x.d);
-
-        if (in._state == status_enum::good)
-            v = x.f;
-    }
-
-    /**
-     */
-    friend void unpack (binary_istream & in, double & v)
-    {
-        union { double f; std::uint64_t d; } x;
-        unpack(in, x.d);
-
-        if (in._state == status_enum::good)
-            v = x.f;
-    }
-
     /**
      * Reads byte sequence into string view. Lifetime of the string view must be less or equals to
      * the stream's lifetime
      */
-    friend void unpack (binary_istream & in, string_view & v, size_type n)
+    void unpack_helper (string_view & v, size_type n)
     {
         if (n == 0)
             return;
 
-        if (in._state != status_enum::good)
+        if (_state != status_enum::good)
             return;
 
-        auto sz = in.available();
+        auto sz = available();
 
         if (sz < n) {
-            in._state = status_enum::out_of_bound;
+            _state = status_enum::out_of_bound;
             return;
         }
 
-        v = string_view(in._p, n);
-        in._p += n;
-    }
-
-    template <typename SizeType>
-    friend void unpack (binary_istream & in, std::pair<std::string *, SizeType const &> v)
-    {
-        string_view tmp;
-        unpack(in, tmp, v.second);
-
-        if (in._state == status_enum::good)
-            *v.first = to_string(tmp);
-    }
-
-    template <typename SizeType>
-    friend void unpack (binary_istream & in, std::pair<SizeType *, std::string *> v)
-    {
-        unpack(in, *v.first);
-
-        if (in._state == status_enum::good) {
-            string_view tmp;
-
-            unpack(in, tmp, *v.first);
-
-            if (in._state == status_enum::good)
-                *v.second = to_string(tmp);
-        }
+        v = string_view(_p, n);
+        _p += n;
     }
 
     template <typename Char>
-    static void unpack_helper (binary_istream & in, std::vector<Char> & v, size_type n)
+    void unpack_helper (std::vector<Char> & v, std::size_t n)
     {
         if (n == 0)
             return;
 
-        if (in._state != status_enum::good)
+        if (_state != status_enum::good)
             return;
 
-        auto sz = in.available();
+        auto sz = available();
 
         if (sz < n) {
-            in._state = status_enum::out_of_bound;
+            _state = status_enum::out_of_bound;
             return;
         }
 
-        v.resize(n);
-        std::memcpy(reinterpret_cast<Char *>(v.data()), in._p, n);
-        in._p += n;
+        auto off = v.size();
+        v.resize(off + n);
+        std::copy(reinterpret_cast<Char const *>(_p), reinterpret_cast<Char const *>(_p) + n, v.data() + off);
+        _p += n;
     }
 
-    template <typename Char, typename SizeType>
-    friend void unpack (binary_istream & in, std::pair<std::vector<Char> *, SizeType const &> v)
+    template <typename Char, std::size_t N>
+    void unpack_helper (std::array<Char, N> & v)
     {
-        binary_istream<Endianess>::unpack_helper(in, *v.first, v.second);
-    }
-
-    template <typename Char, typename SizeType>
-    friend void unpack (binary_istream & in, std::pair<SizeType *, std::vector<Char> *> v)
-    {
-        unpack(in, *v.first);
-        binary_istream<Endianess>::unpack_helper(in, *v.second, *v.first);
-    }
-
-    template <std::size_t N>
-    friend void unpack (binary_istream & in, std::array<char, N> & v)
-    {
-        if (in._state != status_enum::good)
+        if (_state != status_enum::good)
             return;
 
-        auto sz = in.available();
+        auto sz = available();
 
         if (sz < N) {
-            in._state = status_enum::out_of_bound;
+            _state = status_enum::out_of_bound;
             return;
         }
 
-        std::copy(in._p, in._p + N, v.data());
-        in._p += N;
+        std::copy(reinterpret_cast<Char const *>(_p), reinterpret_cast<Char const *>(_p) + N, v.data());
+        _p += N;
+    }
+
+    template <typename T>
+    typename std::enable_if<
+        std::is_integral<typename std::decay<T>::type>::value
+            || std::is_floating_point<typename std::decay<T>::type>::value, void>::type
+    unpack (T & v)
+    {
+        if (_state == status_enum::good) {
+            if (_p + sizeof(T) <= _end) {
+                _p += unpack_unsafe<Endianess>(_p, v);
+            } else {
+                _state = status_enum::out_of_bound;
+            }
+        }
+    }
+
+    template <typename T>
+    typename std::enable_if<std::is_enum<T>::value, void>::type
+    unpack (T & v)
+    {
+        typename std::underlying_type<T>::type tmp;
+        unpack(tmp);
+
+        if (_state == status_enum::good)
+            v = static_cast<T>(tmp);
+    }
+
+    void unpack (std::pair<char *, std::size_t> v)
+    {
+        string_view tmp;
+        unpack_helper(tmp, v.second);
+
+        if (_state == status_enum::good)
+            std::copy(tmp.begin(), tmp.end(), v.first);
+    }
+
+    void unpack (std::pair<std::string *, std::size_t> v)
+    {
+        string_view tmp;
+        unpack_helper(tmp, v.second);
+
+        if (_state == status_enum::good)
+            *v.first = to_string(tmp);
+    }
+
+    void unpack (std::pair<string_view *, std::size_t> v)
+    {
+        unpack_helper(*v.first, v.second);
+    }
+
+    template <typename Char>
+    void unpack (std::pair<std::vector<Char> *, std::size_t> v)
+    {
+        unpack_helper(*v.first, v.second);
+    }
+
+    // This method required when used literal value for size:
+    // in >> std::make_pair(& vec, 6);
+    template <typename Char>
+    void unpack (std::pair<std::vector<Char> *, int> v)
+    {
+        unpack_helper(*v.first, numeric_cast<std::size_t>(v.second));
+    }
+
+    template <typename Char, std::size_t N>
+    void unpack (std::array<Char, N> & v)
+    {
+        unpack_helper(v);
     }
 };
 

@@ -16,7 +16,7 @@ template <pfs::endian Endianess>
 void serialize ()
 {
     std::vector<char> buffer;
-    pfs::binary_ostream<Endianess> os {buffer};
+    pfs::v1::binary_ostream<Endianess> os {buffer};
 
     char a0          = 'a';
     std::int8_t b0   = std::int8_t{-42};
@@ -41,7 +41,7 @@ void serialize ()
         << std::make_pair(static_cast<std::uint16_t>(vector_sample.size()), & vector_sample)
         << a0;
 
-    pfs::binary_istream<Endianess> is {buffer.data(), buffer.size()};
+    pfs::v1::binary_istream<Endianess> is {buffer.data(), buffer.size()};
 
     char a1, a2, a3;
     std::int8_t b1;

@@ -12,6 +12,7 @@
 #include "pfs/string_view.hpp"
 #include <cstring>
 #include <limits>
+#include <string>
 #include <vector>
 
 static std::string s_sample_data_le (
