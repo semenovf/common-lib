@@ -10,6 +10,7 @@
 #include "bits/endian.h"
 #include "byteswap.hpp"
 #include <type_traits>
+#include <cstring>
 
 namespace pfs {
 
@@ -67,5 +68,40 @@ T to_network_order (T const & x, typename std::enable_if<std::is_arithmetic<T>::
     return x;
 #endif
 }
+
+template <endian Endianess>
+struct unsafe_packer
+{
+    template <typename T>
+    static typename std::enable_if<std::is_integral<T>::value, void>::type
+    pack (char * out, T v)
+    {
+        T a = Endianess == endian::network ? to_network_order(v) : v;
+        union u { T v; char b[sizeof(T)]; } d;
+        d.v = a;
+        std::memcpy(out, d.b, sizeof(T));
+    }
+
+    static void pack (char * out, float v)
+    {
+        union { float f; std::uint32_t d; } x;
+        x.f = v;
+        pack(out, x.d);
+    }
+
+    static void pack (char * out, double v)
+    {
+        union { double f; std::uint64_t d; } x;
+        x.f = v;
+        pack(out, x.d);
+    }
+};
+
+template <endian Endianess, typename T>
+void pack_unsafe (char * out, T v)
+{
+    unsafe_packer<Endianess>::pack(out, v);
+}
+
 
 } // namespace pfs

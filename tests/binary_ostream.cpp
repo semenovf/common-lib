@@ -89,8 +89,7 @@ void serialize ()
         << std::vector<char>{'v', 'e', 'c', 't', 'o', 'r'}
         << std::array<char, 5>{'a', 'r', 'r', 'a', 'y'}
         << test_enum::test
-        << A{'x'}
-        ;
+        << A{'x'};
 
     if (Endianess == pfs::endian::little) {
         REQUIRE_EQ(s_sample_data_le.size(), ar.size());
