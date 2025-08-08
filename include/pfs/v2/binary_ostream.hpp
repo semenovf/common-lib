@@ -34,10 +34,34 @@ private:
     offset_type _off {0};
 
 public:
-    binary_ostream (archive_type & ar, offset_type offset = 0)
+    explicit binary_ostream (archive_type & ar, offset_type offset = 0) noexcept
         : _ar(& ar)
         , _off(offset)
     {}
+
+    binary_ostream (binary_ostream && other) noexcept
+        : _ar(other._ar)
+        , _off(other._off)
+    {
+        other._ar = nullptr;
+        other._off = 0;
+    }
+
+    binary_ostream & operator = (binary_ostream && other) noexcept
+    {
+        if (this != & other) {
+            using std::swap;
+
+            binary_ostream tmp {std::move(other)};
+            std::swap(_ar, tmp._ar);
+            std::swap(_off, tmp._off);
+        }
+
+        return *this;
+    }
+
+    binary_ostream (binary_ostream const &) = delete;
+    binary_ostream & operator = (binary_ostream const &) = delete;
 
     ~binary_ostream ()
     {

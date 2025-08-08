@@ -65,6 +65,34 @@ public:
             throw error {make_error_code(std::errc::invalid_argument)};
     }
 
+    binary_istream (binary_istream && other) noexcept
+        : _p(other._p)
+        , _end(other._end)
+        , _state(other._state)
+        , _state_stack(std::move(other._state_stack))
+    {
+        other._p = nullptr;
+        other._end = nullptr;
+        other._state = status_enum::good;
+    }
+
+    binary_istream & operator = (binary_istream && other) noexcept
+    {
+        if (this != & other) {
+            using std::swap;
+
+            binary_istream tmp {std::move(other)};
+            std::swap(_p, tmp._p);
+            std::swap(_end, tmp._end);
+            std::swap(_state, tmp._state);
+        }
+
+        return *this;
+    }
+
+    binary_istream (binary_istream const &) = delete;
+    binary_istream & operator = (binary_istream const &) = delete;
+
     char const * begin () const noexcept
     {
         return _p;

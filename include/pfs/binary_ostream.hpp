@@ -36,7 +36,7 @@ private:
     bool _has_ownership {false};
 
 public:
-    binary_ostream (size_type reserve_bytes = 0)
+    explicit binary_ostream (size_type reserve_bytes = 0)
         : _has_ownership(true)
     {
         _pbuf = new archive_type;
@@ -46,11 +46,38 @@ public:
         }
     }
 
-    binary_ostream (archive_type & buf, offset_type offset = 0)
+    explicit binary_ostream (archive_type & buf, offset_type offset = 0)
         : _pbuf(& buf)
         , _off(offset)
         , _has_ownership(false)
     {}
+
+    binary_ostream (binary_ostream && other) noexcept
+        : _pbuf(other._pbuf)
+        , _off(other._off)
+        , _has_ownership(other._has_ownership)
+    {
+        other._pbuf = nullptr;
+        other._off = 0;
+        other._has_ownership = false;
+    }
+
+    binary_ostream & operator = (binary_ostream && other) noexcept
+    {
+        if (this != & other) {
+            using std::swap;
+
+            binary_ostream tmp {std::move(other)};
+            std::swap(_pbuf, tmp._pbuf);
+            std::swap(_off, tmp._off);
+            std::swap(_has_ownership, tmp._has_ownership);
+        }
+
+        return *this;
+    }
+
+    binary_ostream (binary_ostream const &) = delete;
+    binary_ostream & operator = (binary_ostream const &) = delete;
 
     ~binary_ostream ()
     {
