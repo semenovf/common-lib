@@ -158,6 +158,16 @@ public:
         return false;
     }
 
+    void rollback_transaction ()
+    {
+        if (!_state_stack.empty()) {
+            _state = _state_stack.top().first;
+            _p = _state_stack.top().second;
+            _state_stack.pop();
+        }
+    }
+
+
 private:
     /**
      * Reads byte sequence into string view. Lifetime of the string view must be less or equals to
