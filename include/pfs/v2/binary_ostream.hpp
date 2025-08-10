@@ -26,15 +26,13 @@ class binary_ostream
 {
 public:
     using archive_type = Archive;
-    using size_type = std::uint32_t;
-    using offset_type = size_type;
 
 private:
     archive_type * _ar {nullptr};
-    offset_type _off {0};
+    std::size_t _off {0};
 
 public:
-    explicit binary_ostream (archive_type & ar, offset_type offset = 0) noexcept
+    explicit binary_ostream (archive_type & ar, std::size_t offset = 0) noexcept
         : _ar(& ar)
         , _off(offset)
     {}
