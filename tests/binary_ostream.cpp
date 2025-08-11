@@ -28,11 +28,12 @@ static std::string s_sample_data_le (
     "Hello"
     ",World!"
     "Bye everyone!"
+    "And hello again!"
     "vector"
     "array"
     "\x2A\x00"
     "x"
-    , 83);
+    , 99);
 
 static std::string s_sample_data_be (
     "\x01\x61\xD6\x2A\x80\x00\xFF\xFF"
@@ -45,11 +46,12 @@ static std::string s_sample_data_be (
     "Hello"
     ",World!"
     "Bye everyone!"
+    "And hello again!"
     "vector"
     "array"
     "\x00\x2A"
     "x"
-    , 83);
+    , 99);
 
 enum class test_enum: std::int16_t { test = 42 };
 
@@ -87,6 +89,7 @@ void serialize ()
         << "Hello"
         << std::string(",World!")
         << pfs::string_view("Bye everyone!")
+        << std::make_pair("And hello again!", 16)
         << std::vector<char>{'v', 'e', 'c', 't', 'o', 'r'}
         << std::array<char, 5>{'a', 'r', 'r', 'a', 'y'}
         << test_enum::test

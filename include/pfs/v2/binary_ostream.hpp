@@ -16,6 +16,7 @@
 #include <cstdint>
 #include <type_traits>
 #include <vector>
+#include <utility>
 
 PFS__NAMESPACE_BEGIN
 
@@ -101,6 +102,11 @@ private:
         out._ar->resize(out._ar->size() + n);
         std::copy(s, s + n, out._ar->data() + out._off);
         out._off += n;
+    }
+
+    friend void pack (binary_ostream & out, std::pair<char const *, std::size_t> const & v)
+    {
+        pack(out, v.first, v.second);
     }
 
     friend void pack (binary_ostream & out, char const * s)
