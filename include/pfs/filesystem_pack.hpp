@@ -27,12 +27,14 @@ template <endian Endianess>
 PFS__DEPRECATED void unpack (v1::binary_istream<Endianess> & in, filesystem::path & p)
 {
     std::string text;
-    std::uint16_t sz;
+    std::uint16_t sz = 0;
     in.start_transaction();
     in >> sz >> std::make_pair(& text, & sz);
 
     if (in.commit_transaction())
         p = utf8_decode_path(text);
+    else
+        in.rollback_transaction();
 }
 
 namespace v2 {
@@ -48,7 +50,7 @@ template <endian Endianess>
 void unpack (binary_istream<Endianess> & in, filesystem::path & p)
 {
     std::string text;
-    std::uint16_t sz;
+    std::uint16_t sz = 0;
 
     in.start_transaction();
     in >> sz >> std::make_pair(& text, sz);

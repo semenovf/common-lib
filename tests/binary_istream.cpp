@@ -220,3 +220,51 @@ TEST_CASE("Filesystem path deserialization") {
     deserialize_filesystem_path<pfs::endian::big>();
     deserialize_filesystem_path<pfs::endian::little>();
 }
+
+TEST_CASE("Pairs deserialization") {
+    using binary_istream_t = pfs::v2::binary_istream<pfs::endian::network>;
+
+    {
+        std::string source("\003ABC", 4);
+        binary_istream_t in {source.data(), source.size()};
+
+        std::uint8_t sz = 0;
+        std::vector<char> vec;
+
+        in >> sz >> std::make_pair(& vec, sz);
+        CHECK_EQ(vec, std::vector<char>{'A', 'B', 'C'});
+    }
+
+    {
+        std::string source("\003ABC", 4);
+        binary_istream_t in {source.data(), source.size()};
+
+        std::int8_t sz = 0;
+        std::vector<char> vec;
+
+        in >> sz >> std::make_pair(& vec, sz);
+        CHECK_EQ(vec, std::vector<char>{'A', 'B', 'C'});
+    }
+
+    {
+        std::string source("\000\003ABC", 5);
+        binary_istream_t in {source.data(), source.size()};
+
+        std::uint16_t sz = 0;
+        std::vector<char> vec;
+
+        in >> sz >> std::make_pair(& vec, sz);
+        CHECK_EQ(vec, std::vector<char>{'A', 'B', 'C'});
+    }
+
+    {
+        std::string source("\000\003ABC", 5);
+        binary_istream_t in {source.data(), source.size()};
+
+        std::int16_t sz = 0;
+        std::vector<char> vec;
+
+        in >> sz >> std::make_pair(& vec, sz);
+        CHECK_EQ(vec, std::vector<char>{'A', 'B', 'C'});
+    }
+}

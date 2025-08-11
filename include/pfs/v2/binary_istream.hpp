@@ -257,39 +257,34 @@ private:
             v = static_cast<T>(tmp);
     }
 
-    friend void unpack (binary_istream & in, std::pair<char *, std::size_t> v)
+    template <typename SizeType>
+    friend void unpack (binary_istream & in, std::pair<char *, SizeType> v)
     {
         string_view tmp;
-        in.unpack_helper(tmp, v.second);
+        in.unpack_helper(tmp, numeric_cast<std::size_t>(v.second));
 
         if (in._state == status_enum::good)
             std::copy(tmp.begin(), tmp.end(), v.first);
     }
 
-    friend void unpack (binary_istream & in, std::pair<std::string *, std::size_t> v)
+    template <typename SizeType>
+    friend void unpack (binary_istream & in, std::pair<std::string *, SizeType> v)
     {
         string_view tmp;
-        in.unpack_helper(tmp, v.second);
+        in.unpack_helper(tmp, numeric_cast<std::size_t>(v.second));
 
         if (in._state == status_enum::good)
             *v.first = to_string(tmp);
     }
 
-    friend void unpack (binary_istream & in, std::pair<string_view *, std::size_t> v)
+    template <typename SizeType>
+    friend void unpack (binary_istream & in, std::pair<string_view *, SizeType> v)
     {
-        in.unpack_helper(*v.first, v.second);
+        in.unpack_helper(*v.first, numeric_cast<std::size_t>(v.second));
     }
 
-    template <typename Char>
-    friend void unpack (binary_istream & in, std::pair<std::vector<Char> *, std::size_t> v)
-    {
-        in.unpack_helper(*v.first, v.second);
-    }
-
-    // This method required when used literal value for size:
-    // in >> std::make_pair(& vec, 6);
-    template <typename Char>
-    friend void unpack (binary_istream & in, std::pair<std::vector<Char> *, int> v)
+    template <typename Char, typename SizeType>
+    friend void unpack (binary_istream & in, std::pair<std::vector<Char> *, SizeType> v)
     {
         in.unpack_helper(*v.first, numeric_cast<std::size_t>(v.second));
     }
