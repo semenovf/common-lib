@@ -56,18 +56,18 @@ struct A
     char ch;
 };
 
-template <typename Archive, pfs::endian Endianess>
-inline pfs::v2::binary_ostream<Archive, Endianess> &
-operator << (pfs::v2::binary_ostream<Archive, Endianess> & out, A const & a)
+template <pfs::endian Endianess, typename Archive>
+inline pfs::v2::binary_ostream<Endianess, Archive> &
+operator << (pfs::v2::binary_ostream<Endianess, Archive> & out, A const & a)
 {
     out << a.ch;
     return out;
 }
 
-template <typename Archive, pfs::endian Endianess>
+template <pfs::endian Endianess, typename Archive>
 void serialize ()
 {
-    using binary_ostream_t = pfs::v2::binary_ostream<Archive, Endianess>;
+    using binary_ostream_t = pfs::v2::binary_ostream<Endianess, Archive>;
 
     Archive ar;
     binary_ostream_t out {ar};
@@ -102,9 +102,9 @@ void serialize ()
 }
 
 TEST_CASE("little endian order") {
-    serialize<std::vector<char>, pfs::endian::little>();
+    serialize<pfs::endian::little, std::vector<char>>();
 }
 
 TEST_CASE("big endian order") {
-    serialize<std::vector<char>, pfs::endian::big>();
+    serialize<pfs::endian::big, std::vector<char>>();
 }
