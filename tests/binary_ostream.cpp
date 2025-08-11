@@ -8,8 +8,10 @@
 ////////////////////////////////////////////////////////////////////////////////
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include "doctest.h"
-#include "pfs/v2/binary_ostream.hpp"
+#include "pfs/filesystem_pack.hpp"
 #include "pfs/string_view.hpp"
+#include "pfs/universal_id_pack.hpp"
+#include "pfs/v2/binary_ostream.hpp"
 #include <cstring>
 #include <limits>
 #include <string>
@@ -57,11 +59,9 @@ struct A
 };
 
 template <pfs::endian Endianess, typename Archive>
-inline pfs::v2::binary_ostream<Endianess, Archive> &
-operator << (pfs::v2::binary_ostream<Endianess, Archive> & out, A const & a)
+inline void pack (pfs::v2::binary_ostream<Endianess, Archive> & out, A const & a)
 {
     out << a.ch;
-    return out;
 }
 
 template <pfs::endian Endianess, typename Archive>
@@ -101,10 +101,70 @@ void serialize ()
     }
 }
 
-TEST_CASE("little endian order") {
+template <pfs::endian Endianess, typename Archive>
+void serialize_universal_id ()
+{
+    using binary_ostream_t = pfs::v2::binary_ostream<Endianess, Archive>;
+
+    Archive ar;
+    binary_ostream_t out {ar};
+
+#if defined(PFS__UNIVERSAL_ID_IMPL_UUIDV7)
+    auto uuid = "0193f3a3-c500-717f-9f9c-4740b063c413"_uuidv7;
+
+    out << uuid;
+
+    if (Endianess == pfs::endian::big) {
+        CHECK_EQ(std::memcmp("\x01\x93\xF3\xA3\xC5\x00\x71\x7F\x9F\x9C\x47\x40\xB0\x63\xC4\x13"
+            , ar.data(), ar.size()), 0);
+    } else {
+        CHECK_EQ(std::memcmp("\x13\xC4\x63\xB0\x40\x47\x9C\x9F\x7F\x71\x00\xC5\xA3\xF3\x93\x01"
+            , ar.data(), ar.size()), 0);
+    }
+#else
+    auto uuid = "01D78XYFJ1PRM1WPBCBT3VHMNV"_uuid;
+
+    out << uuid;
+
+    if (Endianess == pfs::endian::big) {
+        CHECK_EQ(std::memcmp("\x01\x69\xD1\xDF\x3E\x41\xB6\x28\x1E\x59\x6C\x5E\x87\xB8\xD2\xBB"
+            , ar.data(), ar.size()), 0);
+    } else {
+        CHECK_EQ(std::memcmp("\xBB\xD2\xB8\x87\x5E\x6C\x59\x1E\x28\xB6\x41\x3E\xDF\xD1\x69\x01"
+            , ar.data(), ar.size()), 0);
+    }
+#endif
+}
+
+template <pfs::endian Endianess, typename Archive>
+void serialize_filesystem_path ()
+{
+    using binary_ostream_t = pfs::v2::binary_ostream<Endianess, Archive>;
+
+    Archive ar;
+    binary_ostream_t out {ar};
+
+    pfs::filesystem::path path = PFS__LITERAL_PATH("/path/to/some/file.ext");
+    out << path;
+
+    if (Endianess == pfs::endian::big) {
+        CHECK_EQ(std::memcmp("\x00\x16/path/to/some/file.ext", ar.data(), ar.size()), 0);
+    } else {
+        CHECK_EQ(std::memcmp("\x16\x00/path/to/some/file.ext", ar.data(), ar.size()), 0);
+    }
+}
+
+TEST_CASE("basic serialization") {
+    serialize<pfs::endian::big, std::vector<char>>();
     serialize<pfs::endian::little, std::vector<char>>();
 }
 
-TEST_CASE("big endian order") {
-    serialize<pfs::endian::big, std::vector<char>>();
+TEST_CASE("Universal ID serialization") {
+    serialize_universal_id<pfs::endian::big, std::vector<char>>();
+    serialize_universal_id<pfs::endian::little, std::vector<char>>();
+}
+
+TEST_CASE("Filesystem path serialization") {
+    serialize_filesystem_path<pfs::endian::big, std::vector<char>>();
+    serialize_filesystem_path<pfs::endian::little, std::vector<char>>();
 }

@@ -69,71 +69,69 @@ public:
     template <typename T>
     binary_ostream & operator << (T const & v)
     {
-        pack(v);
+        pack(*this, v);
         return *this;
     }
 
 private:
     template <typename T>
-    typename std::enable_if<
-        std::is_integral<typename std::decay<T>::type>::value
-            || std::is_floating_point<typename std::decay<T>::type>::value, void>::type
-    pack (T const & v)
+    friend typename std::enable_if<std::is_arithmetic<typename std::decay<T>::type>::value, void>::type
+    pack (binary_ostream & out, T const & v)
     {
-        _ar->resize(_ar->size() + sizeof(T));
-        pack_unsafe<Endianess>(_ar->data() + _off, v);
-        _off += sizeof(T);
+        out._ar->resize(out._ar->size() + sizeof(T));
+        pack_unsafe<Endianess>(out._ar->data() + out._off, v);
+        out._off += sizeof(T);
     }
 
     template <typename T>
-    typename std::enable_if<std::is_enum<T>::value, void>::type
-    pack (T const & v)
+    friend typename std::enable_if<std::is_enum<T>::value, void>::type
+    pack (binary_ostream & out, T const & v)
     {
-        pack(static_cast<typename std::underlying_type<T>::type>(v));
+        pack(out, static_cast<typename std::underlying_type<T>::type>(v));
     }
 
     /**
      * Writes raw sequence into the stream.
      */
-    void pack (char const * s, std::size_t n)
+    friend void pack (binary_ostream & out, char const * s, std::size_t n)
     {
         if (n == 0)
             return;
 
-        _ar->resize(_ar->size() + n);
-        std::copy(s, s + n, _ar->data() + _off);
-        _off += n;
+        out._ar->resize(out._ar->size() + n);
+        std::copy(s, s + n, out._ar->data() + out._off);
+        out._off += n;
     }
 
-    void pack (char const * s)
+    friend void pack (binary_ostream & out, char const * s)
     {
-        pack(s, std::strlen(s));
+        pack(out, s, std::strlen(s));
     }
 
-    void pack (std::string const & s)
+    friend void pack (binary_ostream & out, std::string const & s)
     {
-        pack(s.data(), s.size());
+        pack(out, s.data(), s.size());
     }
 
-    void pack (pfs::string_view const & s)
+    friend void pack (binary_ostream & out, pfs::string_view const & s)
     {
-        pack(s.data(), s.size());
+        pack(out, s.data(), s.size());
     }
 
-    void pack (std::vector<char> const & s)
+    friend void pack (binary_ostream & out, std::vector<char> const & s)
     {
-        pack(s.data(), s.size());
+        pack(out, s.data(), s.size());
     }
 
-    void pack (std::vector<std::uint8_t> const & s)
+    friend void pack (binary_ostream & out, std::vector<std::uint8_t> const & s)
     {
-        pack(reinterpret_cast<char const *>(s.data()), s.size());
+        pack(out, reinterpret_cast<char const *>(s.data()), s.size());
     }
 
     template <std::size_t N>
-    void pack (std::array<char, N> const & a)
+    friend void pack (binary_ostream & out, std::array<char, N> const & a)
     {
-        pack(a.data(), a.size());
+        pack(out, a.data(), a.size());
     }
 };
 

@@ -110,9 +110,9 @@ set(utf16be_decode_SOURCES ${utf16be_resource_SOURCES})
 
 foreach (name ${TEST_NAMES})
     if (${name}_SOURCES)
-        add_executable(${name} ${${name}_SOURCES} ${name}.cpp)
+        add_executable(tests-${name} ${${name}_SOURCES} ${name}.cpp)
     else ()
-        add_executable(${name} ${name}.cpp)
+        add_executable(tests-${name} ${name}.cpp)
     endif()
 
     # https://gcc.gnu.org/onlinedocs/gcc/Instrumentation-Options.html#Instrumentation-Options
@@ -122,104 +122,104 @@ foreach (name ${TEST_NAMES})
     #       coverage analysis. The option is a synonym for -fprofile-arcs
     #       -ftest-coverage (when compiling) and -lgcov (when linking).
     if (PFS__ENABLE_COVERAGE)
-        target_compile_options(${name} PRIVATE -g -O0 --coverage)
-        target_link_libraries(${name} PRIVATE -g -O0 --coverage)
+        target_compile_options(tests-${name} PRIVATE -g -O0 --coverage)
+        target_link_libraries(tests-${name} PRIVATE -g -O0 --coverage)
     endif()
 
-    target_link_libraries(${name} PRIVATE pfs::common)
-    add_test(NAME ${name} COMMAND ${name})
+    target_link_libraries(tests-${name} PRIVATE pfs::common)
+    add_test(NAME tests-${name} COMMAND tests-${name})
 endforeach()
 
 # Helper library for test `dynamic_library`
 add_library(shared_object SHARED shared_object.c)
 
-if (TARGET endian)
+if (TARGET tests-endian)
     if (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC"
             OR (CMAKE_CXX_COMPILER_ID MATCHES "Clang" AND CMAKE_CXX_SIMULATE_ID MATCHES "MSVC"))
-        target_link_libraries(endian PRIVATE Ws2_32)
+        target_link_libraries(tests-endian PRIVATE Ws2_32)
     endif()
 endif()
 
-if (TARGET i18n)
+if (TARGET tests-i18n)
     # Target `libintl` available if `PFS__ENABLE_NLS` is ON
     # and `PFS__USE_IMPORTED_GETTEXT_LIB` is ON (on Windows platform)
     if (TARGET libintl)
-        target_link_libraries(i18n PRIVATE libintl)
+        target_link_libraries(tests-i18n PRIVATE libintl)
 
-        add_custom_command(TARGET i18n
+        add_custom_command(TARGET tests-i18n
             POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E copy
                 "$<TARGET_PROPERTY:libintl,IMPORTED_LOCATION>"
-                "$<TARGET_FILE_DIR:i18n>"
+                "$<TARGET_FILE_DIR:tests-i18n>"
             COMMAND ${CMAKE_COMMAND} -E copy
                 "$<TARGET_PROPERTY:libintl,ICONV_LIB>"
-                "$<TARGET_FILE_DIR:i18n>"
+                "$<TARGET_FILE_DIR:tests-i18n>"
             VERBATIM)
     endif()
 endif()
 
-if (TARGET utf8_decode)
+if (TARGET tests-utf8_decode)
     # Copy test data files
-    add_custom_command(TARGET utf8_decode
+    add_custom_command(TARGET tests-utf8_decode
         POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:utf8_decode>/unicode"
-        COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:utf8_decode>/unicode/utf8"
-        COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:utf8_decode>/unicode/utf8/data"
+        COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:tests-utf8_decode>/unicode"
+        COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:tests-utf8_decode>/unicode/utf8"
+        COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:tests-utf8_decode>/unicode/utf8/data"
         COMMAND ${CMAKE_COMMAND} -E copy_directory
             "${CMAKE_CURRENT_SOURCE_DIR}/unicode/utf8/data"
-            "$<TARGET_FILE_DIR:utf8_decode>/unicode/utf8/data"
+            "$<TARGET_FILE_DIR:tests-utf8_decode>/unicode/utf8/data"
         VERBATIM)
 endif()
 
-if (TARGET utf16le_decode)
-    add_custom_command(TARGET utf16le_decode
+if (TARGET tests-utf16le_decode)
+    add_custom_command(TARGET tests-utf16le_decode
         POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:utf16le_decode>/unicode"
-        COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:utf16le_decode>/unicode/utf16le"
-        COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:utf16le_decode>/unicode/utf16le/data"
+        COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:tests-utf16le_decode>/unicode"
+        COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:tests-utf16le_decode>/unicode/utf16le"
+        COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:tests-utf16le_decode>/unicode/utf16le/data"
         COMMAND ${CMAKE_COMMAND} -E copy_directory
             "${CMAKE_CURRENT_SOURCE_DIR}/unicode/utf16le/data"
-            "$<TARGET_FILE_DIR:utf16le_decode>/unicode/utf16le/data"
+            "$<TARGET_FILE_DIR:tests-utf16le_decode>/unicode/utf16le/data"
         VERBATIM)
 endif()
 
-if (TARGET utf16be_decode)
-    add_custom_command(TARGET utf16be_decode
+if (TARGET tests-utf16be_decode)
+    add_custom_command(TARGET tests-utf16be_decode
         POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:utf16be_decode>/unicode"
-        COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:utf16be_decode>/unicode/utf16be"
-        COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:utf16be_decode>/unicode/utf16be/data"
+        COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:tests-utf16be_decode>/unicode"
+        COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:tests-utf16be_decode>/unicode/utf16be"
+        COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:tests-utf16be_decode>/unicode/utf16be/data"
         COMMAND ${CMAKE_COMMAND} -E copy_directory
             "${CMAKE_CURRENT_SOURCE_DIR}/unicode/utf16be/data"
-            "$<TARGET_FILE_DIR:utf16be_decode>/unicode/utf16be/data"
+            "$<TARGET_FILE_DIR:tests-utf16be_decode>/unicode/utf16be/data"
         VERBATIM)
 endif()
 
-if (TARGET uuidv7)
+if (TARGET tests-uuidv7)
     find_package(Qt5 QUIET COMPONENTS Core)
 
     if (Qt5Core_FOUND)
-        target_link_libraries(uuidv7 PRIVATE Qt5::Core)
-        target_compile_definitions(uuidv7 PRIVATE "QT5_CORE_ENABLED=1")
+        target_link_libraries(tests-uuidv7 PRIVATE Qt5::Core)
+        target_compile_definitions(tests-uuidv7 PRIVATE "QT5_CORE_ENABLED=1")
     endif()
 endif()
 
-if (TARGET resources)
+if (TARGET tests-resources)
     add_library(rc1 STATIC resources/rc1.cpp)
     add_library(rc2 SHARED resources/rc2.cpp)
     target_link_libraries(rc1 PRIVATE pfs::common)
     target_link_libraries(rc2 PRIVATE pfs::common)
-    target_link_libraries(resources PRIVATE rc1 rc2)
+    target_link_libraries(tests-resources PRIVATE rc1 rc2)
 endif()
 
 if (TARGET ICU::uc AND TARGET ICU::data)
-    add_custom_command(TARGET utf8_iterator POST_BUILD
+    add_custom_command(TARGET tests-utf8_iterator POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E copy
                 "$<TARGET_PROPERTY:ICU::uc,IMPORTED_LOCATION>"
-                "$<TARGET_FILE_DIR:utf8_iterator>"
+                "$<TARGET_FILE_DIR:tests-utf8_iterator>"
             COMMAND ${CMAKE_COMMAND} -E copy
                 "$<TARGET_PROPERTY:ICU::data,IMPORTED_LOCATION>"
-                "$<TARGET_FILE_DIR:utf8_iterator>")
+                "$<TARGET_FILE_DIR:tests-utf8_iterator>")
 endif()
 
 if (MSVC)

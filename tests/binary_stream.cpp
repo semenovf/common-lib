@@ -12,6 +12,8 @@
 #include "pfs/binary_ostream.hpp"
 #include <vector>
 
+// TODO DEPRECATED
+
 template <pfs::endian Endianess>
 void serialize ()
 {

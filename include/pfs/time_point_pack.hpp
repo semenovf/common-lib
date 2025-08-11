@@ -49,4 +49,42 @@ void unpack (v1::binary_istream<Endianess> & in, local_time & t)
     t = local_time{std::chrono::milliseconds{static_cast<std::chrono::milliseconds::rep>(ticks)}};
 }
 
+namespace v2 {
+
+template <endian Endianess>
+void pack (binary_ostream<Endianess> & out, utc_time const & t)
+{
+    // Milliseconds is equivalent to integer type of at least 45 bits,
+    // so nearest standard integer type is std::int64_t
+    std::int64_t ticks = t.to_millis().count();
+    out << ticks;
+}
+
+template <endian Endianess>
+void unpack (binary_istream<Endianess> & in, utc_time & t)
+{
+    std::int64_t ticks;
+    in >> ticks;
+    t = utc_time{std::chrono::milliseconds{static_cast<std::chrono::milliseconds::rep>(ticks)}};
+}
+
+template <endian Endianess>
+void pack (binary_ostream<Endianess> & out, local_time const & t)
+{
+    // Milliseconds is equivalent to integer type of at least 45 bits,
+    // so nearest standard integer type is std::int64_t
+    std::int64_t ticks = t.to_millis().count();
+    out << ticks;
+}
+
+template <endian Endianess>
+void unpack (binary_istream<Endianess> & in, local_time & t)
+{
+    std::int64_t ticks;
+    in >> ticks;
+    t = local_time{std::chrono::milliseconds{static_cast<std::chrono::milliseconds::rep>(ticks)}};
+}
+
+} // namespace v2
+
 } // namespace pfs

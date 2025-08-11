@@ -8,18 +8,30 @@
 ////////////////////////////////////////////////////////////////////////////////
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include "doctest.h"
-#include "pfs/fmt.hpp"
 #include "pfs/universal_id.hpp"
 #include "pfs/universal_id_crc.hpp"
 #include "pfs/universal_id_hash.hpp"
 #include <unordered_map>
 
+#if defined(PFS__UNIVERSAL_ID_IMPL_UUIDV7)
+
 TEST_CASE ("") {
-#ifdef ULIDUINT128
-    fmt::print("*** UUID implemented as `int128` integer\n");
-#else
-    fmt::print("*** UUID implemented as `struct`\n");
-#endif
+    // TODO Develop tests
+    MESSAGE("*** Tests for UUID implemented as `uuidv7` not developed yet");
+}
+
+#else // ! PFS__UNIVERSAL_ID_IMPL_UUIDV7
+
+TEST_CASE ("") {
+#   if defined(PFS__UNIVERSAL_ID_IMPL_UUIDV7)
+    MESSAGE("*** UUID implemented as `uuidv7`");
+#   else // !PFS__UNIVERSAL_ID_IMPL_UUIDV7
+#       ifdef ULIDUINT128
+    MESSAGE("*** UUID implemented as `int128` integer");
+#       else
+    MESSAGE("*** UUID implemented as `struct`");
+#       endif
+#   endif // PFS__UNIVERSAL_ID_IMPL_UUIDV7
 }
 
 TEST_CASE("literal") {
@@ -150,3 +162,5 @@ TEST_CASE("hash")
     CHECK_EQ(m[u1], 42);
     CHECK_EQ(m[u2], 43);
 }
+
+#endif // PFS__UNIVERSAL_ID_IMPL_UUIDV7

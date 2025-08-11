@@ -8,7 +8,9 @@
 ////////////////////////////////////////////////////////////////////////////////
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include "doctest.h"
+#include "pfs/filesystem_pack.hpp"
 #include "pfs/string_view.hpp"
+#include "pfs/universal_id_pack.hpp"
 #include "pfs/v2/binary_istream.hpp"
 #include <cstring>
 #include <limits>
@@ -57,11 +59,9 @@ struct A
 };
 
 template <pfs::endian Endianess>
-inline pfs::v2::binary_istream<Endianess> &
-operator >> (pfs::v2::binary_istream<Endianess> & in, A & a)
+inline void unpack (pfs::v2::binary_istream<Endianess> & in, A & a)
 {
     in >> a.ch;
-    return in;
 }
 
 template <pfs::endian Endianess>
@@ -148,10 +148,75 @@ void deserialize (std::string const & sample_string)
     CHECK_EQ(a.ch, 'x');
 }
 
-TEST_CASE("little endian order") {
+template <pfs::endian Endianess>
+void deserialize_universal_id ()
+{
+    using binary_istream_t = pfs::v2::binary_istream<Endianess>;
+
+    pfs::universal_id uuid;
+
+#if defined(PFS__UNIVERSAL_ID_IMPL_UUIDV7)
+    auto uuid_sample = "0193f3a3-c500-717f-9f9c-4740b063c413"_uuidv7;
+    std::string source;
+
+    if (Endianess == pfs::endian::big) {
+        source = std::string("\x01\x93\xF3\xA3\xC5\x00\x71\x7F\x9F\x9C\x47\x40\xB0\x63\xC4\x13", 16);
+    } else {
+        source = std::string("\x13\xC4\x63\xB0\x40\x47\x9C\x9F\x7F\x71\x00\xC5\xA3\xF3\x93\x01", 16);
+    }
+
+    binary_istream_t in {source.data(), source.size()};
+    in >> uuid;
+#else
+    auto uuid_sample = "01D78XYFJ1PRM1WPBCBT3VHMNV"_uuid;
+    std::string source;
+
+    if (Endianess == pfs::endian::big) {
+        source = std::string("\x01\x69\xD1\xDF\x3E\x41\xB6\x28\x1E\x59\x6C\x5E\x87\xB8\xD2\xBB", 16);
+    } else {
+        source = std::string("\xBB\xD2\xB8\x87\x5E\x6C\x59\x1E\x28\xB6\x41\x3E\xDF\xD1\x69\x01", 16);
+    }
+
+    binary_istream_t in {source.data(), source.size()};
+    in >> uuid;
+#endif
+
+    CHECK_EQ(uuid, uuid_sample);
+}
+
+template <pfs::endian Endianess>
+void deserialize_filesystem_path ()
+{
+    using binary_istream_t = pfs::v2::binary_istream<Endianess>;
+
+    pfs::filesystem::path path_sample = PFS__LITERAL_PATH("/path/to/some/file.ext");
+
+    std::string source;
+
+    if (Endianess == pfs::endian::big) {
+        source = std::string("\x00\x16/path/to/some/file.ext", 24);
+    } else {
+        source = std::string("\x16\x00/path/to/some/file.ext", 24);
+    }
+
+    pfs::filesystem::path path;
+    binary_istream_t in {source.data(), source.size()};
+    in >> path;
+
+    CHECK_EQ(path, path_sample);
+}
+
+TEST_CASE("basic deserialization") {
+    deserialize<pfs::endian::big>(s_sample_data_be);
     deserialize<pfs::endian::little>(s_sample_data_le);
 }
 
-TEST_CASE("big endian order") {
-    deserialize<pfs::endian::big>(s_sample_data_be);
+TEST_CASE("Universal ID deserialization") {
+    deserialize_universal_id<pfs::endian::big>();
+    deserialize_universal_id<pfs::endian::little>();
+}
+
+TEST_CASE("Filesystem path deserialization") {
+    deserialize_filesystem_path<pfs::endian::big>();
+    deserialize_filesystem_path<pfs::endian::little>();
 }
