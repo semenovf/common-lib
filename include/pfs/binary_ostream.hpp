@@ -17,8 +17,8 @@
 
 PFS__NAMESPACE_BEGIN
 
-template <typename Archive = std::vector<char>, endian Endianess = endian::native>
-using binary_ostream = v2::binary_ostream<Archive, Endianess>;
+template <endian Endianess = endian::native, typename Archive = std::vector<char>>
+using binary_ostream = v2::binary_ostream<Endianess, Archive>;
 
 namespace v1 {
 
