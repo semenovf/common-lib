@@ -8,10 +8,11 @@
 ////////////////////////////////////////////////////////////////////////////////
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include "doctest.h"
+#include "pfs/binary_istream.hpp"
 #include "pfs/filesystem_pack.hpp"
 #include "pfs/string_view.hpp"
+#include "pfs/time_point_pack.hpp"
 #include "pfs/universal_id_pack.hpp"
-#include "pfs/v2/binary_istream.hpp"
 #include <cstring>
 #include <limits>
 #include <string>
@@ -59,7 +60,7 @@ struct A
 };
 
 template <pfs::endian Endianess>
-inline void unpack (pfs::v2::binary_istream<Endianess> & in, A & a)
+inline void unpack (pfs::binary_istream<Endianess> & in, A & a)
 {
     in >> a.ch;
 }
@@ -67,7 +68,7 @@ inline void unpack (pfs::v2::binary_istream<Endianess> & in, A & a)
 template <pfs::endian Endianess>
 void deserialize (std::string const & sample_string)
 {
-    using binary_istream_t = pfs::v2::binary_istream<Endianess>;
+    using binary_istream_t = pfs::binary_istream<Endianess>;
 
     binary_istream_t in {sample_string.data(), sample_string.size()};
 
@@ -151,7 +152,7 @@ void deserialize (std::string const & sample_string)
 template <pfs::endian Endianess>
 void deserialize_universal_id ()
 {
-    using binary_istream_t = pfs::v2::binary_istream<Endianess>;
+    using binary_istream_t = pfs::binary_istream<Endianess>;
 
     pfs::universal_id uuid;
 
@@ -187,7 +188,7 @@ void deserialize_universal_id ()
 template <pfs::endian Endianess>
 void deserialize_filesystem_path ()
 {
-    using binary_istream_t = pfs::v2::binary_istream<Endianess>;
+    using binary_istream_t = pfs::binary_istream<Endianess>;
 
     pfs::filesystem::path path_sample = PFS__LITERAL_PATH("/path/to/some/file.ext");
 
@@ -206,6 +207,32 @@ void deserialize_filesystem_path ()
     CHECK_EQ(path, path_sample);
 }
 
+template <pfs::endian Endianess>
+void deserialize_timepoint ()
+{
+    using binary_istream_t = pfs::binary_istream<Endianess>;
+
+    auto utc_tp_sample = pfs::utc_time_point::make(1972, 4, 29, 9, 42, 30, 0, 0, 0);
+    auto local_tp_sample = pfs::local_time_point::make(1972, 4, 29, 9, 42, 30, 0, 0, 0);
+
+    std::string source;
+
+    if (Endianess == pfs::endian::big) {
+        source = std::string("\x00\x00\x00\x11\x16\x4C\x67\x70\x00\x00\x00\x11\x16\x4C\x67\x70", 16);
+    } else {
+        source = std::string("\x70\x67\x4C\x16\x11\x00\x00\x00\x70\x67\x4C\x16\x11\x00\x00\x00", 16);
+    }
+
+    pfs::utc_time_point utc_tp;
+    pfs::local_time_point local_tp;
+
+    binary_istream_t in {source.data(), source.size()};
+    in >> utc_tp >> local_tp;
+
+    CHECK_EQ(utc_tp, utc_tp_sample);
+    CHECK_EQ(local_tp, local_tp_sample);
+}
+
 TEST_CASE("basic deserialization") {
     deserialize<pfs::endian::big>(s_sample_data_be);
     deserialize<pfs::endian::little>(s_sample_data_le);
@@ -221,8 +248,13 @@ TEST_CASE("Filesystem path deserialization") {
     deserialize_filesystem_path<pfs::endian::little>();
 }
 
+TEST_CASE("Timepoint deserialization") {
+    deserialize_filesystem_path<pfs::endian::big>();
+    deserialize_filesystem_path<pfs::endian::little>();
+}
+
 TEST_CASE("Pairs deserialization") {
-    using binary_istream_t = pfs::v2::binary_istream<pfs::endian::network>;
+    using binary_istream_t = pfs::binary_istream<pfs::endian::network>;
 
     {
         std::string source("\003ABC", 4);

@@ -9,24 +9,29 @@
 //      2025.01.23 Renamed into binary_istream.
 //                 Refactored.
 //      2025.08.07 v2 is default implementation now.
+//      2025.08.12 Moved from `v2` namespace.
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
-#include "c++support.hpp"
+#include "error.hpp"
+#include "endian.hpp"
 #include "namespace.hpp"
-#include "v2/binary_istream.hpp"
+#include "numeric_cast.hpp"
+#include "string_view.hpp"
+#include <algorithm>
+#include <array>
+#include <cstdint>
+#include <type_traits>
+#include <stack>
+#include <utility>
+#include <vector>
 
 PFS__NAMESPACE_BEGIN
-
-template <endian Endianess = endian::native>
-using binary_istream = v2::binary_istream<Endianess>;
-
-namespace v1 {
 
 /**
  * No-throw version of @c binary_istream class.
  */
 template <endian Endianess = endian::native>
-class PFS__DEPRECATED binary_istream // Use v2::binary_istream instead
+class binary_istream
 {
 public:
     using size_type = std::uint32_t;
@@ -83,7 +88,6 @@ public:
             std::swap(_p, tmp._p);
             std::swap(_end, tmp._end);
             std::swap(_state, tmp._state);
-            _state_stack = std::move(tmp._state_stack);
         }
 
         return *this;
@@ -157,31 +161,88 @@ public:
         return false;
     }
 
-private:
-    template <typename T>
-    friend typename std::enable_if<std::is_same<typename std::decay<T>::type, bool>::value, void>::type
-    unpack (binary_istream & in, T & v)
+    void rollback_transaction ()
     {
-        if (in._state == status_enum::good) {
-            if (in._p + sizeof(std::int8_t) <= in._end) {
-                auto p = reinterpret_cast<std::int8_t const *>(in._p);
-                v = static_cast<bool>(*p);
-                in._p += sizeof(std::int8_t);
-            } else {
-                in._state = status_enum::out_of_bound;
-            }
+        if (!_state_stack.empty()) {
+            _state = _state_stack.top().first;
+            _p = _state_stack.top().second;
+            _state_stack.pop();
         }
     }
 
+
+private:
+    /**
+     * Reads byte sequence into string view. Lifetime of the string view must be less or equals to
+     * the stream's lifetime
+     */
+    void unpack_helper (string_view & v, size_type n)
+    {
+        if (n == 0)
+            return;
+
+        if (_state != status_enum::good)
+            return;
+
+        auto sz = available();
+
+        if (sz < n) {
+            _state = status_enum::out_of_bound;
+            return;
+        }
+
+        v = string_view(_p, n);
+        _p += n;
+    }
+
+    template <typename Char>
+    void unpack_helper (std::vector<Char> & v, std::size_t n)
+    {
+        if (n == 0)
+            return;
+
+        if (_state != status_enum::good)
+            return;
+
+        auto sz = available();
+
+        if (sz < n) {
+            _state = status_enum::out_of_bound;
+            return;
+        }
+
+        auto off = v.size();
+        v.resize(off + n);
+        std::copy(reinterpret_cast<Char const *>(_p), reinterpret_cast<Char const *>(_p) + n, v.data() + off);
+        _p += n;
+    }
+
+    template <typename Char, std::size_t N>
+    void unpack_helper (std::array<Char, N> & v)
+    {
+        if (_state != status_enum::good)
+            return;
+
+        auto sz = available();
+
+        if (sz < N) {
+            _state = status_enum::out_of_bound;
+            return;
+        }
+
+        std::copy(reinterpret_cast<Char const *>(_p), reinterpret_cast<Char const *>(_p) + N, v.data());
+        _p += N;
+    }
+
     template <typename T>
-    friend typename std::enable_if<std::is_integral<T>::value && !std::is_same<typename std::decay<T>::type, bool>::value, void>::type
+    friend typename std::enable_if<
+        std::is_integral<typename std::decay<T>::type>::value
+            || std::is_floating_point<typename std::decay<T>::type>::value, void>::type
     unpack (binary_istream & in, T & v)
     {
         if (in._state == status_enum::good) {
             if (in._p + sizeof(T) <= in._end) {
-                T const * p = reinterpret_cast<T const *>(in._p);
-                v = Endianess == endian::network ? to_native_order(*p) : *p;
-                in._p += sizeof(T);
+                in._p += unpack_unsafe<Endianess>(in._p, v);
             } else {
                 in._state = status_enum::out_of_bound;
             }
@@ -199,126 +260,43 @@ private:
             v = static_cast<T>(tmp);
     }
 
-    friend void unpack (binary_istream & in, float & v)
+    template <typename SizeType>
+    friend void unpack (binary_istream & in, std::pair<char *, SizeType> v)
     {
-        union { float f; std::uint32_t d; } x;
-        unpack(in, x.d);
+        string_view tmp;
+        in.unpack_helper(tmp, numeric_cast<std::size_t>(v.second));
 
         if (in._state == status_enum::good)
-            v = x.f;
-    }
-
-    /**
-     */
-    friend void unpack (binary_istream & in, double & v)
-    {
-        union { double f; std::uint64_t d; } x;
-        unpack(in, x.d);
-
-        if (in._state == status_enum::good)
-            v = x.f;
-    }
-
-    /**
-     * Reads byte sequence into string view. Lifetime of the string view must be less or equals to
-     * the stream's lifetime
-     */
-    friend void unpack (binary_istream & in, string_view & v, size_type n)
-    {
-        if (n == 0)
-            return;
-
-        if (in._state != status_enum::good)
-            return;
-
-        auto sz = in.available();
-
-        if (sz < n) {
-            in._state = status_enum::out_of_bound;
-            return;
-        }
-
-        v = string_view(in._p, n);
-        in._p += n;
+            std::copy(tmp.begin(), tmp.end(), v.first);
     }
 
     template <typename SizeType>
-    friend void unpack (binary_istream & in, std::pair<std::string *, SizeType const &> v)
+    friend void unpack (binary_istream & in, std::pair<std::string *, SizeType> v)
     {
         string_view tmp;
-        unpack(in, tmp, v.second);
+        in.unpack_helper(tmp, numeric_cast<std::size_t>(v.second));
 
         if (in._state == status_enum::good)
             *v.first = to_string(tmp);
     }
 
     template <typename SizeType>
-    friend void unpack (binary_istream & in, std::pair<SizeType *, std::string *> v)
+    friend void unpack (binary_istream & in, std::pair<string_view *, SizeType> v)
     {
-        unpack(in, *v.first);
-
-        if (in._state == status_enum::good) {
-            string_view tmp;
-
-            unpack(in, tmp, *v.first);
-
-            if (in._state == status_enum::good)
-                *v.second = to_string(tmp);
-        }
-    }
-
-    template <typename Char>
-    static void unpack_helper (binary_istream & in, std::vector<Char> & v, size_type n)
-    {
-        if (n == 0)
-            return;
-
-        if (in._state != status_enum::good)
-            return;
-
-        auto sz = in.available();
-
-        if (sz < n) {
-            in._state = status_enum::out_of_bound;
-            return;
-        }
-
-        v.resize(n);
-        std::memcpy(reinterpret_cast<Char *>(v.data()), in._p, n);
-        in._p += n;
+        in.unpack_helper(*v.first, numeric_cast<std::size_t>(v.second));
     }
 
     template <typename Char, typename SizeType>
-    friend void unpack (binary_istream & in, std::pair<std::vector<Char> *, SizeType const &> v)
+    friend void unpack (binary_istream & in, std::pair<std::vector<Char> *, SizeType> v)
     {
-        binary_istream<Endianess>::unpack_helper(in, *v.first, v.second);
+        in.unpack_helper(*v.first, numeric_cast<std::size_t>(v.second));
     }
 
-    template <typename Char, typename SizeType>
-    friend void unpack (binary_istream & in, std::pair<SizeType *, std::vector<Char> *> v)
+    template <typename Char, std::size_t N>
+    friend void unpack (binary_istream & in, std::array<Char, N> & v)
     {
-        unpack(in, *v.first);
-        binary_istream<Endianess>::unpack_helper(in, *v.second, *v.first);
-    }
-
-    template <std::size_t N>
-    friend void unpack (binary_istream & in, std::array<char, N> & v)
-    {
-        if (in._state != status_enum::good)
-            return;
-
-        auto sz = in.available();
-
-        if (sz < N) {
-            in._state = status_enum::out_of_bound;
-            return;
-        }
-
-        std::copy(in._p, in._p + N, v.data());
-        in._p += N;
+        in.unpack_helper(v);
     }
 };
-
-} // namespace v1
 
 PFS__NAMESPACE_END

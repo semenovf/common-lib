@@ -8,10 +8,11 @@
 ////////////////////////////////////////////////////////////////////////////////
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include "doctest.h"
+#include "pfs/binary_ostream.hpp"
 #include "pfs/filesystem_pack.hpp"
 #include "pfs/string_view.hpp"
+#include "pfs/time_point_pack.hpp"
 #include "pfs/universal_id_pack.hpp"
-#include "pfs/v2/binary_ostream.hpp"
 #include <cstring>
 #include <limits>
 #include <string>
@@ -61,7 +62,7 @@ struct A
 };
 
 template <pfs::endian Endianess, typename Archive>
-inline void pack (pfs::v2::binary_ostream<Endianess, Archive> & out, A const & a)
+inline void pack (pfs::binary_ostream<Endianess, Archive> & out, A const & a)
 {
     out << a.ch;
 }
@@ -69,7 +70,7 @@ inline void pack (pfs::v2::binary_ostream<Endianess, Archive> & out, A const & a
 template <pfs::endian Endianess, typename Archive>
 void serialize ()
 {
-    using binary_ostream_t = pfs::v2::binary_ostream<Endianess, Archive>;
+    using binary_ostream_t = pfs::binary_ostream<Endianess, Archive>;
 
     Archive ar;
     binary_ostream_t out {ar};
@@ -107,7 +108,7 @@ void serialize ()
 template <pfs::endian Endianess, typename Archive>
 void serialize_universal_id ()
 {
-    using binary_ostream_t = pfs::v2::binary_ostream<Endianess, Archive>;
+    using binary_ostream_t = pfs::binary_ostream<Endianess, Archive>;
 
     Archive ar;
     binary_ostream_t out {ar};
@@ -142,7 +143,7 @@ void serialize_universal_id ()
 template <pfs::endian Endianess, typename Archive>
 void serialize_filesystem_path ()
 {
-    using binary_ostream_t = pfs::v2::binary_ostream<Endianess, Archive>;
+    using binary_ostream_t = pfs::binary_ostream<Endianess, Archive>;
 
     Archive ar;
     binary_ostream_t out {ar};
@@ -154,6 +155,28 @@ void serialize_filesystem_path ()
         CHECK_EQ(std::memcmp("\x00\x16/path/to/some/file.ext", ar.data(), ar.size()), 0);
     } else {
         CHECK_EQ(std::memcmp("\x16\x00/path/to/some/file.ext", ar.data(), ar.size()), 0);
+    }
+}
+
+template <pfs::endian Endianess, typename Archive>
+void serialize_timepoint ()
+{
+    using binary_ostream_t = pfs::binary_ostream<Endianess, Archive>;
+
+    Archive ar;
+    binary_ostream_t out {ar};
+
+    auto utc_tp = pfs::utc_time_point::make(1972, 4, 29, 9, 42, 30, 0, 0, 0);
+    auto local_tp = pfs::local_time_point::make(1972, 4, 29, 9, 42, 30, 0, 0, 0);
+
+    out << utc_tp << local_tp;
+
+    if (Endianess == pfs::endian::big) {
+        CHECK_EQ(std::memcmp("\x00\x00\x00\x11\x16\x4C\x67\x70\x00\x00\x00\x11\x16\x4C\x67\x70"
+            , ar.data(), ar.size()), 0);
+    } else {
+        CHECK_EQ(std::memcmp("\x70\x67\x4C\x16\x11\x00\x00\x00\x70\x67\x4C\x16\x11\x00\x00\x00"
+            , ar.data(), ar.size()), 0);
     }
 }
 
@@ -170,4 +193,9 @@ TEST_CASE("Universal ID serialization") {
 TEST_CASE("Filesystem path serialization") {
     serialize_filesystem_path<pfs::endian::big, std::vector<char>>();
     serialize_filesystem_path<pfs::endian::little, std::vector<char>>();
+}
+
+TEST_CASE("Timepoint serialization") {
+    serialize_timepoint<pfs::endian::big, std::vector<char>>();
+    serialize_timepoint<pfs::endian::little, std::vector<char>>();
 }
