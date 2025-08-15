@@ -179,7 +179,9 @@ inline universal_id generate_uuid ()
     auto millis = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()).count();
 
     std::array<std::uint8_t, 10> random_bytes;
-    std::generate(random_bytes.begin(), random_bytes.end(), [] () { return s_distrib(s_random_engine); });
+    std::generate(random_bytes.begin(), random_bytes.end(), [] () { 
+        return static_cast<std::uint8_t>(s_distrib(s_random_engine));
+    });
 
     details::uuidv7_generate(u.data(), millis, random_bytes.data(), no_uuid_prev);
 
