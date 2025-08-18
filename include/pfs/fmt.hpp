@@ -7,6 +7,17 @@
 //      2019.12.23 Initial version.
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
+#include "bits/compiler.h"
+
+#if defined(PFS__COMPILER_GCC)
+#   pragma GCC diagnostic push
+#   pragma GCC diagnostic ignored "-Wfloat-equal"
+#endif
+
 #define FMT_HEADER_ONLY 1
 #include "3rdparty/fmt/format.h"
 #include "3rdparty/fmt/chrono.h"
+
+#if defined(PFS__COMPILER_GCC)
+#   pragma GCC diagnostic pop
+#endif

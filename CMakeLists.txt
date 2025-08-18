@@ -19,7 +19,7 @@ option(PFS__FORCE_ULID_STRUCT "Enable ULID struct representation (UUID backend)"
 option(PFS__ENABLE_NLS "Enable Native Language Support" OFF)
 option(PFS__ENABLE_ICU "Enable `icu` library" OFF)
 
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 
 if (DEBBY__BUILD_STRICT)
     if (NOT CMAKE_CXX_STANDARD)

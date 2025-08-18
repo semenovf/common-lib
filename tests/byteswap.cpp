@@ -148,33 +148,29 @@ TEST_CASE("construct_uint128")
 namespace classic {
 
 template <typename T>
-PFS_BYTESWAP_CONSTEXPR T byteswap (T n) noexcept;
+T byteswap (T n) noexcept;
 
 template <>
-inline PFS_BYTESWAP_CONSTEXPR
-std::uint8_t byteswap<std::uint8_t> (std::uint8_t x) noexcept
+inline constexpr std::uint8_t byteswap<std::uint8_t> (std::uint8_t x) noexcept
 {
     return x;
 }
 
 template <>
-inline PFS_BYTESWAP_CONSTEXPR
-std::uint16_t byteswap<std::uint16_t> (std::uint16_t x) noexcept
+inline constexpr std::uint16_t byteswap<std::uint16_t> (std::uint16_t x) noexcept
 {
     return (x >> 8) | (x << 8);;
 }
 
 template <>
-inline PFS_BYTESWAP_CONSTEXPR
-std::uint32_t byteswap<std::uint32_t> (std::uint32_t x) noexcept
+inline constexpr std::uint32_t byteswap<std::uint32_t> (std::uint32_t x) noexcept
 {
     std::uint32_t y = ((x << 8) & 0xFF00FF00) | ((x >> 8) & 0xFF00FF);
     return (y << 16) | (y >> 16);
 }
 
 template <>
-inline PFS_BYTESWAP_CONSTEXPR
-std::uint64_t byteswap<std::uint64_t> (std::uint64_t x) noexcept
+inline constexpr std::uint64_t byteswap<std::uint64_t> (std::uint64_t x) noexcept
 {
     x = ((x & 0x00000000FFFFFFFFull) << 32) | ((x & 0xFFFFFFFF00000000ull) >> 32);
     x = ((x & 0x0000FFFF0000FFFFull) << 16) | ((x & 0xFFFF0000FFFF0000ull) >> 16);
@@ -184,8 +180,7 @@ std::uint64_t byteswap<std::uint64_t> (std::uint64_t x) noexcept
 
 #if defined(PFS__HAS_INT128)
 template <>
-inline PFS_BYTESWAP_CONSTEXPR
-__uint128_t byteswap<__uint128_t> (__uint128_t x) noexcept
+inline __uint128_t byteswap<__uint128_t> (__uint128_t x) noexcept
 {
     return construct_uint128(byteswap(static_cast<std::uint64_t>(x >> 64))
         , byteswap(static_cast<std::uint64_t>(x)));
@@ -195,7 +190,7 @@ __uint128_t byteswap<__uint128_t> (__uint128_t x) noexcept
 template <typename T>
 struct byteswap_helper
 {
-    PFS_BYTESWAP_CONSTEXPR T operator () (T x) const noexcept
+    T operator () (T x) const noexcept
     {
         return byteswap<T>(x);
     }
@@ -206,11 +201,10 @@ struct byteswap_helper
 namespace intrinsics {
 
 template <typename T>
-PFS_BYTESWAP_CONSTEXPR T byteswap (T n) noexcept;
+T byteswap (T n) noexcept;
 
 template <>
-inline PFS_BYTESWAP_CONSTEXPR
-std::uint8_t byteswap<std::uint8_t> (std::uint8_t x) noexcept
+inline constexpr std::uint8_t byteswap<std::uint8_t> (std::uint8_t x) noexcept
 {
     return x;
 }
@@ -220,22 +214,19 @@ std::uint8_t byteswap<std::uint8_t> (std::uint8_t x) noexcept
 #   define PFS_BYTESWAP_HAS_INTRINSICS 1
 
 template <>
-inline PFS_BYTESWAP_CONSTEXPR
-std::uint16_t byteswap<std::uint16_t> (std::uint16_t x) noexcept
+inline std::uint16_t byteswap<std::uint16_t> (std::uint16_t x) noexcept
 {
     return __builtin_bswap16(x);
 }
 
 template <>
-inline PFS_BYTESWAP_CONSTEXPR
-std::uint32_t byteswap<std::uint32_t> (std::uint32_t x) noexcept
+inline std::uint32_t byteswap<std::uint32_t> (std::uint32_t x) noexcept
 {
     return __builtin_bswap32(x);
 }
 
 template <>
-inline PFS_BYTESWAP_CONSTEXPR
-std::uint64_t byteswap<std::uint64_t> (std::uint64_t x) noexcept
+inline std::uint64_t byteswap<std::uint64_t> (std::uint64_t x) noexcept
 {
     return __builtin_bswap64(x);
 }
@@ -247,22 +238,19 @@ std::uint64_t byteswap<std::uint64_t> (std::uint64_t x) noexcept
 //      /byteswap-uint64-byteswap-ulong-byteswap-ushort?view=msvc-160
 
 template <>
-inline PFS_BYTESWAP_CONSTEXPR
-std::uint16_t byteswap<std::uint16_t> (std::uint16_t x) noexcept
+inline std::uint16_t byteswap<std::uint16_t> (std::uint16_t x) noexcept
 {
     return _byteswap_ushort(x);
 }
 
 template <>
-inline PFS_BYTESWAP_CONSTEXPR
-std::uint32_t byteswap<std::uint32_t> (std::uint32_t x) noexcept
+inline std::uint32_t byteswap<std::uint32_t> (std::uint32_t x) noexcept
 {
     return _byteswap_ulong(x);
 }
 
 template <>
-inline PFS_BYTESWAP_CONSTEXPR
-std::uint64_t byteswap<std::uint64_t> (std::uint64_t x) noexcept
+inline std::uint64_t byteswap<std::uint64_t> (std::uint64_t x) noexcept
 {
     return _byteswap_uint64(x);
 }
@@ -271,8 +259,7 @@ std::uint64_t byteswap<std::uint64_t> (std::uint64_t x) noexcept
 
 #if defined(PFS__HAS_INT128)
 template <>
-inline PFS_BYTESWAP_CONSTEXPR
-__uint128_t byteswap<__uint128_t> (__uint128_t x) noexcept
+inline __uint128_t byteswap<__uint128_t> (__uint128_t x) noexcept
 {
     return construct_uint128(byteswap(static_cast<std::uint64_t>(x >> 64))
         , byteswap(static_cast<std::uint64_t>(x)));
@@ -282,7 +269,7 @@ __uint128_t byteswap<__uint128_t> (__uint128_t x) noexcept
 template <typename T>
 struct byteswap_helper
 {
-    PFS_BYTESWAP_CONSTEXPR T operator () (T x) const noexcept
+    T operator () (T x) const noexcept
     {
         return byteswap<T>(x);
     }
@@ -314,7 +301,7 @@ T byteswap (T x, typename std::enable_if<std::is_arithmetic<T>::value
 template <typename T>
 struct byteswap_helper
 {
-    PFS_BYTESWAP_CONSTEXPR T operator () (T x) const noexcept
+    T operator () (T x) const noexcept
     {
         return byteswap<T>(x);
     }

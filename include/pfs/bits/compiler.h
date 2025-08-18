@@ -1,5 +1,5 @@
 /*//////////////////////////////////////////////////////////////////////////////
-// Copyright (c) 2017-2023 Vladislav Trifochkin
+// Copyright (c) 2017-2025 Vladislav Trifochkin
 //
 // This file is part of `common-lib`.
 //
@@ -7,6 +7,7 @@
 //      2017.07.03 Initial version (as part of https://github.com/semenovf/pfs).
 //      2021.10.13 Included in common-lib.
 //      2023.08.23 Changed preferred prefix for macros: PFS__.
+//      2025.08.18 Added Intel compiler check.
 //////////////////////////////////////////////////////////////////////////////*/
 #pragma once
 
@@ -50,6 +51,9 @@
 #       define PFS__COMPILER_CLANG_MSC 1
 #       define PFS__COMPILER_CLANG_MSVC 1
 #   endif
+#elif defined(__INTEL_COMPILER)
+#   define PFS__COMPILER_DEFINED 1
+#   define PFS__COMPILER_INTEL 1
 #elif defined(__GNUC__)
 // echo | gcc -dM -E -
 // echo | clang -dM -E -

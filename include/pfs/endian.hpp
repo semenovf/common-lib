@@ -7,6 +7,7 @@
 //      2021.10.14 Initial version.
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
+#include "bits/compiler.h"
 #include "bits/endian.h"
 #include "byteswap.hpp"
 #include <type_traits>
@@ -34,14 +35,22 @@ enum class endian
 /**
  * Convert from network to native order
  */
-template <typename T>
-inline PFS_BYTESWAP_CONSTEXPR
-T to_native_order (T const & x, typename std::enable_if<std::is_arithmetic<T>::value
-#if defined(PFS__HAS_INT128)
-        || std::is_same<T, __int128>::value
-        || std::is_same<T, unsigned __int128>::value
+
+// Disable warning: ISO C++ does not support ‘__int128’ for ‘type name’ [-Wpedantic]
+#if defined(PFS__HAS_INT128) && defined(PFS__COMPILER_GCC)
+#   pragma GCC diagnostic push
+#   pragma GCC diagnostic ignored "-Wpedantic"
 #endif
-        , std::nullptr_t>::type = nullptr)
+
+template <typename T>
+inline
+typename std::enable_if_t<std::is_arithmetic<T>::value
+#if defined(PFS__HAS_INT128)
+        || std::is_same<std::decay_t<T>, __int128>::value
+        || std::is_same<std::decay_t<T>, unsigned __int128>::value
+#endif
+    , T>
+to_native_order (T const & x)
 {
 #if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
     return byteswap(x);
@@ -54,13 +63,13 @@ T to_native_order (T const & x, typename std::enable_if<std::is_arithmetic<T>::v
  * Convert from native to network order
  */
 template <typename T>
-inline PFS_BYTESWAP_CONSTEXPR
-T to_network_order (T const & x, typename std::enable_if<std::is_arithmetic<T>::value
+inline typename std::enable_if_t<std::is_arithmetic<T>::value
 #if defined(PFS__HAS_INT128)
-        || std::is_same<T, __int128>::value
-        || std::is_same<T, unsigned __int128>::value
+        || std::is_same<std::decay_t<T>, __int128>::value
+        || std::is_same<std::decay_t<T>, unsigned __int128>::value
 #endif
-        , std::nullptr_t>::type = nullptr)
+    , T>
+to_network_order (T const & x)
 {
 #if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
     return byteswap(x);
@@ -68,6 +77,10 @@ T to_network_order (T const & x, typename std::enable_if<std::is_arithmetic<T>::
     return x;
 #endif
 }
+
+#if defined(PFS__HAS_INT128) && defined(PFS__COMPILER_GCC)
+#   pragma GCC diagnostic pop
+#endif
 
 template <endian Endianess>
 struct unsafe_packer
