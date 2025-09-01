@@ -196,6 +196,8 @@ private:
     ArgvFwdIter _end;
     filesystem::path _program;
     filesystem::path _program_name;
+    filesystem::path _canonical_program;
+    filesystem::path _canonical_program_name;
 
 public:
     argvapi (ArgvFwdIter begin, ArgvFwdIter end, bool program_name_skipped = false)
@@ -206,9 +208,10 @@ public:
             return;
 
         if (!program_name_skipped) {
-            //_program = filesystem::canonical(filesystem::utf8_decode(*_pos));
-            _program = filesystem::canonical(*_pos);
-            _program_name = _program.filename();
+            _program = filesystem::absolute(*_pos);
+            _program_name = filesystem::absolute(*_pos).filename();
+            _canonical_program = filesystem::canonical(*_pos);
+            _canonical_program_name = _canonical_program.filename();
             ++_pos;
         }
     }
@@ -216,11 +219,19 @@ public:
     ~argvapi () = default;
 
     /**
-     * Program canonical absolute path.
+     * Program absolute path.
      */
     filesystem::path const & program () const noexcept
     {
         return _program;
+    }
+
+    /**
+     * Program canonical absolute path.
+     */
+    filesystem::path const & canonical_program () const noexcept
+    {
+        return _canonical_program;
     }
 
     /**
@@ -229,6 +240,14 @@ public:
     filesystem::path const & program_name () const noexcept
     {
         return _program_name;
+    }
+
+    /**
+     * Canonical program file name.
+     */
+    filesystem::path const & canonical_program_name () const noexcept
+    {
+        return _canonical_program_name;
     }
 
     iterator begin () const noexcept
