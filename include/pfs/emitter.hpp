@@ -201,20 +201,18 @@ public:
         return !base_class::operator bool ();
     }
 
-    template <typename F
-        , typename = typename std::enable_if<std::is_same<void (*) (Args...), F>::value, F>::type>
-    iterator connect (F f)
+    template <typename F>
+    typename std::enable_if<std::is_same<void (*) (Args...), F>::value, iterator>::type
+    connect (F f)
     {
         std::unique_lock<mutex_type> locker{_mtx};
         return base_class::template connect<F>(f);
     }
 
-    //iterator connect (std::function<void(Args...)> && f)
     iterator connect (std::function<void(Args...)> f)
     {
         std::unique_lock<mutex_type> locker{_mtx};
-        //return base_class::connect(std::forward<std::function<void(Args...)>>(f));
-        return base_class::connect(f);
+        return base_class::connect(std::move(f));
     }
 
     template <typename Class>
