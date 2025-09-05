@@ -87,27 +87,47 @@ public:
         assert(result);
     }
 
-    void call ()
+    /**
+     * @return @c 1 if method invoke at least one callable object, or @c 0 otherwise.
+     */
+    std::size_t call ()
     {
         value_type caller;
 
         if (_q.try_pop(caller)) {
             caller();
+            return 1;
         }
+
+        return 1;
     }
 
-    void call (int max_count)
+    /**
+     * @return Number of invokes to callable objects.
+     */
+    std::size_t call (int max_count)
     {
+        std::size_t result = 0;
+
         if (max_count > 0) {
             while (!this->empty() && max_count--)
-                call();
+                result += call();
         }
+
+        return result;
     }
 
-    void call_all ()
+    /**
+     * @return Number of invokes to callable objects.
+     */
+    std::size_t call_all ()
     {
+        std::size_t result = 0;
+
         while (!this->empty())
-            call();
+            result += call();
+
+        return result;
     }
 
     void wait ()
@@ -115,7 +135,7 @@ public:
         _q.wait();
     }
 
-    bool wait_for (intmax_t microseconds)
+    bool wait_for (std::intmax_t microseconds)
     {
         using rep_type = std::chrono::microseconds::rep;
         using period_type = std::chrono::microseconds::period;
