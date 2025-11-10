@@ -101,6 +101,14 @@ public:
         return _p;
     }
 
+    bool at_end () const noexcept
+    {
+        return _p == _end;
+    }
+
+    /**
+     * Synonym to at_end()
+     */
     bool empty () const noexcept
     {
         return _p == _end;
