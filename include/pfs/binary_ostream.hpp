@@ -13,7 +13,6 @@
 #include "endian.hpp"
 #include "namespace.hpp"
 #include "string_view.hpp"
-#include <algorithm>
 #include <array>
 #include <cstdint>
 #include <type_traits>
@@ -74,14 +73,51 @@ public:
         return *this;
     }
 
+    /**
+     * Writes raw sequence into the stream.
+     */
+    binary_ostream & write (char const * s, std::size_t n)
+    {
+        if (n > 0) {
+            write(*_ar, s, n);
+            _off += n;
+        }
+
+        return *this;
+    }
+
 private:
+    /**
+     * Required implementation for the specified Archive class.
+     */
+    void write (archive_type & ar, char const * s, std::size_t n);
+
     template <typename T>
-    friend typename std::enable_if<std::is_arithmetic<typename std::decay<T>::type>::value, void>::type
+    friend typename std::enable_if<std::is_integral<typename std::decay<T>::type>::value, void>::type
     pack (binary_ostream & out, T const & v)
     {
-        out._ar->resize(out._ar->size() + sizeof(T));
-        pack_unsafe<Endianess>(out._ar->data() + out._off, v);
-        out._off += sizeof(T);
+        T x = Endianess == endian::network ? to_network_order(v) : v;
+        union union_type { T a; char b[sizeof(T)]; } u;
+        u.a = x;
+        out.write(u.b, sizeof(T));
+    }
+
+    friend void pack (binary_ostream & out, float const & v)
+    {
+        static_assert(sizeof(float) == sizeof(std::uint32_t)
+            , "Float and std::uint32_t are expected to have the same size.");
+        union union_type { float f; std::uint32_t d; } u;
+        u.f = v;
+        pack(out, u.d);
+    }
+
+    friend void pack (binary_ostream & out, double const & v)
+    {
+        static_assert(sizeof(double) == sizeof(std::uint64_t)
+            , "Double and std::uint64_t are expected to have the same size.");
+        union union_type { double f; std::uint64_t d; } u;
+        u.f = v;
+        pack(out, u.d);
     }
 
     template <typename T>
@@ -91,54 +127,61 @@ private:
         pack(out, static_cast<typename std::underlying_type<T>::type>(v));
     }
 
-    /**
-     * Writes raw sequence into the stream.
-     */
-    friend void pack (binary_ostream & out, char const * s, std::size_t n)
-    {
-        if (n == 0)
-            return;
-
-        out._ar->resize(out._ar->size() + n);
-        std::copy(s, s + n, out._ar->data() + out._off);
-        out._off += n;
-    }
-
     friend void pack (binary_ostream & out, std::pair<char const *, std::size_t> const & v)
     {
-        pack(out, v.first, v.second);
+        out.write(v.first, v.second);
     }
 
     friend void pack (binary_ostream & out, char const * s)
     {
-        pack(out, s, std::strlen(s));
+        out.write(s, std::strlen(s));
     }
 
     friend void pack (binary_ostream & out, std::string const & s)
     {
-        pack(out, s.data(), s.size());
+        out.write(s.data(), s.size());
     }
 
     friend void pack (binary_ostream & out, pfs::string_view const & s)
     {
-        pack(out, s.data(), s.size());
-    }
-
-    friend void pack (binary_ostream & out, std::vector<char> const & s)
-    {
-        pack(out, s.data(), s.size());
-    }
-
-    friend void pack (binary_ostream & out, std::vector<std::uint8_t> const & s)
-    {
-        pack(out, reinterpret_cast<char const *>(s.data()), s.size());
+        out.write(s.data(), s.size());
     }
 
     template <std::size_t N>
     friend void pack (binary_ostream & out, std::array<char, N> const & a)
     {
-        pack(out, a.data(), a.size());
+        out.write(a.data(), a.size());
     }
 };
+
+template <>
+inline void binary_ostream<endian::little, std::vector<char>>::write (std::vector<char> & ar
+    , char const * s, std::size_t n)
+{
+    ar.insert(ar.end(), s, s + n);
+}
+
+template <>
+inline void binary_ostream<endian::big, std::vector<char>>::write (std::vector<char> & ar
+    , char const * s, std::size_t n)
+{
+    ar.insert(ar.end(), s, s + n);
+}
+
+template <>
+inline void binary_ostream<endian::little, std::vector<unsigned char>>::write (std::vector<unsigned char> & ar
+    , char const * s, std::size_t n)
+{
+    ar.insert(ar.end(), reinterpret_cast<unsigned char const *>(s)
+        , reinterpret_cast<unsigned char const *>(s + n));
+}
+
+template <>
+inline void binary_ostream<endian::big, std::vector<unsigned char>>::write (std::vector<unsigned char> & ar
+    , char const * s, std::size_t n)
+{
+    ar.insert(ar.end(), reinterpret_cast<unsigned char const *>(s)
+        , reinterpret_cast<unsigned char const *>(s + n));
+}
 
 PFS__NAMESPACE_END
