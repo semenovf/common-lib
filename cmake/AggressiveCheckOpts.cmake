@@ -2,9 +2,10 @@
 # Copyright (c) 2025 Vladislav Trifochkin
 #
 # Changelog:
-#      2025.08.18 Исходная версия.
+#      2025.08.18 Initial version.
+#      2025.11.17 Added `IS_SANITIZE_THREAD` parameters.
 ################################################################################
-function (aggressive_check_opts TARGET)
+function (aggressive_check_opts TARGET IS_SANITIZE_THREAD)
     if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
         target_compile_options(${TARGET} PRIVATE
             "-D_GLIBCXX_DEBUG=1"
@@ -22,25 +23,40 @@ function (aggressive_check_opts TARGET)
             "-Wshift-overflow=2"
             "-Wduplicated-cond"
             "-Wcast-qual"
-            "-Wcast-align"
-            "-fsanitize=address"   # <-- The option cannot be combined with -fsanitize=thread and/or -fcheck-pointer-bounds.
-            "-fsanitize=undefined"
-            "-fsanitize=leak"      # <-- The option cannot be combined with -fsanitize=thread
-            "-fno-sanitize-recover"
-            "-fstack-protector"
+            "-Wcast-align")
 
-            # gcc: error: -fsanitize=address and -fsanitize=kernel-address are incompatible with -fsanitize=thread
-            # "-fsanitize=thread"
-        )
+        if (${IS_SANITIZE_THREAD})
+            target_compile_options(${TARGET} PRIVATE
+                "-fno-sanitize-recover"
+                "-fstack-protector"
+                # gcc: error: -fsanitize=address and -fsanitize=kernel-address are incompatible with -fsanitize=thread
+                "-fsanitize=thread"
+            )
 
-        target_link_libraries(${TARGET} PRIVATE
-            "-fsanitize=address"
-            "-fsanitize=undefined"
-            "-fsanitize=leak"
+            target_link_libraries(${TARGET} PRIVATE
+                "-fsanitize=thread"
+                "-ltsan"  # <-- need for -fsanitize=thread
+            )
+        else()
+            target_compile_options(${TARGET} PRIVATE
+                "-fsanitize=address"   # <-- The option cannot be combined with -fsanitize=thread and/or -fcheck-pointer-bounds.
+                "-fsanitize=undefined"
+                "-fsanitize=leak"      # <-- The option cannot be combined with -fsanitize=thread
+                "-fno-sanitize-recover"
+                "-fstack-protector"
 
-            "-lasan"  # <-- need for -fsanitize=address
-            "-lubsan" # <-- need for -fsanitize=undefined
-            #"-ltsan"  # <-- need for -fsanitize=thread
-        )
+                # gcc: error: -fsanitize=address and -fsanitize=kernel-address are incompatible with -fsanitize=thread
+                # "-fsanitize=thread"
+            )
+
+            target_link_libraries(${TARGET} PRIVATE
+                "-fsanitize=address"
+                "-fsanitize=undefined"
+                "-fsanitize=leak"
+
+                "-lasan"  # <-- need for -fsanitize=address
+                "-lubsan" # <-- need for -fsanitize=undefined
+            )
+        endif()
     endif()
 endfunction(aggressive_check_opts)
