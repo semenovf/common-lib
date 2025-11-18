@@ -26,12 +26,11 @@ static std::string s_sample_data_le (
     "\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF"
     "\xD0\x0F\x49\x40"
     "\x90\xF7\xAA\x95\x09\xBF\x05\x40"
+    "\x2A\x00"
+    "array"
     "Hello"
     ",World!"
-    "Bye everyone!"
     "vector"
-    "array"
-    "\x2A\x00"
     "x"
     , 83);
 
@@ -43,12 +42,11 @@ static std::string s_sample_data_be (
     "\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF"
     "\x40\x49\x0F\xD0"
     "\x40\x05\xBF\x09\x95\xAA\xF7\x90"
+    "\x00\x2A"
+    "array"
     "Hello"
     ",World!"
-    "Bye everyone!"
     "vector"
-    "array"
-    "\x00\x2A"
     "x"
     , 83);
 
@@ -120,29 +118,25 @@ void deserialize (std::string const & sample_string)
     in >> f64;
     CHECK_EQ(f64, double{2.71828});
 
-    char hello[5];
-    in >> std::make_pair(hello, sizeof(hello));
-    CHECK_EQ(std::memcmp(hello, "Hello", sizeof(hello)), 0);
-
-    std::string world;
-    in >> std::make_pair(& world, 7);
-    CHECK_EQ(world, std::string(",World!"));
-
-    pfs::string_view bye;
-    in >> std::make_pair(& bye, 13);
-    CHECK_EQ(bye, pfs::string_view("Bye everyone!"));
-
-    std::vector<char> vec;
-    in >> std::make_pair(& vec, 6);
-    CHECK_EQ(vec, std::vector<char>{'v', 'e', 'c', 't', 'o', 'r'});
+    test_enum en;
+    in >> en;
+    CHECK_EQ(en, test_enum::test);
 
     std::array<char, 5> arr;
     in >> arr;
     CHECK_EQ(arr, std::array<char, 5>{'a', 'r', 'r', 'a', 'y'});
 
-    test_enum en;
-    in >> en;
-    CHECK_EQ(en, test_enum::test);
+    char hello[5];
+    in.read(hello, sizeof(hello));
+    CHECK_EQ(std::memcmp(hello, "Hello", sizeof(hello)), 0);
+
+    std::string world;
+    in.read(world, 7);
+    CHECK_EQ(world, std::string(",World!"));
+
+    std::vector<char> vec;
+    in.read(vec, 6);
+    CHECK_EQ(vec, std::vector<char>{'v', 'e', 'c', 't', 'o', 'r'});
 
     A a {'\x00'};
     in >> a;
@@ -251,52 +245,4 @@ TEST_CASE("Filesystem path deserialization") {
 TEST_CASE("Timepoint deserialization") {
     deserialize_filesystem_path<pfs::endian::big>();
     deserialize_filesystem_path<pfs::endian::little>();
-}
-
-TEST_CASE("Pairs deserialization") {
-    using binary_istream_t = pfs::binary_istream<pfs::endian::network>;
-
-    {
-        std::string source("\003ABC", 4);
-        binary_istream_t in {source.data(), source.size()};
-
-        std::uint8_t sz = 0;
-        std::vector<char> vec;
-
-        in >> sz >> std::make_pair(& vec, sz);
-        CHECK_EQ(vec, std::vector<char>{'A', 'B', 'C'});
-    }
-
-    {
-        std::string source("\003ABC", 4);
-        binary_istream_t in {source.data(), source.size()};
-
-        std::int8_t sz = 0;
-        std::vector<char> vec;
-
-        in >> sz >> std::make_pair(& vec, sz);
-        CHECK_EQ(vec, std::vector<char>{'A', 'B', 'C'});
-    }
-
-    {
-        std::string source("\000\003ABC", 5);
-        binary_istream_t in {source.data(), source.size()};
-
-        std::uint16_t sz = 0;
-        std::vector<char> vec;
-
-        in >> sz >> std::make_pair(& vec, sz);
-        CHECK_EQ(vec, std::vector<char>{'A', 'B', 'C'});
-    }
-
-    {
-        std::string source("\000\003ABC", 5);
-        binary_istream_t in {source.data(), source.size()};
-
-        std::int16_t sz = 0;
-        std::vector<char> vec;
-
-        in >> sz >> std::make_pair(& vec, sz);
-        CHECK_EQ(vec, std::vector<char>{'A', 'B', 'C'});
-    }
 }

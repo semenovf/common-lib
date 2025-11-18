@@ -97,7 +97,7 @@ private:
     pack (binary_ostream & out, T const & v)
     {
         T x = Endianess == endian::network ? to_network_order(v) : v;
-        union union_type { T a; char b[sizeof(T)]; } u;
+        union { T a; char b[sizeof(T)]; } u;
         u.a = x;
         out.write(u.b, sizeof(T));
     }
@@ -106,7 +106,7 @@ private:
     {
         static_assert(sizeof(float) == sizeof(std::uint32_t)
             , "Float and std::uint32_t are expected to have the same size.");
-        union union_type { float f; std::uint32_t d; } u;
+        union { float f; std::uint32_t d; } u;
         u.f = v;
         pack(out, u.d);
     }
@@ -115,7 +115,7 @@ private:
     {
         static_assert(sizeof(double) == sizeof(std::uint64_t)
             , "Double and std::uint64_t are expected to have the same size.");
-        union union_type { double f; std::uint64_t d; } u;
+        union { double f; std::uint64_t d; } u;
         u.f = v;
         pack(out, u.d);
     }

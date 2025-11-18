@@ -82,39 +82,4 @@ to_network_order (T const & x)
 #   pragma GCC diagnostic pop
 #endif
 
-template <endian Endianess>
-struct unsafe_unpacker
-{
-    template <typename T>
-    static typename std::enable_if<std::is_integral<T>::value, std::size_t>::type
-    unpack (char const * in, T & v)
-    {
-        T const * p = reinterpret_cast<T const *>(in);
-        v = Endianess == endian::network ? to_native_order(*p) : *p;
-        return sizeof(T);
-    }
-
-    static std::size_t unpack (char const * in, float & v)
-    {
-        union { float f; std::uint32_t d; } x;
-        auto n = unpack(in, x.d);
-        v = x.f;
-        return n;
-    }
-
-    static std::size_t unpack (char const * in, double & v)
-    {
-        union { double f; std::uint64_t d; } x;
-        auto n = unpack(in, x.d);
-        v = x.f;
-        return n;
-    }
-};
-
-template <endian Endianess, typename T>
-inline std::size_t unpack_unsafe (char const * in, T & v)
-{
-    return unsafe_unpacker<Endianess>::unpack(in, v);
-}
-
 } // namespace pfs

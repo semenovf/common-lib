@@ -16,7 +16,6 @@
 #include "endian.hpp"
 #include "namespace.hpp"
 #include "numeric_cast.hpp"
-#include "string_view.hpp"
 #include <algorithm>
 #include <array>
 #include <cstdint>
@@ -27,12 +26,17 @@
 
 PFS__NAMESPACE_BEGIN
 
+template <typename Container>
+void append_bytes (Container & c, char const * data, std::size_t n);
+
 /**
  * No-throw version of @c binary_istream class.
  */
 template <endian Endianess = endian::native>
 class binary_istream
 {
+    using view_type = std::pair<char const *, std::size_t>;
+
 public:
     using size_type = std::uint32_t;
 
@@ -68,32 +72,9 @@ public:
             throw error {make_error_code(std::errc::invalid_argument)};
     }
 
-    binary_istream (binary_istream && other) noexcept
-        : _p(other._p)
-        , _end(other._end)
-        , _state(other._state)
-        , _state_stack(std::move(other._state_stack))
-    {
-        other._p = nullptr;
-        other._end = nullptr;
-        other._state = status_enum::good;
-    }
-
-    binary_istream & operator = (binary_istream && other) noexcept
-    {
-        if (this != & other) {
-            using std::swap;
-
-            binary_istream tmp {std::move(other)};
-            std::swap(_p, tmp._p);
-            std::swap(_end, tmp._end);
-            std::swap(_state, tmp._state);
-        }
-
-        return *this;
-    }
-
     binary_istream (binary_istream const &) = delete;
+    binary_istream (binary_istream && other) = delete;
+    binary_istream & operator = (binary_istream && other) = delete;
     binary_istream & operator = (binary_istream const &) = delete;
 
     char const * begin () const noexcept
@@ -150,6 +131,37 @@ public:
         return *this;
     }
 
+    /**
+     * Reads @a n bytes from stream and copy them into @a data.
+     */
+    binary_istream & read (char * data, std::size_t n)
+    {
+        auto view = read(n);
+
+        // Error
+        if (view.first == nullptr)
+            return *this;
+
+        std::copy(view.first, view.first + n, data);
+        return *this;
+    }
+
+    /**
+     * Reads @a n bytes from stream and append them into container @a c.
+     */
+    template <typename Container>
+    binary_istream & read (Container & c, std::size_t n)
+    {
+        auto view = read(n);
+
+        // Error
+        if (view.first == nullptr)
+            return *this;
+
+        append_bytes<Container>(c, view.first, view.second);
+        return *this;
+    }
+
     void start_transaction ()
     {
         _state_stack.push(std::make_pair(_state, _p));
@@ -178,83 +190,43 @@ public:
         }
     }
 
-
 private:
     /**
      * Reads byte sequence into string view. Lifetime of the string view must be less or equals to
      * the stream's lifetime
      */
-    void unpack_helper (string_view & v, size_type n)
+    view_type read (size_type n)
     {
-        if (n == 0)
-            return;
-
         if (_state != status_enum::good)
-            return;
+            return view_type(nullptr, 0);
+
+        if (n == 0)
+            return view_type(nullptr, 0);
 
         auto sz = available();
 
         if (sz < n) {
             _state = status_enum::out_of_bound;
-            return;
+            return view_type(nullptr, 0);
         }
 
-        v = string_view(_p, n);
+        auto result = view_type(_p, n);
         _p += n;
-    }
-
-    template <typename Char>
-    void unpack_helper (std::vector<Char> & v, std::size_t n)
-    {
-        if (n == 0)
-            return;
-
-        if (_state != status_enum::good)
-            return;
-
-        auto sz = available();
-
-        if (sz < n) {
-            _state = status_enum::out_of_bound;
-            return;
-        }
-
-        auto off = v.size();
-        v.resize(off + n);
-        std::copy(reinterpret_cast<Char const *>(_p), reinterpret_cast<Char const *>(_p) + n, v.data() + off);
-        _p += n;
-    }
-
-    template <typename Char, std::size_t N>
-    void unpack_helper (std::array<Char, N> & v)
-    {
-        if (_state != status_enum::good)
-            return;
-
-        auto sz = available();
-
-        if (sz < N) {
-            _state = status_enum::out_of_bound;
-            return;
-        }
-
-        std::copy(reinterpret_cast<Char const *>(_p), reinterpret_cast<Char const *>(_p) + N, v.data());
-        _p += N;
+        return result;
     }
 
     template <typename T>
-    friend typename std::enable_if<
-        std::is_integral<typename std::decay<T>::type>::value
-            || std::is_floating_point<typename std::decay<T>::type>::value, void>::type
+    friend typename std::enable_if<std::is_integral<typename std::decay<T>::type>::value, void>::type
     unpack (binary_istream & in, T & v)
     {
-        if (in._state == status_enum::good) {
-            if (in._p + sizeof(T) <= in._end) {
-                in._p += unpack_unsafe<Endianess>(in._p, v);
-            } else {
-                in._state = status_enum::out_of_bound;
-            }
-        }
+        auto view = in.read(sizeof(T));
+
+        // Error
+        if (view.first == nullptr)
+            return;
+
+        T const * p = reinterpret_cast<T const *>(view.first);
+        v = Endianess == endian::network ? to_native_order(*p) : *p;
     }
 
     template <typename T>
@@ -264,47 +236,49 @@ private:
         typename std::underlying_type<T>::type tmp;
         unpack(in, tmp);
 
-        if (in._state == status_enum::good)
+        if (in.is_good())
             v = static_cast<T>(tmp);
     }
 
-    template <typename SizeType>
-    friend void unpack (binary_istream & in, std::pair<char *, SizeType> v)
+    friend void unpack (binary_istream & in, float & v)
     {
-        string_view tmp;
-        in.unpack_helper(tmp, numeric_cast<std::size_t>(v.second));
+        static_assert(sizeof(float) == sizeof(std::uint32_t)
+            , "Float and std::uint32_t are expected to have the same size.");
+        union { float f; std::uint32_t d; } x;
+        unpack(in, x.d);
 
-        if (in._state == status_enum::good)
-            std::copy(tmp.begin(), tmp.end(), v.first);
+        if (in.is_good())
+            v = x.f;
     }
 
-    template <typename SizeType>
-    friend void unpack (binary_istream & in, std::pair<std::string *, SizeType> v)
+    friend void unpack (binary_istream & in, double & v)
     {
-        string_view tmp;
-        in.unpack_helper(tmp, numeric_cast<std::size_t>(v.second));
+        static_assert(sizeof(double) == sizeof(std::uint64_t)
+            , "Double and std::uint64_t are expected to have the same size.");
+        union { double f; std::uint64_t d; } x;
+        unpack(in, x.d);
 
-        if (in._state == status_enum::good)
-            *v.first = to_string(tmp);
-    }
-
-    template <typename SizeType>
-    friend void unpack (binary_istream & in, std::pair<string_view *, SizeType> v)
-    {
-        in.unpack_helper(*v.first, numeric_cast<std::size_t>(v.second));
-    }
-
-    template <typename Char, typename SizeType>
-    friend void unpack (binary_istream & in, std::pair<std::vector<Char> *, SizeType> v)
-    {
-        in.unpack_helper(*v.first, numeric_cast<std::size_t>(v.second));
+        if (in.is_good())
+            v = x.f;
     }
 
     template <typename Char, std::size_t N>
     friend void unpack (binary_istream & in, std::array<Char, N> & v)
     {
-        in.unpack_helper(v);
+        in.read(reinterpret_cast<char *>(v.data()), v.size());
     }
 };
+
+template <>
+inline void append_bytes<std::string> (std::string & c, char const * bytes, std::size_t n)
+{
+    c.append(bytes, n);
+}
+
+template <>
+inline void append_bytes<std::vector<char>> (std::vector<char> & c, char const * bytes, std::size_t n)
+{
+    c.insert(c.end(), bytes, bytes + n);
+}
 
 PFS__NAMESPACE_END

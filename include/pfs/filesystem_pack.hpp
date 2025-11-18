@@ -31,7 +31,8 @@ void unpack (binary_istream<Endianess> & in, filesystem::path & p)
     std::uint16_t sz = 0;
 
     in.start_transaction();
-    in >> sz >> std::make_pair(& text, sz);
+    in >> sz;
+    in.read(text, sz);
 
     if (in.commit_transaction())
         p = utf8_decode_path(text);
