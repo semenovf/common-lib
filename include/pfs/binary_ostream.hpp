@@ -29,20 +29,16 @@ public:
 
 private:
     archive_type * _ar {nullptr};
-    std::size_t _off {0};
 
 public:
-    explicit binary_ostream (archive_type & ar, std::size_t offset = 0) noexcept
+    explicit binary_ostream (archive_type & ar) noexcept
         : _ar(& ar)
-        , _off(offset)
     {}
 
     binary_ostream (binary_ostream && other) noexcept
         : _ar(other._ar)
-        , _off(other._off)
     {
         other._ar = nullptr;
-        other._off = 0;
     }
 
     binary_ostream & operator = (binary_ostream && other) noexcept
@@ -52,7 +48,6 @@ public:
 
             binary_ostream tmp {std::move(other)};
             std::swap(_ar, tmp._ar);
-            std::swap(_off, tmp._off);
         }
 
         return *this;
@@ -78,10 +73,8 @@ public:
      */
     binary_ostream & write (char const * s, std::size_t n)
     {
-        if (n > 0) {
+        if (n > 0)
             write(*_ar, s, n);
-            _off += n;
-        }
 
         return *this;
     }

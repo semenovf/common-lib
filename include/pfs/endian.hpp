@@ -7,13 +7,14 @@
 //      2021.10.14 Initial version.
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
+#include "namespace.hpp"
 #include "bits/compiler.h"
 #include "bits/endian.h"
 #include "byteswap.hpp"
 #include <type_traits>
 #include <cstring>
 
-namespace pfs {
+PFS__NAMESPACE_BEGIN
 
 enum class endian
 {
@@ -82,4 +83,4 @@ to_network_order (T const & x)
 #   pragma GCC diagnostic pop
 #endif
 
-} // namespace pfs
+PFS__NAMESPACE_END
