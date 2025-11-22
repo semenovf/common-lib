@@ -12,7 +12,7 @@ function (aggressive_check_opts TARGET IS_SANITIZE_THREAD)
             "-D_GLIBCXX_DEBUG_PEDANTIC=1"
             "-D_FORTIFY_SOURCE=2"
             "-pedantic"
-            "-O2"
+            "-O0"
             "-Wall"
             "-Wextra"
             "-Wshadow"
