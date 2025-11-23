@@ -17,7 +17,7 @@ public:
 
 public:
     A () {}
-    explicit A (int x) : x(x) {}
+    explicit A (int y) : x(y) {}
 
     friend bool operator == (A const & a, A const & b)
     {
@@ -57,7 +57,7 @@ public:
 
 public:
     B () {}
-    explicit B (int x) : x(x) {}
+    explicit B (int y) : x(y) {}
 
     friend bool operator == (B const & a, B const & b)
     {

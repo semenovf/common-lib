@@ -233,12 +233,12 @@ private:
         if (r < 56) {
             _buf[r + 0] = 0x80;
 
-            for (int i = 1; i < 56 - r; i++)
+            for (std::uint64_t i = 1; i < 56 - r; i++)
                 _buf[r + i] = 0x00;
         } else {
             _buf[r + 0] = 0x80;
 
-            for (int i = 1; i < 64 - r; i++)
+            for (std::uint64_t i = 1; i < 64 - r; i++)
                 _buf[r + i] = 0x00;
 
             transform(& tmp32[0], & tmp32[64]);
@@ -278,13 +278,13 @@ public:
         _count += static_cast<std::uint64_t>(inlen) << 3;
 
         if (inlen < 64 - r) {
-            for (int i = 0; i < inlen; i++)
+            for (std::uint64_t i = 0; i < inlen; i++)
                 _buf[r + i] = in[i];
 
             return;
         }
 
-        for (int i = 0; i < 64 - r; i++)
+        for (std::uint64_t i = 0; i < 64 - r; i++)
             _buf[r + i] = in[i];
 
         transform(& tmp32[0], & tmp32[64]);
@@ -300,7 +300,7 @@ public:
 
         inlen &= 63;
 
-        for (int i = 0; i < inlen; i++)
+        for (std::uint64_t i = 0; i < inlen; i++)
             _buf[i] = in[i];
 
         std::memset(& tmp32[0], 0, sizeof(tmp32));

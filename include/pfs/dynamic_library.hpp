@@ -200,7 +200,7 @@ private:
             success = false;
 #endif
 
-        if (!sym)
+        if (!success)
             ec = pfs::make_error_code(dynamic_library_errc::symbol_not_found);
 
         return sym;

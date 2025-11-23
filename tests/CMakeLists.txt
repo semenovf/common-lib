@@ -122,7 +122,7 @@ foreach (name ${TEST_NAMES})
     #       -ftest-coverage (when compiling) and -lgcov (when linking).
     if (PFS__ENABLE_COVERAGE)
         target_compile_options(tests-${name} PRIVATE -g -O0 --coverage)
-        target_link_libraries(tests-${name} PRIVATE -g -O0 --coverage)
+        # target_link_libraries(tests-${name} PRIVATE -g -O0 --coverage)
     endif()
 
     target_link_libraries(tests-${name} PRIVATE pfs::common)

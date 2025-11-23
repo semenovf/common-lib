@@ -25,7 +25,7 @@ PFS__NAMESPACE_BEGIN
 template <typename OctetForwardIterator>
 std::string hexdump (OctetForwardIterator first, OctetForwardIterator last, std::size_t bytes_per_line = 16)
 {
-    constexpr std::size_t offset_field_size = 10;
+    // constexpr std::size_t offset_field_size = 10;
 
     std::size_t offset = 0;
     // std::size_t reserve_line_size = offset_field_size + 4 * bytes_per_line;

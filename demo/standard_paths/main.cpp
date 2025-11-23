@@ -11,7 +11,7 @@
 
 namespace fs = pfs::filesystem;
 
-int main (int argc, char * argv[])
+int main (int /*argc*/, char * /*argv*/[])
 {
     fmt::print("Home folder     : {}\n", fs::standard_paths::home_folder());
     fmt::print("Temp folder     : {}\n", fs::standard_paths::temp_folder());

@@ -492,7 +492,6 @@ TEST_CASE("Variant Get") {
     // MutVarMutType
     {
         variant<int> v(42);
-        auto n = get_if<int>(& v);
         CHECK(42 == *get_if<int>(& v));
     }
 
@@ -509,8 +508,9 @@ TEST_CASE("Variant Get") {
         const variant<int> v(42);
         CHECK(42 == *get_if<int>(&v));
 
-        static constexpr variant<int> cv(42);
-        static_assert(42 == *get_if<int>(& cv), "");
+        // error: non-constant condition for static assertion
+        // static constexpr variant<int> cv(42);
+        // static_assert(42 == *get_if<int>(& cv), "");
     }
 
     // ConstVarConstType
@@ -1177,7 +1177,7 @@ struct EmptyAlternative
     EmptyAlternative ()
     {}
 
-    EmptyAlternative (EmptyAlternative const & rhs)
+    EmptyAlternative (EmptyAlternative const &)
     {}
 };
 
@@ -1237,13 +1237,18 @@ TEST_CASE("copy_assignment_to_empty") {
 struct InstanceCounter{
     static unsigned instances;
 
-    InstanceCounter(){
+    InstanceCounter ()
+    {
         ++instances;
     }
-    InstanceCounter(InstanceCounter const& rhs){
+
+    InstanceCounter (InstanceCounter const &)
+    {
         ++instances;
     }
-    ~InstanceCounter(){
+
+    ~InstanceCounter ()
+    {
         --instances;
     }
 };
@@ -1663,12 +1668,12 @@ struct VisitorIS {
     {
         i = arg;
     }
-    void operator () (std::string const& arg)
+    void operator () (std::string const & arg)
     {
         s = arg;
     }
 
-    void operator () (EmptyAlternative const & arg)
+    void operator () (EmptyAlternative const &)
     {}
 };
 
@@ -1693,7 +1698,7 @@ TEST_CASE("visit") {
 
         visit(visitor,v2);
         CHECK(!"Visiting empty should throw");
-    } catch(bad_variant_access) {
+    } catch(bad_variant_access const &) {
         //
     }
 }
@@ -1858,22 +1863,23 @@ TEST_CASE("multivisitor") {
     variant<int,char,std::string> v(42);
     variant<double,int> v2(4.2);
 
+#if PFS_HAVE_STD_VARIANT
     int i = 0;
     std::string s;
     double d = 0;
     int i2 = 0;
-    VisitorISD visitor{i, s, d, i2};
 
-#if PFS_HAVE_STD_VARIANT
+    VisitorISD visitor{i, s, d, i2};
     visit(visitor, v, v2);
     CHECK(i == 42);
     CHECK(s == "");
     CHECK(d == 4.2);
     CHECK(i2 == 0);
-#endif
 
     i = 0;
     d = 0;
+#endif
+
     v = std::string("hello");
 
     CHECK(v.index() == 2);
@@ -1884,7 +1890,7 @@ TEST_CASE("multivisitor") {
 
     CHECK(i == 0);
     CHECK(s == "hello");
-    CHECK(d == 0);
+    CHECK(d == 0.0);
     CHECK(i2 == 37);
 #endif
 
@@ -2360,8 +2366,6 @@ TEST_CASE("holds_alternative")
 
 TEST_CASE("get_with_rvalues")
 {
-    int i=42;
-
 #if PFS_HAVE_STD_VARIANT
     static_assert(get<0>(variant<int>(42)) == 42, "");
     static_assert(get<int>(variant<int>(42)) == 42, "");

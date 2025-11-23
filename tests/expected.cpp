@@ -212,8 +212,8 @@ TEST_CASE("Assignment deletion") {
         except_move &operator=(const except_move &) = default;
     };
 
-    pfs::expected<except_move, except_move> e3 = {};
-    pfs::expected<except_move, except_move> e4 = {};
+    // pfs::expected<except_move, except_move> e3 = {};
+    // pfs::expected<except_move, except_move> e4 = {};
     // e3 = e4; should not compile
 }
 

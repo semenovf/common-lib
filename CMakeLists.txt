@@ -22,6 +22,7 @@ option(PFS__UNIVERSAL_ID_IMPL_UUIDV7 "Enable UUIDv7 implementation for UUID (def
 option(PFS__FORCE_ULID_STRUCT "Enable ULID struct representation (UUID backend)" OFF)
 option(PFS__ENABLE_NLS "Enable Native Language Support" OFF)
 option(PFS__ENABLE_ICU "Enable `icu` library" OFF)
+option(PFS__ENABLE_AGGRESSIVE_COMPILE_CHECK "Use aggressive check compile options (g++ only)" OFF)
 
 if (PFS__ENABLE_NLS)
     if (MSVC)
@@ -39,7 +40,7 @@ find_package(Threads REQUIRED)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 
-if (DEBBY__BUILD_STRICT)
+if (PFS__BUILD_STRICT)
     if (NOT CMAKE_CXX_STANDARD)
         set(CMAKE_CXX_STANDARD 14)
     endif()
@@ -53,6 +54,14 @@ endif()
 add_library(common INTERFACE)
 add_library(pfs::common ALIAS common)
 target_include_directories(common INTERFACE ${CMAKE_CURRENT_LIST_DIR}/include)
+
+if (PFS__ENABLE_AGGRESSIVE_COMPILE_CHECK)
+    set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_LIST_DIR}/cmake")
+    include(AggressiveCheckOpts)
+    set(_is_sanitize_thread FALSE)
+    aggressive_check_opts(common ${_is_sanitize_thread})
+endif()
+
 target_link_libraries(common INTERFACE Threads::Threads)
 
 # On Windows, Clang is not self-sufficient, and is supposed to be used in combination

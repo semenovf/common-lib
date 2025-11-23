@@ -10,7 +10,7 @@
 #include "pfs/hexdump.hpp"
 #include <cstdlib>
 
-int main (int argc, char * argv[])
+int main (int, char * [])
 {
     std::string s =
         "ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz\t0123456789[]{}=-+()~!@#$%^&*;.,<>/\\\n"
