@@ -66,7 +66,7 @@ struct OracleVal
 {
     State s;
     int i;
-    OracleVal(int i = 0) : s(sValueConstructed), i(i) {}
+    OracleVal(int x = 0) : s(sValueConstructed), i(x) {}
 };
 
 struct Oracle
@@ -107,7 +107,7 @@ struct Date
 {
     int i;
     Date() = delete;
-    Date(int i) : i{i} {};
+    Date(int x) : i{x} {};
     Date(Date&& d) : i(d.i) { d.i = 0; }
     Date(const Date&) = delete;
     Date& operator=(const Date&) = delete;
@@ -161,36 +161,38 @@ TEST_CASE("disengaged_ctor") {
 
 TEST_CASE("value_ctor")
 {
-    OracleVal v;
-    optional<Oracle> oo1(v);
-    CHECK(oo1 != nullopt);
-    CHECK(oo1 != optional<Oracle>{});
-    CHECK(oo1 == optional<Oracle>{v});
-    CHECK(!!oo1);
-    CHECK(bool(oo1));
+    {
+        OracleVal v;
+        optional<Oracle> oo1(v);
+        CHECK(oo1 != nullopt);
+        CHECK(oo1 != optional<Oracle>{});
+        CHECK(oo1 == optional<Oracle>{v});
+        CHECK(!!oo1);
+        CHECK(bool(oo1));
 
 #if PFS_HAVE_STD_OPTIONAL
-    CHECK(oo1->s == sValueCopyConstructed);
+        CHECK(oo1->s == sValueCopyConstructed);
 #else
-    CHECK(oo1->s == sMoveConstructed); // FIXME
+        CHECK(oo1->s == sMoveConstructed); // FIXME
 #endif
 
-    CHECK(v.s == sValueConstructed);
+        CHECK(v.s == sValueConstructed);
 
-    optional<Oracle> oo2(std::move(v));
-    CHECK(oo2 != nullopt);
-    CHECK(oo2 != optional<Oracle>{});
-    CHECK(oo2 == oo1);
-    CHECK(!!oo2);
-    CHECK(bool(oo2));
+        optional<Oracle> oo2(std::move(v));
+        CHECK(oo2 != nullopt);
+        CHECK(oo2 != optional<Oracle>{});
+        CHECK(oo2 == oo1);
+        CHECK(!!oo2);
+        CHECK(bool(oo2));
 
 #if PFS_HAVE_STD_OPTIONAL
-    CHECK(oo2->s == sValueMoveConstructed);
+        CHECK(oo2->s == sValueMoveConstructed);
 #else
-    CHECK(oo2->s == sMoveConstructed); // FIXME
+        CHECK(oo2->s == sMoveConstructed); // FIXME
 #endif
 
-    CHECK(v.s == sMovedFrom);
+        CHECK(v.s == sMovedFrom);
+    }
 
     {
         OracleVal v;
@@ -236,8 +238,8 @@ struct MoveAware
     T val;
     bool moved;
 
-    MoveAware(T val)
-        : val(val)
+    MoveAware(T x)
+        : val(x)
         , moved(false)
     {}
 

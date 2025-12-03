@@ -8,6 +8,7 @@
 //      2021.11.20 Refactored excluding use of external cmake script.
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
+#include "namespace.hpp"
 
 #if (defined(__cplusplus) && __cplusplus >= 201703L             \
         && defined(__has_include) && __has_include(<optional>)) \
@@ -15,7 +16,7 @@
 #   define PFS_HAVE_STD_OPTIONAL 1
 #   include <optional>
 
-    namespace pfs {
+PFS__NAMESPACE_BEGIN
         using std::optional;
         using std::bad_optional_access;
         using std::nullopt_t;
@@ -23,7 +24,7 @@
         using std::make_optional;
         using std::in_place_t;
         using std::in_place;
-    }
+PFS__NAMESPACE_END
 
 #else
 #   ifndef STX_NAMESPACE_NAME

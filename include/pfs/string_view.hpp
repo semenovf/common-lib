@@ -8,6 +8,7 @@
 //      2021.11.20 Refactored excluding use of external cmake script.
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
+#include "namespace.hpp"
 #include <cstring>
 
 #if (defined(__cplusplus) && __cplusplus >= 201703L                \
@@ -17,14 +18,13 @@
 #   define PFS__HAVE_STD_STRING_VIEW 1
 #   include <string>
 #   include <string_view>
-namespace pfs {
+PFS__NAMESPACE_BEGIN
     using string_view = std::string_view;
     using wstring_view = std::wstring_view;
 
     template <typename CharT>
     using basic_string_view = std::basic_string_view<CharT>;
-
-} // namespace pfs
+PFS__NAMESPACE_END
 #else
 #   ifndef STX_NAMESPACE_NAME
 #       define STX_NAMESPACE_NAME pfs
@@ -33,12 +33,12 @@ namespace pfs {
 #   define STX_NO_STD_STRING_VIEW
 #   include "3rdparty/stx/string_view.hpp"
 
-    namespace pfs {
+PFS__NAMESPACE_BEGIN
         // Avoid `undefined reference to `std::basic_string_view<char, std::char_traits<char> >::npos`
         template <typename CharT, typename Traits>
         constexpr typename basic_string_view<CharT, Traits>::size_type
         basic_string_view<CharT, Traits>::npos;
-    } // namespace pfs
+PFS__NAMESPACE_END
 
     using string_view = pfs::string_view;
     using wstring_view = pfs::wstring_view;
@@ -77,7 +77,7 @@ namespace pfs {
     } // namespace std
 #endif
 
-namespace pfs {
+PFS__NAMESPACE_BEGIN
 
 inline std::string to_string (string_view sw)
 {
@@ -155,13 +155,13 @@ inline bool ends_with (string_view const & str, char const * p)
 
 inline bool ends_with (string_view const & str, std::string const & suffix)
 {
-    return str.size() >= suffix.size() 
+    return str.size() >= suffix.size()
         && str.compare(str.size() - suffix.size(), string_view::npos, suffix) == 0;
 }
 
 inline bool ends_with (string_view const & str, string_view const & suffix)
 {
-    return str.size() >= suffix.size() 
+    return str.size() >= suffix.size()
         && str.compare(str.size() - suffix.size(), string_view::npos, suffix) == 0;
 }
 
@@ -179,13 +179,13 @@ inline bool ends_with (wstring_view const & str, wchar_t const * p)
 
 inline bool ends_with (wstring_view const & str, std::wstring const & suffix)
 {
-    return str.size() >= suffix.size() 
+    return str.size() >= suffix.size()
         && str.compare(str.size() - suffix.size(), wstring_view::npos, suffix) == 0;
 }
 
 inline bool ends_with (wstring_view const & str, wstring_view const & suffix)
 {
-    return str.size() >= suffix.size() 
+    return str.size() >= suffix.size()
         && str.compare(str.size() - suffix.size(), wstring_view::npos, suffix) == 0;
 }
 
@@ -232,4 +232,5 @@ inline bool contains (wstring_view const & str, wstring_view const & substr)
 {
     return str.find(substr) != wstring_view::npos;
 }
-} // namespace pfs
+
+PFS__NAMESPACE_END

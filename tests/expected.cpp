@@ -256,6 +256,7 @@ TEST_CASE("Emplace") {
 #define TOKENPASTE2(x, y) TOKENPASTE(x, y)
 #define STATIC_REQUIRE(e)                                                      \
     constexpr bool TOKENPASTE2(rqure, __LINE__) = e;                           \
+    (void)TOKENPASTE2(rqure, __LINE__);                                        \
     REQUIRE(e);
 
 TEST_CASE("Map extensions") {
@@ -263,7 +264,7 @@ TEST_CASE("Map extensions") {
         return a * 2;
     };
 
-    auto ret_void = [](int a) {};
+    auto ret_void = [](int /*a*/) {};
 
     {
         pfs::expected<int, int> e = 21;
@@ -399,7 +400,7 @@ TEST_CASE("Map error extensions") {
     auto mul2 = [](int a) {
         return a * 2;
     };
-    auto ret_void = [](int a) {};
+    auto ret_void = [](int /*a*/) {};
 
     {
         pfs::expected<int, int> e = 21;
@@ -507,10 +508,10 @@ TEST_CASE("Map error extensions") {
 }
 
 TEST_CASE("And then extensions") {
-    auto succeed = [](int a) {
+    auto succeed = [](int /*a*/) {
         return pfs::expected<int, int>(21 * 2);
     };
-    auto fail = [](int a) {
+    auto fail = [](int /*a*/) {
         return pfs::expected<int, int>(pfs::unexpect, 17);
     };
 
@@ -629,13 +630,13 @@ TEST_CASE("And then extensions") {
 
 TEST_CASE("or_else") {
     using eptr = std::unique_ptr<int>;
-    auto succeed = [](int a) {
+    auto succeed = [](int /*a*/) {
         return pfs::expected<int, int>(21 * 2);
     };
-    auto succeedptr = [](eptr e) {
+    auto succeedptr = [](eptr /*e*/) {
         return pfs::expected<int,eptr>(21*2);
     };
-    auto fail =    [](int a) {
+    auto fail =    [](int /*a*/) {
         return pfs::expected<int,int>(pfs::unexpect, 17);
     };
     auto efail =   [](eptr e) {
@@ -645,6 +646,9 @@ TEST_CASE("or_else") {
     auto failptr = [](eptr e) {
         return pfs::expected<int,eptr>(pfs::unexpect, std::move(e));
     };
+
+    (void)failptr;
+
     auto failvoid = [](int) {};
     auto failvoidptr = [](const eptr&) { /* don't consume */};
     auto consumeptr = [](eptr) {};
@@ -864,12 +868,12 @@ TEST_CASE("Observers") {
 }
 
 struct no_throw {
-    no_throw(std::string i) : i(i) {}
+    no_throw(std::string x) : i(x) {}
     std::string i;
 };
 
 struct canthrow_move {
-    canthrow_move(std::string i) : i(i) {}
+    canthrow_move(std::string x) : i(x) {}
     canthrow_move(canthrow_move const &) = default;
     canthrow_move(canthrow_move &&other) noexcept(false) : i(other.i) {}
     canthrow_move &operator=(canthrow_move &&) = default;
@@ -878,7 +882,7 @@ struct canthrow_move {
 
 bool should_throw = false;
 struct willthrow_move {
-    willthrow_move(std::string i) : i(i) {}
+    willthrow_move(std::string x) : i(x) {}
     willthrow_move(willthrow_move const &) = default;
     willthrow_move(willthrow_move &&other) : i(other.i) {
         if (should_throw)

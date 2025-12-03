@@ -55,9 +55,9 @@ private:
         return __poweroften;
     }
 
-    static const uint8_t poweroften_size ()
+    static std::uint8_t poweroften_size ()
     {
-        static const uint8_t __poweroften_size = 18;
+        static const std::uint8_t __poweroften_size = 18;
         return __poweroften_size;
     }
 

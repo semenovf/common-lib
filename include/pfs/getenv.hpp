@@ -18,7 +18,7 @@
 #include <cstdlib>
 #include <cassert>
 
-namespace pfs {
+PFS__NAMESPACE_BEGIN
 
 inline optional<std::string> getenv (char const * name)
 {
@@ -128,5 +128,4 @@ inline optional<std::wstring> wgetenv (std::wstring const & name)
 
 #endif
 
-} // namespace pfs
-
+PFS__NAMESPACE_END

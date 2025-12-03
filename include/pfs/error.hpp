@@ -7,6 +7,7 @@
 //      2021.12.29 Initial version.
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
+#include "namespace.hpp"
 #include "assert.hpp"
 #include <string>
 #include <system_error>
@@ -16,7 +17,7 @@
 #   include "windows.hpp"
 #endif
 
-namespace pfs {
+PFS__NAMESPACE_BEGIN
 
 using error_code = std::error_code;
 
@@ -161,4 +162,4 @@ inline void throw_or (Error * perr, Args &&... args)
     throw err;
 }
 
-} // namespace pfs
+PFS__NAMESPACE_END

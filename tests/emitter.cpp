@@ -35,13 +35,13 @@ namespace t0 {
         check.push_back('b');
     }
 
-    void f (int /*x*/, std::string const & s)
+    void f (int /*x*/, std::string const & /*s*/)
     {
         //std::cout << "t0::f(" << x << ", \"" << s << "\")\n";
         check.push_back('c');
     }
 
-    void benchmark (int /*x*/, std::string const & s) {}
+    void benchmark (int /*x*/, std::string const & /*s*/) {}
 
     class A {
     public:
@@ -63,7 +63,7 @@ namespace t0 {
             check.push_back('C');
         }
 
-        void benchmark (int x, std::string const & s) {}
+        void benchmark (int /*x*/, std::string const & /*s*/) {}
     };
 
     auto lambda0 = [] {
@@ -418,9 +418,9 @@ void benchmark_op ()
 //
 
 // Output on Windows 11 (MSVC 2022)
-// |               ns/op |                op/s |    err% |     total | benchmark 
+// |               ns/op |                op/s |    err% |     total | benchmark
 // |--------------------:|--------------------:|--------:|----------:|:----------
-// |       21,777,500.00 |               45.92 |    1.2% |      0.24 | `direct`   
+// |       21,777,500.00 |               45.92 |    1.2% |      0.24 | `direct`
 // |       21,495,100.00 |               46.52 |    0.4% |      0.24 | `lambda`
 // |       21,584,500.00 |               46.33 |    0.3% |      0.24 | `transient_function`
 // |       22,681,600.00 |               44.09 |    0.8% |      0.25 | `std::function`

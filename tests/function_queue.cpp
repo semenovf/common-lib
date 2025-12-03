@@ -204,13 +204,13 @@ void func1 ()
     ++cons1_counter;
 }
 
-void func2 (int i)
+void func2 (int/* i*/)
 {
     //MESSAGE("func2(" << i << ")");
     ++cons2_counter;
 }
 
-void func3 (int a, char b)
+void func3 (int/* a*/, char /*b*/)
 {
     //MESSAGE("func3(" << a << ", " << b << ")");
     ++cons3_counter;

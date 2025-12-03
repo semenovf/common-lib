@@ -332,17 +332,17 @@ public:
             return;
 
         // Calculate number of bulks to add
-        size_type nbulks = (new_capacity - 1 - capacity()) / bulk_size + 1;
+        size_type bulk_count = (new_capacity - 1 - capacity()) / bulk_size + 1;
 
         if (_size == 0) {
-            for (size_type i = 0; i < nbulks; i++)
+            for (size_type i = 0; i < bulk_count; i++)
                 _bulks.emplace_back();
             _head = begin();
             _tail = end();
         } else {
             // If head is on the left side from tail just add new bulks to the end
             if (_is_head_preceed_tail) {
-                for (size_type i = 0; i < nbulks; i++)
+                for (size_type i = 0; i < bulk_count; i++)
                     _bulks.emplace_back();
             } else {
                 // If head is on the right side from tail
@@ -350,7 +350,7 @@ public:
                 // If head and tail is on different bulks just insert new bulks
                 // before head's bulk
                 if (!_head.current_bulk()->contains_iterator(_tail.base())) {
-                    for (size_type i = 0; i < nbulks; i++)
+                    for (size_type i = 0; i < bulk_count; i++)
                         _bulks.emplace(_head.current_bulk());
                 } else {
                     // If head and tail is on the same bulks insert new bulks
@@ -360,7 +360,7 @@ public:
                     auto first_inserted_bulk = _bulks.emplace(_head.current_bulk());
 
                     // Insert the rest bulks
-                    for (size_type i = 0; i < nbulks - 1; i++)
+                    for (size_type i = 0; i < bulk_count - 1; i++)
                         _bulks.emplace(_head.current_bulk());
 
                     // Get first and last value positions to move
@@ -444,7 +444,7 @@ public:
             if (_head == end())
                 _head = begin();
         }
-        
+
         // NOTE: Exception on Windows
         // NOTE: Success on Linux
         // Destroy last element

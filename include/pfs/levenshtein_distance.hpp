@@ -53,7 +53,7 @@ struct default_equality_comparator
 
 template <typename ForwardIter
     , typename EqualityComparator = default_equality_comparator<pointer_dereference_t<ForwardIter>>>
-typename std::iterator_traits<ForwardIter>::difference_type 
+typename std::iterator_traits<ForwardIter>::difference_type
 levenshtein_distance_wf (ForwardIter xbegin, ForwardIter xend
     , ForwardIter ybegin, ForwardIter yend)
 {
@@ -109,7 +109,7 @@ levenshtein_distance_wf (ForwardIter xbegin, ForwardIter xend
 
 template <typename ForwardIter
     , typename EqualityComparator = default_equality_comparator<pointer_dereference_t<ForwardIter>>>
-typename std::iterator_traits<ForwardIter>::difference_type 
+typename std::iterator_traits<ForwardIter>::difference_type
 levenshtein_distance_fast (ForwardIter xbegin, ForwardIter xend
     , ForwardIter ybegin, ForwardIter yend)
 {
@@ -294,8 +294,6 @@ typename std::iterator_traits<ForwardIter>::difference_type
 levenshtein_distance_myers1999 (ForwardIter xbegin, ForwardIter xend
     , ForwardIter ybegin, ForwardIter yend)
 {
-    using difference_type = typename std::iterator_traits<ForwardIter>::difference_type;
-
     if (xbegin == ybegin && xend == yend)
         return 0;
 
@@ -431,8 +429,6 @@ levenshtein_distance (ForwardIter xbegin, ForwardIter xend
     , ForwardIter ybegin, ForwardIter yend
     , levenshtein_distance_algo algo = levenshtein_distance_algo::fast)
 {
-    using difference_type = typename std::iterator_traits<ForwardIter>::difference_type;
-
     switch (algo) {
         case levenshtein_distance_algo::wagner_fischer:
             return levenshtein_distance_wf<ForwardIter, EqualityComparator>(
@@ -499,7 +495,7 @@ template <typename ForwardIter
     , typename EqualityComparator>
 struct levenshtein_distance_env<ForwardIter, EqualityComparator, levenshtein_distance_algo::fast>
 {
-    inline typename std::iterator_traits<ForwardIter>::difference_type 
+    inline typename std::iterator_traits<ForwardIter>::difference_type
     operator () (ForwardIter xbegin, ForwardIter xend
         , ForwardIter ybegin, ForwardIter yend) const
     {
