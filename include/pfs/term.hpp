@@ -40,7 +40,7 @@ inline bool color_term ()
     return success;
 }
 
-class colorizer
+class colorizer final
 {
     enum class color: std::uint8_t { black, red, green, yellow, blue, purple, cyan, white };
     enum font_style: std::uint8_t {
