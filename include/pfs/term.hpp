@@ -21,14 +21,11 @@
 PFS__NAMESPACE_BEGIN
 namespace term {
 
-#if _MSC_VER
-// Unsupported yet
-#else
-
-// enum class bg_color_code { black = 40, red, green, yellow, blue, purple, cyan, white };
-
 inline bool color_term ()
 {
+#if _MSC_VER
+    return false; // Unsupported yet
+#else
     auto term_env = pfs::getenv("TERM");
     auto success = term_env && (term_env->find("256") != std::string::npos);
 
@@ -38,6 +35,7 @@ inline bool color_term ()
     }
 
     return success;
+#endif
 }
 
 class colorizer final
@@ -51,6 +49,9 @@ class colorizer final
         , strike_style = 1 << 4
     };
 
+#if _MSC_VER
+    // Unsupported yet
+#else
     static constexpr int base_regular_color = 30;
     static constexpr int base_bright_color = 90;
     static constexpr char regular_flag   = '0';
@@ -58,12 +59,17 @@ class colorizer final
     static constexpr char italic_flag    = '3';
     static constexpr char underline_flag = '4';
     static constexpr char strike_flag    = '9';
+#endif
 
 private:
     bool _is_color_term {false};
     color _color {color::black};
-    int _color_base {base_regular_color};
     std::uint8_t _font_style {font_style::regular_style};
+
+#if _MSC_VER
+#else
+    int _color_base{base_regular_color};
+#endif
 
 public:
     colorizer (bool is_color_term = color_term())
@@ -85,7 +91,10 @@ public:
      */
     colorizer & bright ()
     {
+#if _MSC_VER
+#else
         _color_base = base_bright_color;
+#endif
         return *this;
     }
 
@@ -130,6 +139,10 @@ public:
 
     std::string style () const
     {
+#if _MSC_VER
+        // Unsupported yet
+        return std::string{};
+#else
         if (!_is_color_term)
             return std::string{};
 
@@ -181,6 +194,7 @@ public:
 
         result.append(prefix);
         return result;
+#endif
     }
 
     /**
@@ -201,9 +215,11 @@ public:
         std::string result {style()};
         result.append(s.data(), s.size());
 
+#if _MSC_VER
+#else
         if (_is_color_term)
             result.append("\x1b[0m", 4); // Reset sequence
-
+#endif
         return result;
     }
 
@@ -213,19 +229,23 @@ public:
      */
     static void reset ()
     {
+#if _MSC_VER
+#else
         std::printf("\x1b[0m");
+#endif
     }
 
 private:
     colorizer & reset (color c)
     {
+#if _MSC_VER
+#else
         _color_base = base_regular_color;
+#endif
         _color = c;
         return regular();
     }
 };
-
-#endif
 
 } //namespace term
 PFS__NAMESPACE_END
