@@ -119,6 +119,27 @@ public:
     {
         return _m.at(row).count();
     }
+
+    bool operator == (bitmatrix const & other) const
+    {
+        auto dim_equals = row_size() == other.row_size()
+            && column_size() == other.column_size();
+
+        if (!dim_equals)
+            return false;
+
+        for (std::size_t i = 0; i < Rows; i++) {
+            if (_m[i] != other._m[i])
+                return false;
+        }
+
+        return true;
+    }
+
+    bool operator != (bitmatrix const & other) const
+    {
+        return !this->operator == (other);
+    }
 };
 
 PFS__NAMESPACE_END
