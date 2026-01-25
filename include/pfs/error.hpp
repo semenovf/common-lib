@@ -46,7 +46,7 @@ public:
                 return std::string{"no error"};
 
             case errc::unclassified_error:
-                return std::string{"unclassified error"};
+                return std::string{""};
 
             case errc::system_error:
                 return std::string{"system error"};
