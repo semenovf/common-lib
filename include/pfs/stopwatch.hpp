@@ -43,11 +43,24 @@ public:
         return duration_cast<duration_type>(_end - _begin).count();
     }
 
+    inline duration_type duration () const
+    {
+        using namespace std::chrono;
+        return duration_cast<duration_type>(_end - _begin);
+    }
+
     inline rep current_count () const
     {
         using namespace std::chrono;
         return duration_cast<duration_type>(std::chrono::high_resolution_clock::now() - _begin).count();
     }
+
+    inline duration_type current_duration () const
+    {
+        using namespace std::chrono;
+        return duration_cast<duration_type>(std::chrono::high_resolution_clock::now() - _begin);
+    }
+
 };
 
 } // namespace pfs

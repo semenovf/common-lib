@@ -85,14 +85,10 @@ public: // static
         return digest(reinterpret_cast<std::uint8_t const *>(src.data()), src.size());
     }
 
-    static inline sha256_digest digest (std::istream & is, std::error_code & ec) noexcept
+    static sha256_digest digest (std::istream & is, std::size_t bufsz, std::error_code & ec) noexcept
     {
-        //return details::sha256::digest(is, ec);
-        constexpr std::size_t kBUFSZ = 256;
-        std::vector<std::uint8_t> buffer(kBUFSZ);
-
         sha256 hash;
-
+        std::vector<std::uint8_t> buffer(bufsz);
         auto saved_exceptions = is.exceptions();
 
         try {
@@ -116,8 +112,14 @@ public: // static
             return sha256_digest{};
         }
 
+        is.clear(); // Need to clear any existing error flags first otherwise bellow call throws an exception
         is.exceptions(saved_exceptions);
         return hash.digest();
+    }
+
+    static inline sha256_digest digest (std::istream & is, std::error_code & ec) noexcept
+    {
+        return digest(is, 4096, ec);
     }
 
     /**
@@ -143,13 +145,26 @@ public: // static
             return sha256_digest{};
         }
 
-        std::ifstream ifs{pfs::utf8_encode_path(path), std::ios::binary};
+        std::ifstream ifs;
+        ifs.exceptions(std::ios::failbit | std::ios::badbit);
+
+        try {
+            ifs.open(pfs::utf8_encode_path(path), std::ios::binary);
+        } catch (std::ios_base::failure ex) {
+            ec = ex.code();
+            return sha256_digest{};
+        } catch (...) {
+            ec = make_error_code(errc::unexpected_error);
+            return sha256_digest{};
+        }
+
         return digest(ifs, ec);
     }
 
     /**
      * @throws error{std::errc::no_such_file_or_directory}.
      * @throws error{std::ios_base::failure}.
+     * @throws error{pfs::errc::unexpected_error} on other failures.
      */
     static sha256_digest digest (filesystem::path const & path)
     {
